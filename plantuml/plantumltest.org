@@ -1,0 +1,179 @@
+#+TITLE:     plantumltest.org
+#+AUTHOR:    Derek Feichtinger
+#+EMAIL:     dfeich@dflt1w
+#+DATE:      2012-11-18 Sun
+#+DESCRIPTION:
+#+KEYWORDS:
+#+LANGUAGE:  en
+#+OPTIONS:   H:3 num:t toc:t \n:nil @:t ::t |:t ^:t -:t f:t *:t <:t
+#+OPTIONS:   TeX:t LaTeX:t skip:nil d:nil todo:t pri:nil tags:not-in-toc
+#+INFOJS_OPT: view:nil toc:nil ltoc:t mouse:underline buttons:0 path:http://orgmode.org/org-info.js
+#+EXPORT_SELECT_TAGS: export
+#+EXPORT_EXCLUDE_TAGS: noexport
+#+LINK_UP:   
+#+LINK_HOME: 
+#+XSLT:
+
+
+* Test
+#+BEGIN_SRC plantuml :file testfile.png :exports both
+  Alice -> Bob: Authentication Request
+  Bob --> Alice: Authentication Response
+  John --> Alice: another Authentication Request
+  Alice --> John: another Authentication Response
+#+END_SRC
+
+#+RESULTS:
+[[file:testfile.png]]
+
+
+#+BEGIN_SRC plantuml :file testfile-seq2.png
+skin BlueModern
+title Example Sequence Diagram
+activate Client
+Client -> Server: Session Initiation
+note right: Client requests new session
+activate Server
+Client <-- Server: Authorization Request
+note left: Server requires authentication
+Client -> Server: Authorization Response
+note right: Client provides authentication details
+Server --> Client: Session Token
+note left: Session established
+deactivate Server
+Client -> Client: Saves token
+deactivate Client
+#+END_SRC
+
+#+RESULTS:
+[[file:testfile-seq2.png]]
+
+
+
+#+BEGIN_SRC plantuml :file testfile-activity1.png
+title Example Activity Diagram
+note right: Example Function
+(*)--> "Step 1"
+--> "Step 2"
+-> "Step 3"
+--> "Step 4"
+--> === STARTLOOP ===
+note top: For each element in the array
+if "Are we done?" then
+  -> [no] "Do this"
+  -> "Do that"
+  note bottom: Important note\ngoes here
+  -up-> "Increment counters"
+  --> === STARTLOOP ===
+else
+  --> [yes] === ENDLOOP ===
+endif
+--> "Last Step"
+--> (*)
+#+END_SRC
+
+#+RESULTS:
+[[file:testfile-activity1.png]]
+
+
+#+BEGIN_SRC plantuml :file testfile-activity2.png
+title Servlet Container
+
+(*) --> "ClickServlet.handleRequest()"
+--> "new Page"
+
+if "Page.onSecurityCheck" then
+  ->[true] "Page.onInit()"
+  
+  if "isForward?" then
+   ->[no] "Process controls"
+   
+   if "continue processing?" then
+     -->[yes] ===RENDERING===
+   else
+     -->[no] ===REDIRECT_CHECK===
+   endif
+   
+  else
+   -->[yes] ===RENDERING===
+  endif
+  
+  if "is Post?" then
+    -->[yes] "Page.onPost()"
+    --> "Page.onRender()" as render
+    --> ===REDIRECT_CHECK===
+  else
+    -->[no] "Page.onGet()"
+    --> render
+  endif
+  
+else
+  -->[false] ===REDIRECT_CHECK===
+endif
+
+if "Do redirect?" then
+ ->[yes] "redirect request"
+ --> ==BEFORE_DESTROY===
+else
+ if "Do Forward?" then
+  -left->[yes] "Forward request"
+  --> ==BEFORE_DESTROY===
+ else
+  -right->[no] "Render page template"
+  --> ==BEFORE_DESTROY===
+ endif
+endif
+
+--> "Page.onDestroy()"
+-->(*)
+#+END_SRC
+
+#+RESULTS:
+[[file:testfile-activity2.png]]
+
+#+BEGIN_SRC plantuml :file testfile2.png
+skin BlueModern
+
+actor User
+participant "First Class" as A
+participant "Second Class" as B
+participant "Last Class" as C
+
+
+User -> A: DoWork
+activate A
+
+A -> B: << createRequest >>
+activate B
+
+B -> C: DoWork
+activate C
+C ==> B: WorkDone
+destroy C
+
+B ==> A: Request <u>Created</u>
+deactivate B
+
+A ==> User: Done
+deactivate A
+#+END_SRC
+
+#+RESULTS:
+[[file:testfile2.png]]
+
+
+#+BEGIN_SRC plantuml :file testfile3.png
+left to right direction
+actor remoteUser
+actor service
+rectangle Gateway {
+  remoteUser -- (connect camera)
+  (connect camera) -- service
+  remoteUser -- (console)
+  (console) -- service
+}
+#+END_SRC
+
+#+RESULTS:
+[[file:testfile3.png]]
+
