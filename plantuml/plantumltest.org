@@ -14,6 +14,7 @@
 #+LINK_HOME: 
 #+XSLT:
 
+Note: One can display inline images with org-toggle-inline-images (C-c C-x C-v)
 
 * Test
 #+BEGIN_SRC plantuml :file testfile.png :exports both
