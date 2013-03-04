@@ -1,0 +1,63 @@
+
+* test1
+  #+BEGIN_SRC ditaa :file ditaatest1.png :cmdline -r -s 0.8
+    
+    +----------------------+         +------------------+----+
+    | This is a box   |    +---------+  and this is     |    |
+    |                 |    |         |  another         |    |
+    |                 |    |         |                  |    |
+    |                 |    |         |                  |    |
+    +-------+--------------+         +------------------+----+
+            |
+            |
+            |           +------------------------------+
+            |           |                              |
+            |           |                              |
+            +-----------+                              |
+                        |                              |
+                        |                              |
+                        +------------------------------+
+    
+    
+    
+    
+    
+  #+END_SRC
+
+  #+RESULTS:
+  [[file:some_filename.png]]
+
+* test2
+  Example from http://doc.norang.ca/org-mode.html#playingwithditaa
+
+#+BEGIN_SRC ditaa :file ditaatest2.png :cmdline -r -s 0.8
+    +-----------+        +---------+  
+    |    PLC    |        |         |                
+    |  Network  +<------>+   PLC   +<---=---------+ 
+    |    cRED   |        |  c707   |              | 
+    +-----------+        +----+----+              | 
+                              ^                   | 
+                              |                   | 
+                              |  +----------------|-----------------+
+                              |  |                |                 |
+                              v  v                v                 v
+      +----------+       +----+--+--+      +-------+---+      +-----+-----+       Windows clients
+      |          |       |          |      |           |      |           |      +----+      +----+
+      | Database +<----->+  Shared  +<---->+ Executive +<-=-->+ Operator  +<---->|cYEL| . . .|cYEL|
+      |   c707   |       |  Memory  |      |   c707    |      | Server    |      |    |      |    |
+      +--+----+--+       |{d} cGRE  |      +------+----+      |   c707    |      +----+      +----+
+         ^    ^          +----------+             ^           +-------+---+
+         |    |                                   |                        
+         |    +--------=--------------------------+                    
+         v                                                             
++--------+--------+                                                         
+|                 |                                                         
+| Millwide System |            -------- Data ---------                      
+| cBLU            |            --=----- Signals ---=--                      
++-----------------+                                                         
+
+#+END_SRC
+
+#+RESULTS:
+[[file:ditaatest2.png]]
+
