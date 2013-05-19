@@ -138,7 +138,7 @@
    - For each remote user a @mobile phone number@ must be supplied
    - have users make a connectivity test to balrog and the gateway
    - remote users can change their password using *cpw.psi.ch*
-     #+BEGIN_SRC shell
+     #+BEGIN_SRC sh
      ssh ext-user@cpw.psi.ch
      #+END_SRC
 
