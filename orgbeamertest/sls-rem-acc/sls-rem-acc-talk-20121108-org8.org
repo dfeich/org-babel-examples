@@ -1,0 +1,192 @@
+#+TITLE:     Remote Control Access for SLS Beamlines \newline State Nov 2012
+#+AUTHOR:    Derek FeichtingerAIT/Scientific computing
+#+EMAIL:     derek.feichtinger@psi.ch
+#+DATE:      2012-11-08
+#+DESCRIPTION:
+#+KEYWORDS:
+#+LANGUAGE:  en
+#+OPTIONS:   H:2 num:t toc:t \n:nil @:t ::t |:t ^:{} -:t f:t *:t <:t
+#+OPTIONS:   TeX:t skip:nil d:nil todo:t pri:nil tags:not-in-toc
+#+BEAMER_COLOR_THEME:
+#+BEAMER_FONT_THEME:
+#+BEAMER_HEADER:
+#+BEAMER_INNER_THEME:
+#+BEAMER_OUTER_THEME:
+#+BEAMER_THEME: JuanLesPins
+#+LATEX_CLASS: beamer
+#+LATEX_HEADER:
+#+LATEX_HEADER_EXTRA:
+#+COLUMNS: %20ITEM %13BEAMER_env(Env) %6BEAMER_envargs(Args) %4BEAMER_col(Col) %7BEAMER_extra(Extra)
+
+#+begin_latex
+\definecolor{links}{HTML}{2A1B81}
+\hypersetup{colorlinks,linkcolor=,urlcolor=links}
+#+end_latex
+
+* Introduction
+** Basic Requisites
+*** Requirement 					   :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
+    PSI external users must connect from outside using *personal accounts*
+*** account properties 					    :B_ignoreheading:
+    - no group accounts, e-accounts, etc. are permissible
+    :PROPERTIES:
+    :BEAMER_env: ignoreheading
+    :END:
+    - External users need /PSI external user accounts/
+    - a PSI external user account is just a normal PSI Active
+      Directory account with minimal permission settings
+    - follows the naming convention *ext-${username}*
+    - Users who already have a normal personal PSI account do not need a new account 
+
+** Basic Idea
+   - Users connect through a *SSH gateway machine* where they need to
+     authenticate personally
+   - The gateway machine allows setting up *SSH tunnels* to the SLS
+     target systems (consoles, cameras, etc)
+   - The targets a user can tunnel to depends on his membership in
+     *remote access groups* (e.g. /svc-ra\_x10sa/ for x10SA beamline access)
+   - These group memberships are implemented in AD and can be
+     managed by DUO and other tools
+
+** Remote Control Access: Current setup
+   [[./figures/sls-remote-ops-df1-201211.png]]
+
+** Remote Control Access: Targeted setup
+   [[./figures/sls-remote-ops-df1.png]]
+
+* External user's view
+
+** external user's actions 1
+*** connect to balrog (regrettably still)			    :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
+       #+BEGIN_SRC shell
+       $> ssh ext-someuser@balrog.psi.ch
+       #+END_SRC
+*** set up the SSH tunnels 					    :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
+       \normalsize
+       #+BEGIN_SRC shell
+       $> ssh -L 10000:console.psi.ch:22
+              -L 10001:camera.psi.ch:80
+                        ext-someuser@mx-xl-3.psi.ch
+
+       Use 'q' to exit, '?' for help
+       redirection permissions: x06sa x06da x10sa
+       $>
+       #+END_SRC 
+*** comment 						    :B_ignoreheading:
+    :PROPERTIES:
+    :BEAMER_env: ignoreheading
+    :END:
+    The user is entered in a control session (like on balrog)
+** external user's actions 2
+   Now, in another shell session, the user connects through the
+   /locally forwarded ports/ to the targets (this is best given to
+   the user as a ready made script)
+*** Example for ssh access to console				    :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
+    #+BEGIN_SRC shell 
+    $> ssh -p 10000 e13688@localhost
+           -o NoHostAuthenticationForLocalhost=yes           
+    #+END_SRC
+*** Comment						    :B_ignoreheading:
+    Note that we used the *eaccount* for the console connection
+    :PROPERTIES:
+    :BEAMER_env: ignoreheading
+    :END:
+*** Example for connecting browser to camera			    :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
+    #+BEGIN_SRC shell
+    $> firefox http://localhost:10001/camera-url.php    
+    #+END_SRC
+
+** Graphics redirection through NX
+   - PX bought commercial *NX* licenses from /Nomachine/
+   - NX works over an SSH connection
+   - NX offers efficient remote usage of X Desktops/GUIs
+     - full X Window redirection by compressing and optimizing the X
+       protocol's message exchanges
+     - watching a high framerate high resolution movie is not a good
+       use case. (\rightarrow Better use a separate tunnel to a camera
+       server)
+   - The commercial *NX* version also features modes for *multiple users
+     working on the same X session* (/shadowing/), so a beamline
+     technician can assist a user interactively from at home.
+
+* Beamline manager's view
+
+** beamline manager: X days before beamtime
+   - make sure that users have AD external accounts. Use DUO's *Remote
+     Access/Accounts* screen for this
+   [[./figures/duo-remacc-menu.png]]
+   - use DUO to map each user's DUO account to the matching ext account
+   [[./figures/duo-accountmatching.png]]
+
+** beamline manager: obtaining users' remote accounts
+   - You order the personal external accounts for your users from
+     [[https://ait.web.psi.ch/help/remote/users/sls.html]]
+   - the PSI employee ordering the account is considered the *supervisor*
+   - For each remote user a @mobile phone number@ must be supplied
+   - have users make a connectivity test to balrog and the gateway
+   - remote users can change their password using *cpw.psi.ch*
+     #+BEGIN_SRC sh
+     ssh ext-user@cpw.psi.ch
+     #+END_SRC
+
+** beamline manager: just before beamtime
+   - use DUO's *Remote Account/Switchboard* to add the users to the
+     correct access groups for your beamline
+   [[./figures/duo-accessgroups.png]]
+** beamline manager: after beamtime
+   use DUO's *Remote Account/Switchboard* to remove the users
+   from the access groups
+   - this will prevent a user from establishing new tunnels through
+     the gateway
+   [[./figures/duo-accessgroups2.png]]
+** Retrieval of data by the remote users
+   /Leonardo Sala/ is currently building up a prototype service
+   for *efficient data transfers*.
+     - First tests will be run with PX customers *this month* (Nov).
+     - We hope to be able and offer a first implementation of the
+       service *by end of this year*.
+
+* How to get your beamline remote-access enabled
+
+** Steps for enabling your beamline
+   - get in touch with me (/derek.feichtinger@psi.ch/) and provide
+     the following information
+     1. Beamline name
+     2. All host:port destinations that must be reachable through the tunnels
+   - If desired, install NX.
+     - We can do a test install together
+     - you will need to buy an appropriate license.
+     - The beamline is responsible for maintaining the console's
+       NX installation
+
+* Conclusion
+
+** Conclusion
+
+*** Text						    :B_ignoreheading:
+    :PROPERTIES:
+    :BEAMER_env: ignoreheading
+    :END:
+    - We can offer a secure gateway service to allow remote user access to beamline hosts
+    - What is missing in functionality
+      - ordering the ext-accounts through DUO
+      - PSI firewall adapting automatically to the DUO list of source
+        addresses supplied by the users
+      - this makes going through balrog unnecessary and will increase
+	efficiency
+      - independent test server for connection efficiency testing 

@@ -1,0 +1,238 @@
+#+TITLE: python org-babel exporting
+#+DATE: <2013-07-10 Wed>
+#+AUTHOR: Derek Feichtinger
+#+EMAIL: derek.feichtinger@psi.ch
+#+OPTIONS: ':nil *:t -:t ::t <:t H:3 \n:nil ^:t arch:headline
+#+OPTIONS: author:t c:nil creator:comment d:(not LOGBOOK) date:t e:t
+#+OPTIONS: email:nil f:t inline:t num:t p:nil pri:nil stat:t tags:t
+#+OPTIONS: tasks:t tex:t timestamp:t toc:t todo:t |:t
+#+CREATOR: Emacs 24.3.1 (Org mode 8.0.5)
+#+DESCRIPTION:
+#+EXCLUDE_TAGS: noexport
+#+KEYWORDS:
+#+LANGUAGE: en
+#+SELECT_TAGS: export
+
+* Links and Documentation
+  - http://orgmode.org/worg/org-contrib/babel/languages/ob-doc-python.html
+
+* Generating a table
+
+  #+BEGIN_SRC python :exports both :results value table
+x = range(1,10)
+y = [xe*3 for xe in x]
+return [x,y]
+  #+END_SRC
+
+  #+RESULTS:
+  | 1 | 2 | 3 |  4 |  5 |  6 |  7 |  8 |  9 |
+  | 3 | 6 | 9 | 12 | 15 | 18 | 21 | 24 | 27 |
+
+
+  #+BEGIN_SRC python :exports both :results value table
+import numpy as np
+
+x = range(1,10)
+y = [xe*3 for xe in x]
+return np.array([x,y]).transpose()
+  #+END_SRC
+
+  #+RESULTS:
+  | 1 |  3 |
+  | 2 |  6 |
+  | 3 |  9 |
+  | 4 | 12 |
+  | 5 | 15 |
+  | 6 | 18 |
+  | 7 | 21 |
+  | 8 | 24 |
+  | 9 | 27 |
+
+* Matplotlib
+** plotting of simple graph
+#+begin_src python :results file :exports both
+import matplotlib, numpy
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+fig=plt.figure(figsize=(4,2))
+x=numpy.linspace(-15,15)
+plt.plot(numpy.sin(x)/x)
+fig.tight_layout()
+plt.savefig('python-matplot-fig.png')
+return 'python-matplot-fig.png' # return filename to org-mode
+#+end_src
+
+#+RESULTS:
+[[file:python-matplot-fig.png]]
+
+** Plotting from a table
+
+The table is passed to python as a list
+
+#+TBLNAME: table1
+| x |  y |
+|---+----|
+| 1 |  1 |
+| 2 |  4 |
+| 3 |  9 |
+| 4 | 16 |
+| 5 | 25 |
+| 6 | 36 |
+| 7 | 49 |
+#+TBLFM: @2$2..@>$2=$1*$1::@3$1..@>$1=@-1 + 1
+
+#+begin_src python :results file :var data=table1 :exports both
+import matplotlib
+import numpy as np
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
+fname='python-matplot-fig2.png'
+ar = np.array(data).transpose()
+fig=plt.figure(figsize=(4,2))
+plt.plot(ar[0],ar[1])
+plt.title('Square function')
+fig.tight_layout()
+plt.savefig(fname)
+return fname # return filename to org-mode
+#+end_src
+
+#+RESULTS:
+[[file:python-matplot-fig2.png]]
+
+* Pandas
+** printing a data frame as a table
+   In order to get a nice org table, it is necessary to pass the
+   frame's contents back as a list. The column names end up as the
+   first row in the table. I cut this row away by using the [1:]
+   slice.
+
+   It would probably be nicer to create a special function that formats the
+   data frame nicely for org, e.g. with a title row separated by a line
+
+  #+BEGIN_SRC python :results value
+import pandas as pd
+import numpy as np
+
+df = pd.DataFrame({'A' : ['one', 'one', 'two', 'three'] * 3,
+                 'B' : ['A', 'B', 'C'] * 4,
+                 'C' : ['foo', 'foo', 'foo', 'bar', 'bar', 'bar'] * 2,
+                 'D' : np.random.randn(12),
+                 'E' : np.random.randn(12)})
+
+return(np.array(list(df.T.itertuples())).transpose()[1:])
+  
+  #+END_SRC
+
+  #+RESULTS:
+  | one   | A | foo |  0.981776711429 |  -0.534625693058 |
+  | one   | B | foo | -0.159957563492 |  -0.392953467727 |
+  | two   | C | foo |   1.12441514786 |   0.817269438693 |
+  | three | A | bar |  0.813052653156 |  -0.473085065762 |
+  | one   | B | bar | -0.583659520634 |  -0.857212338808 |
+  | one   | C | bar | -0.840929237602 |  -0.301470368398 |
+  | two   | A | foo |  0.307810394289 | -0.0189981764743 |
+  | three | B | foo |  -1.15280701714 |   -0.11100650077 |
+  | one   | C | foo |   2.20243222838 |    1.62594729903 |
+  | one   | A | bar |  0.720231427818 |   0.331966624854 |
+  | two   | B | bar |  -1.10871874995 |   0.751684918224 |
+  | three | C | bar |  0.694152344696 |    0.47717428871 |
+
+** plotting a data frame
+#+TBLNAME: table2
+| x |  y |
+|---+----|
+| 1 |  1 |
+| 2 |  4 |
+| 3 |  9 |
+| 4 | 16 |
+| 5 | 25 |
+| 6 | 36 |
+| 7 | 49 |
+#+TBLFM: @2$2..@>$2=$1*$1::@3$1..@>$1=@-1 + 1
+
+  #+BEGIN_SRC python :results file :var data=table2 :exports both
+import matplotlib
+import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
+matplotlib.use('Agg')
+
+fname='python-matplot-fig3.png'
+df = pd.DataFrame(data)
+df.columns = ['x','y']
+df['z'] = df['x'] * 3
+
+#return(np.array(list(df.T.itertuples())).transpose()[1:])
+
+df.plot(figsize=(4,2))
+plt.savefig(fname)
+return fname
+  #+END_SRC
+
+  #+RESULTS:
+  [[file:python-matplot-fig3.png]]
+
+** time series resampling
+
+  Let's say we are taking measurements twice a day, every 12h.
+  #+BEGIN_SRC python :results valuey :exports both
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+ts = pd.date_range('2013-07-01 06:00:00', periods=20, freq='12h')
+val = [x * 10.0 for x in range(len(ts))]
+
+tdf = pd.DataFrame({'value': val}, index=ts)
+# Now we put one observation as invalid
+tdf.value[14] = np.NaN
+# and we delete another one
+#tdf = tdf.drop(tdf.index[2])
+tdf = tdf.drop(tdf.index[6:8])
+
+newdf = tdf.resample('1D', loffset='6h',how='min').rename(columns={'value': '1D_resample'})
+newdf['diff'] = newdf.diff()
+
+return pd.concat([tdf,newdf], join='inner',axis=1)
+
+  #+END_SRC
+
+  #+RESULTS:
+  #+begin_example
+  value  1D_resample  diff
+  2013-07-01 06:00:00      0            0   NaN
+  2013-07-02 06:00:00     20           20    20
+  2013-07-03 06:00:00     40           40    20
+  2013-07-05 06:00:00     80           80   NaN
+  2013-07-06 06:00:00    100          100    20
+  2013-07-07 06:00:00    120          120    20
+  2013-07-08 06:00:00    NaN          150    30
+  2013-07-09 06:00:00    160          160    10
+  2013-07-10 06:00:00    180          180    20
+#+end_example
+
+
+* COMMENT Environment setup and test
+  #+BEGIN_SRC python :exports both :results value
+import sys
+import pandas
+return(sys.executable)
+
+  #+END_SRC
+
+  #+RESULTS:
+  : /home/dfeich/py-virtualenv/notebook/bin/python
+
+These definitions are necessary for having babel use the correct
+virtual environment
+
+python-shell-virtualenv-path affects sessions via the run-python function
+org-babel-python-command affects non-session src blocks
+
+Local Variables:
+python-shell-virtualenv-path: "/home/dfeich/py-virtualenv/notebook"
+org-babel-python-command: "/home/dfeich/py-virtualenv/notebook/bin/python"
+org-confirm-babel-evaluate: nil
+End:
+
