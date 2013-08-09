@@ -1,0 +1,25 @@
+#+TITLE: calc examples
+#+DATE: <2013-08-09 Fri>
+#+AUTHOR: Derek Feichtinger
+#+EMAIL: derek.feichtinger@psi.ch
+#+OPTIONS: ':nil *:t -:t ::t <:t H:3 \n:nil ^:t arch:headline
+#+OPTIONS: author:t c:nil creator:comment d:(not LOGBOOK) date:t e:t
+#+OPTIONS: email:nil f:t inline:t num:t p:nil pri:nil stat:t tags:t
+#+OPTIONS: tasks:t tex:t timestamp:t toc:t todo:t |:t
+#+CREATOR: Emacs 24.3.1 (Org mode 8.0.7)
+#+DESCRIPTION:
+#+EXCLUDE_TAGS: noexport
+#+KEYWORDS:
+#+LANGUAGE: en
+#+SELECT_TAGS: export
+
+* General
+  - Note that, unlike in usual computer notation, multiplication binds
+    more strongly than division: `a*b/c*d' is equivalent to
+    `(a*b)/(c*d)'
+
+* Functions for formulas
+  - [[info:calc#Formulas]]
+  - factorial: $6! => 720 $   also fact(6) can be used in writing
+  - power: $pow(2, 3) => 8 $   $2^3 => 8 $
+  - modulo: $mod(10, 3) => 1$  $10 % 3 => 1 $
