@@ -1,0 +1,68 @@
+#+TITLE: shell-babel
+#+DATE: <2013-08-31 Sat>
+#+AUTHOR: Derek Feichtinger
+#+EMAIL: derek.feichtinger@psi.ch
+#+OPTIONS: ':nil *:t -:t ::t <:t H:3 \n:nil ^:t arch:headline
+#+OPTIONS: author:t c:nil creator:comment d:(not LOGBOOK) date:t e:t
+#+OPTIONS: email:nil f:t inline:t num:t p:nil pri:nil stat:t tags:t
+#+OPTIONS: tasks:t tex:t timestamp:t toc:t todo:t |:t
+#+CREATOR: Emacs 24.3.1 (Org mode 8.0.7)
+#+DESCRIPTION:
+#+EXCLUDE_TAGS: noexport
+#+KEYWORDS:
+#+LANGUAGE: en
+#+SELECT_TAGS: export
+
+* using a table as input
+
+  We first create a table from a lisp list of lists. Since my final result table
+  should contain three colums, I already insert a header row with the names for
+  the three columns.
+  #+BEGIN_SRC emacs-lisp :results value :exports both
+    (cons '(col1 col2 col3)
+          (loop for i from 5 to 15 collect `(,i ,(* i 5))))
+  #+END_SRC
+
+  #+TBLNAME: table1
+  #+RESULTS:
+  | col1 | col2 | col3 |
+  |    5 |   25 |      |
+  |    6 |   30 |      |
+  |    7 |   35 |      |
+  |    8 |   40 |      |
+  |    9 |   45 |      |
+  |   10 |   50 |      |
+  |   11 |   55 |      |
+  |   12 |   60 |      |
+  |   13 |   65 |      |
+  |   14 |   70 |      |
+  |   15 |   75 |      |
+
+
+  #+BEGIN_SRC sh :results value :var tbl=table1 :colnames yes
+    while read a b rest; do
+        echo $a $b $((b*2))
+    done < <(echo "$tbl")
+    
+  #+END_SRC
+
+  #+RESULTS:
+  | col1 | col2 | col3 |
+  |------+------+------|
+  |    5 |   25 |   50 |
+  |    6 |   30 |   60 |
+  |    7 |   35 |   70 |
+  |    8 |   40 |   80 |
+  |    9 |   45 |   90 |
+  |   10 |   50 |  100 |
+  |   11 |   55 |  110 |
+  |   12 |   60 |  120 |
+  |   13 |   65 |  130 |
+  |   14 |   70 |  140 |
+  |   15 |   75 |  150 |
+
+* COMMENT babel settings
+  
+  Local Variables:
+  org-babel-sh-command: "/bin/bash"
+  End:

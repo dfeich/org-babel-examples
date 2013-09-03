@@ -1,0 +1,80 @@
+#+TITLE: lisp-babel
+#+DATE: <2013-08-31 Sat>
+#+AUTHOR: Derek Feichtinger
+#+EMAIL: derek.feichtinger@psi.ch
+#+OPTIONS: ':nil *:t -:t ::t <:t H:3 \n:nil ^:t arch:headline
+#+OPTIONS: author:t c:nil creator:comment d:(not LOGBOOK) date:t e:t
+#+OPTIONS: email:nil f:t inline:t num:t p:nil pri:nil stat:t tags:t
+#+OPTIONS: tasks:t tex:t timestamp:t toc:t todo:t |:t
+#+CREATOR: Emacs 24.3.1 (Org mode 8.0.7)
+#+DESCRIPTION:
+#+EXCLUDE_TAGS: noexport
+#+KEYWORDS:
+#+LANGUAGE: en
+#+SELECT_TAGS: export
+
+
+* using a table as input
+
+  We first create a table from a lisp list of lists. Since my final result table
+  should contain three colums, I already insert a header row with the names for
+  the three columns.
+
+  #+NAME: make-table1
+  #+BEGIN_SRC emacs-lisp :results value :exports both
+    (cons '(col1 col2 col3)
+          (loop for i from 5 to 15 collect `(,i ,(* i 5))))
+  #+END_SRC
+
+  #+TBLNAME: table1
+  #+RESULTS: make-table1
+  | col1 | col2 | col3 |
+  |    5 |   25 |      |
+  |    6 |   30 |      |
+  |    7 |   35 |      |
+  |    8 |   40 |      |
+  |    9 |   45 |      |
+  |   10 |   50 |      |
+  |   11 |   55 |      |
+  |   12 |   60 |      |
+  |   13 |   65 |      |
+  |   14 |   70 |      |
+  |   15 |   75 |      |
+
+
+  We now can fill the third column by passing the table into the next
+  source block.  We force babel to treat the first row as table header
+  by using the *:colnames yes* header argument. This also causes the
+  result table to contain the headers (as long as the new table has the
+  same number of columns as the original table)
+  
+  #+BEGIN_SRC emacs-lisp :results value :var tbl=table1 :colnames yes :exports both
+    (let (result)
+      (dolist (row tbl result)
+        (setf (nth 2 row) (* 2 (nth 1 row)))
+        (setq result (cons row result)))
+      (reverse result))
+  #+END_SRC
+
+  #+RESULTS:
+  | col1 | col2 | col3 |
+  |------+------+------|
+  |    5 |   25 |   50 |
+  |    6 |   30 |   60 |
+  |    7 |   35 |   70 |
+  |    8 |   40 |   80 |
+  |    9 |   45 |   90 |
+  |   10 |   50 |  100 |
+  |   11 |   55 |  110 |
+  |   12 |   60 |  120 |
+  |   13 |   65 |  130 |
+  |   14 |   70 |  140 |
+  |   15 |   75 |  150 |
+
+
+* Problems, Questions
+  - [ ] How can I produce an initial table by code that already has a
+    nicely separated (dashes) column name row? *:colnames yes* only produces
+    such a table heading if a table of the same dimension was read in by the
+    *:var* directive
+

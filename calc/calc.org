@@ -23,3 +23,16 @@
   - factorial: $6! => 720 $   also fact(6) can be used in writing
   - power: $pow(2, 3) => 8 $   $2^3 => 8 $
   - modulo: $mod(10, 3) => 1$  $10 % 3 => 1 $
+  - binomial coefficient: $choose(3, 2) => 3$
+  - random numbers: $random(10) => 7$
+  - binomial distribution: the result (`utpb(x,n,p)') is the
+    probability that an event will occur X or more times out of N
+    trials, if its probability of occurring in any given trial is P:
+    $utpb(2, 6, 1/6) => 0.263224451304$
+  - gaussian distribution with mean m and stdev s. Probability that a normal
+    distributed random variable will exceed x: uttn(x,m,s):
+    $utpn(0.2b, 0, 0.5) => 0.34457825839$
+    - http://www-zeuthen.desy.de/~kolanosk/smd_ss02/skripte/
+
+      $now(0) => <11:03:18pm Sun Aug 11, 2013>$
+      $unixtime(now(0)) => 1376262280$
