@@ -13,6 +13,18 @@
 #+LANGUAGE: en
 #+SELECT_TAGS: export
 
+* Version information
+  #+BEGIN_SRC emacs-lisp :results output
+    (princ (concat (format "Emacs version: %s\n" (emacs-version))
+                   (format "org version: %s\n" (org-version))))
+    
+  #+END_SRC
+
+  #+RESULTS:
+  : Emacs version: GNU Emacs 24.3.1 (i686-pc-linux-gnu, GTK+ Version 3.4.2)
+  :  of 2013-08-22 on chindi02, modified by Debian
+  : org version: 8.0.7
+
 * Links and Documentation
   - http://orgmode.org/worg/org-contrib/babel/languages/ob-doc-python.html
 

@@ -1,5 +1,5 @@
-#+TITLE: lisp-babel
-#+DATE: <2013-08-31 Sat>
+#+TITLE: sqlite-babel
+#+DATE: <2013-09-05 Thu>
 #+AUTHOR: Derek Feichtinger
 #+EMAIL: derek.feichtinger@psi.ch
 #+OPTIONS: ':nil *:t -:t ::t <:t H:3 \n:nil ^:t arch:headline
@@ -27,19 +27,11 @@
 
 * using a table as input
 
-  We first create a table from a lisp list of lists. Since my final result table
-  should contain three colums, I already insert a header row with the names for
-  the three columns.
-
-  #+NAME: make-table1
-  #+BEGIN_SRC emacs-lisp :results value :exports both
-    (cons '(col1 col2 col3)
-          (loop for i from 5 to 15 collect `(,i ,(* i 5))))
-  #+END_SRC
+   Note: Do not use colons in the table fields, since they are used as field delimiters in the table import
 
   #+TBLNAME: table1
-  #+RESULTS: make-table1
   | col1 | col2 | col3 |
+  |------+------+------|
   |    5 |   25 |      |
   |    6 |   30 |      |
   |    7 |   35 |      |
@@ -52,19 +44,24 @@
   |   14 |   70 |      |
   |   15 |   75 |      |
 
+  It is necessary to create the explicit table definition. The table can be
+  read in via the *.import* function.
 
-  We now can fill the third column by passing the table into the next
-  source block.  We force babel to treat the first row as table header
-  by using the *:colnames yes* header argument. This also causes the
-  result table to contain the headers (as long as the new table has the
-  same number of columns as the original table)
-  
-  #+BEGIN_SRC emacs-lisp :results value :var tbl=table1 :colnames yes :exports both
-    (let (result)
-      (dolist (row tbl result)
-        (setf (nth 2 row) (* 2 (nth 1 row)))
-        (setq result (cons row result)))
-      (reverse result))
+  #+BEGIN_SRC sqlite :db example.sqlite :var tbl=table1
+  create table t1 (col1 INTEGER, col2 INTEGER, col3 INTEGER);
+  .import "$tbl" t1
+  select count(*) from t1;
+  #+END_SRC
+
+  #+RESULTS:
+  : 11
+
+  The *:colnames yes* option selects in the next block that the output
+  table should contain a header row with the column names.
+
+  #+BEGIN_SRC sqlite :db example.sqlite :colnames yes
+UPDATE t1 SET col3 = 2 * col2;
+SELECT * FROM t1;
   #+END_SRC
 
   #+RESULTS:
@@ -81,11 +78,4 @@
   |   13 |   65 |  130 |
   |   14 |   70 |  140 |
   |   15 |   75 |  150 |
-
-
-* Problems, Questions
-  - [ ] How can I produce an initial table by code that already has a
-    nicely separated (dashes) column name row? *:colnames yes* only produces
-    such a table heading if a table of the same dimension was read in by the
-    *:var* directive
 

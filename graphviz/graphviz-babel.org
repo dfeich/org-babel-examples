@@ -1,0 +1,313 @@
+
+* Links
+  - [[http://www.graphviz.org/doc/info/colors.html][graphviz colors]]
+  - [[http://www.graphviz.org/doc/info/attrs.html][Node, Edge and Graph Attributes]]
+  - [[http://4webmaster.de/wiki/Graphviz-Tutorial][excellent tutorial]]
+
+* first test
+  #+BEGIN_SRC dot :file fig/exmpl1.png :exports both
+digraph { 
+
+  node [shape=circle,fontsize=8,fixedsize=true,width=0.9]; 
+  edge [fontsize=8]; 
+  rankdir=LR;
+
+  "low-priority" [shape="doublecircle" color="orange"];
+  "high-priority" [shape="doublecircle" color="orange"];
+
+  "s1" -> "low-priority";
+  "s2" -> "low-priority";
+  "s3" -> "low-priority";
+
+  "low-priority" -> "s4";
+  "low-priority" -> "s5";
+  "low-priority" -> "high-priority" [label="wait-time exceeded"];
+
+  "high-priority" -> "s4";
+  "high-priority" -> "s5";
+
+}
+  
+  #+END_SRC
+
+  #+RESULTS:
+  [[file:fig/exmpl1.png]]
+
+* Examples
+** mix
+  #+BEGIN_SRC dot :file fig/clust3.png :exports both
+digraph G {
+rankdir=BT;
+subgraph cluster_c0 {a0 -> a1 -> a2 -> a3;}
+subgraph cluster_c1 {b0 -> b1 -> b2 -> b3;}
+x -> a0;
+x -> b0;
+a1 -> b3;
+b1 -> a3;
+}
+  #+END_SRC
+
+  #+RESULTS:
+  [[file:fig/clust3.png]]
+
+  #+BEGIN_SRC dot :file fig/cluster2.png :exports both
+digraph G {
+rankdir=BT;
+subgraph cluster_c0 {a0 -> a1 -> a3;}
+subgraph cluster_c1 {b0 -> b1 -> b2 -> b3;}
+x -> a0;
+x -> b0;
+a1 -> b3;
+b1 -> a3;
+}
+  #+END_SRC
+
+  #+RESULTS:
+  [[file:fig/cluster2.png]]
+
+
+  #+BEGIN_SRC dot :file fig/cluster4.png :exports both
+digraph G {
+rankdir=BT;
+subgraph cluster_c0 {a0 -> a1 -> a3;}
+subgraph cluster_c1 {b0 -> b1 -> b2 -> b3;}
+x -> a0;
+x -> b0;
+a1 -> b3;
+b1 -> a3;
+}
+  #+END_SRC
+
+  #+RESULTS:
+  [[file:fig/cluster4.png]]
+
+
+* git graphs
+** schemas with points
+*** using weight
+   *weight* can be used to keep the main nodes on the main line
+   [[http://stackoverflow.com/questions/4671238/forcing-main-line-nodes-into-a-straight-line-in-graphviz-or-alternatives/4673624][(stackoverflow link)]].  The larger the weight factor of an edge is,
+   the straighter, shorter, and in the direction of the graph it will
+   be.
+
+  #+BEGIN_SRC dot :file fig/git_s2.png :exports both
+digraph G {
+    rankdir="LR";
+    node[width=0.15, height=0.15, shape=point];
+    edge[weight=2, arrowhead=none];
+    1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9;
+    edge[weight=1];
+    2 -> b1 -> b2 ;
+    6-> c1 -> c2;
+}
+#+END_SRC
+
+  #+RESULTS:
+  [[file:fig/git_s2.png]]
+
+
+  - fontsize
+  - invisible nodes for aligning graphs
+  #+BEGIN_SRC dot :file fig/git_s3.png :exports both
+digraph G {
+    rankdir="LR";
+    node[width=0.15, height=0.15, shape=point];
+    edge[weight=2, arrowhead=none];
+    m1 -> m2; 
+    // invisible node
+    node[style="invis"]
+    edge[style="invis"]
+    m2 -> m3 -> m4;
+
+    lm[shape=box, style="", color="", label="master", fontsize=8.0];
+    m4 -> lm[style="invisible"];
+
+    // the branch
+    node[style="", color="green1"]
+    edge[weight=1, style=""];
+    m2 -> b1 -> b2;
+
+
+    lb[shape=box, color="", label="branch", fontsize=8.0];
+    b2 -> lb[style="invisible"]
+}
+#+END_SRC
+
+  #+RESULTS:
+  [[file:fig/git_s3.png]]
+
+
+  #+BEGIN_SRC dot :file fig/git_s4.png :exports both
+digraph G {
+    rankdir="LR";
+    node[width=0.15, height=0.15, shape=point];
+    edge[weight=3, arrowhead=none];
+    m1 -> m2; 
+    // invisible node
+    m2 -> m3 -> m4;
+
+    lm[shape=box, style="", color="", label="master", fontsize=8.0];
+    m4 -> lm[style="invisible"];
+
+    // the branch
+    node[style="", color="green1"]
+    edge[weight=2, style=""];
+    m2 -> b1 -> b2;
+
+    b1 -> m3[color="green1",arrowhead="", constraint=false];
+    b2 -> m4[color="green1",arrowhead="",constraint=false];
+
+    lb[shape=box, color="", label="branch", fontsize=8.0];
+    b2 -> lb[style="invisible"]
+}
+#+END_SRC
+
+  #+RESULTS:
+  [[file:fig/git_s4.png]]
+
+
+*** aligning by using groups
+
+  If the end points of an edge belong to the same group, i.e., have
+  the same group attribute, parameters are set to avoid crossings and
+  keep the edges straight.
+
+  #+BEGIN_SRC dot :file fig/git_s1.png :exports both
+digraph g{
+    rankdir="LR";
+    node[width=0.15, height=0.15, shape=point, group=main];
+    edge[arrowhead=none];
+    1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8;
+    node[group=branches];
+    2 ->  9 -> 10;
+    5 -> 11 -> 12[color="red1"];
+}
+  #+END_SRC
+
+  #+RESULTS:
+  [[file:fig/git_s1.png]]
+
+
+  *Group* seems to be well suited for making graphs with branches
+
+  #+BEGIN_SRC dot :file fig/git_s5.png :exports both
+digraph g{
+    rankdir="LR";
+    edge[arrowhead=none];
+    // ranksep=0.30;  // this influences the length of edges
+    //splines=ortho;
+
+    node[width=0.15, height=0.15, shape=point, group=master];
+    1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8;
+    lmaster[shape="box", label="master", fontsize=8.0];
+    8 -> lmaster[style="invisible"];
+
+    tag_v1[shape="box", group="", color="cyan", fontsize=8.0, style=filled];
+    // to place the tag vertically above 4, I need to define it so that it
+    // ends up in the same hierarchy level as 4, e.g. by declaring it
+    // above 5 using  tag -> 5
+    tag_v1 -> 5[weight=1, style=invisible];
+    tag_v1 -> 4[arrowhead="", constraint=false];
+    //tag_v1 -> 5[style=invisible];
+
+    node[group=branchA];
+    2 ->  a1 -> a2;
+    lbrancha[shape="box", label="branch A", fontsize=8.0];
+    a2 -> lbrancha[style="invisible"];
+
+    node[group=branchB]
+    3 -> b1 -> b2[color="red1"];
+    lbranchb[shape="box", label="branch B", fontsize=8.0];
+    b2 -> lbranchb[style="invisible"];
+
+    node[group=branchC, weight=2];
+    5 -> c1 -> c2 -> c3;
+    lbranchc[shape="box", label="branch C", fontsize=8.0];
+    c3 -> lbranchc[style="invisible"];
+}
+  #+END_SRC
+
+  #+RESULTS:
+  [[file:fig/git_s5.png]]
+
+
+  #+BEGIN_SRC dot :file fig/git_s6.png :exports both
+    digraph G {
+    rankdir=LR;
+    edge[arrowhead=none];
+    node[width=0.15, height=0.15, shape=point];
+    node[group=master];
+    1 -> 2 -> 3 -> 4 -> 5;
+    lmaster[shape="box", label="master", fontsize=8.0];
+    5 -> lmaster[style="invisible"];
+
+    node[group=branch];
+    2 -> b1 -> b2 -> b3 -> 3;
+    lbrancha[shape="box", label="branch A", fontsize=8.0];
+    b3 -> lbrancha[style="invisible"];
+    }  
+  #+END_SRC
+
+  #+RESULTS:
+  [[file:fig/git_s6.png]]
+
+
+
+
+
+** subgraph
+  #+BEGIN_SRC dot :file fig/git1.png :exports both
+    digraph G
+    {
+        graph[size="4,2.66"]
+        //graph[size="8.00,5.00"]
+        rankdir=BT;
+        subgraph commits
+        {
+            "5c071a6b2c" -> "968bda3251" -> "9754d40473" -> "9e59700d33" -> "2a3242efa4";
+        }
+        subgraph annotations1
+        {
+            rank="same";
+            "V1.0" [shape=box];
+            "V1.0" -> "9e59700d33" [weight=0];
+        }
+        subgraph annotations2
+        {
+            rank="same";
+            "br/HEAD" [shape=box];
+            "br/HEAD" -> "2a3242efa4" [weight=0];
+        }
+    }
+  #+END_SRC
+
+  #+RESULTS:
+  [[file:fig/git1.png]]
+
+  #+BEGIN_SRC dot :file fig/git2.png :exports both
+digraph G
+{
+  rankdir=BT;
+  subgraph master
+  {
+    "comm1" -> "comm2" -> "comm3" -> "comm4";
+  }
+  subgraph branch1
+  {
+    rank=same;
+    "comm3" -> "br-com1" -> "br-com2";
+  }
+}
+  #+END_SRC
+
+  #+RESULTS:
+  [[file:fig/git2.png]]
+
+
+* COMMENT babel settings
+
+Local Variables:
+org-babel-after-execute-hook: (lambda () (org-display-inline-images nil t) (org-redisplay-inline-images))
+org-confirm-babel-evaluate: nil
+org-export-babel-evaluate: nil
+End:
