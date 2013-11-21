@@ -36,3 +36,19 @@
 
       $now(0) => <11:03:18pm Sun Aug 11, 2013>$
       $unixtime(now(0)) => 1376262280$
+
+
+* babel calc
+
+  Not too useful, currently. Embedded calc certainly is better for inlining
+  math in documents.
+
+  #+BEGIN_SRC calc
+24
+3
+'/
+  #+END_SRC
+
+  #+RESULTS:
+  : 8
+

@@ -59,7 +59,7 @@
   result table to contain the headers (as long as the new table has the
   same number of columns as the original table)
   
-  #+BEGIN_SRC emacs-lisp :results value :var tbl=table1 :colnames yes :exports both
+  #+BEGIN_SRC emacs-lisp -n :results value :var tbl=table1 :colnames yes :exports both
     (let (result)
       (dolist (row tbl result)
         (setf (nth 2 row) (* 2 (nth 1 row)))

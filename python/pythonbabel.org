@@ -14,23 +14,25 @@
 #+SELECT_TAGS: export
 
 * Version information
-  #+BEGIN_SRC emacs-lisp :results output
-    (princ (concat (format "Emacs version: %s\n" (emacs-version))
-                   (format "org version: %s\n" (org-version))))
-    
+  #+BEGIN_SRC emacs-lisp -n :exports both
+        (princ (concat
+                (format "Emacs version: %s\n"
+                        (emacs-version))
+                (format "org version: %s\n"
+                        (org-version))))        
   #+END_SRC
 
   #+RESULTS:
   : Emacs version: GNU Emacs 24.3.1 (i686-pc-linux-gnu, GTK+ Version 3.4.2)
-  :  of 2013-08-22 on chindi02, modified by Debian
-  : org version: 8.0.7
+  :  of 2013-10-03 on hamsa, modified by Debian
+  : org version: 8.2.3b
 
 * Links and Documentation
   - http://orgmode.org/worg/org-contrib/babel/languages/ob-doc-python.html
 
 * Generating a table
 
-  #+BEGIN_SRC python :exports both :results value table
+  #+BEGIN_SRC python -n :exports both :results value table
 x = range(1,10)
 y = [xe*3 for xe in x]
 return [x,y]
@@ -41,7 +43,7 @@ return [x,y]
   | 3 | 6 | 9 | 12 | 15 | 18 | 21 | 24 | 27 |
 
 
-  #+BEGIN_SRC python :exports both :results value table
+  #+BEGIN_SRC python -n :exports both :results value table
 import numpy as np
 
 x = range(1,10)
@@ -163,23 +165,28 @@ return(np.array(list(df.T.itertuples())).transpose()[1:])
 | 7 | 49 |
 #+TBLFM: @2$2..@>$2=$1*$1::@3$1..@>$1=@-1 + 1
 
-  #+BEGIN_SRC python :results file :var data=table2 :exports both
-import matplotlib
-import matplotlib.pyplot as plt
-import pandas as pd
-import numpy as np
-matplotlib.use('Agg')
+Here we also show how a code reference works. It can be inserted using
+the *org-store-link* command while editing the src code in a dedicated
+buffer: in line [[(zcol)]] we define a new column. The *-r* flag
+removes the reference from the source code listing in the output.
+Regrettably the reference is not removed when the code gets executed,
+so I need to insert a command to keep the code functional.
 
-fname='python-matplot-fig3.png'
-df = pd.DataFrame(data)
-df.columns = ['x','y']
-df['z'] = df['x'] * 3
-
-#return(np.array(list(df.T.itertuples())).transpose()[1:])
-
-df.plot(figsize=(4,2))
-plt.savefig(fname)
-return fname
+  #+BEGIN_SRC python -n -r :results file :var data=table2 :exports both
+    import matplotlib
+    import matplotlib.pyplot as plt
+    import pandas as pd
+    import numpy as np
+    matplotlib.use('Agg')
+    
+    fname='python-matplot-fig3.png'
+    df = pd.DataFrame(data)
+    df.columns = ['x','y']
+    df['z'] = df['x'] * 3                                             #(ref:zcol)
+    
+    df.plot(figsize=(4,2))
+    plt.savefig(fname)
+    return fname
   #+END_SRC
 
   #+RESULTS:
@@ -246,5 +253,6 @@ Local Variables:
 python-shell-virtualenv-path: "/home/dfeich/py-virtualenv/notebook"
 org-babel-python-command: "/home/dfeich/py-virtualenv/notebook/bin/python"
 org-confirm-babel-evaluate: nil
+org-export-babel-evaluate: nil
 End:
 

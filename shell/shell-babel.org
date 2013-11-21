@@ -39,7 +39,7 @@
   |   15 |   75 |      |
 
 
-  #+BEGIN_SRC sh :results value :var tbl=table1 :colnames yes
+  #+BEGIN_SRC sh :results value :exports both :var tbl=table1 :colnames yes -n
     while read a b rest; do
         echo $a $b $((b*2))
     done < <(echo "$tbl")
@@ -60,6 +60,34 @@
   |   13 |   65 |  130 |
   |   14 |   70 |  140 |
   |   15 |   75 |  150 |
+
+* additional supported options
+** dir
+   One can use the :dir option to have the shell code executed within 
+   a particular working directory.
+
+   #+BEGIN_SRC sh :results value :dir /home :exports both
+   pwd
+   #+END_SRC
+
+   #+RESULTS:
+   : /home
+
+   Since the directory can also be a TRAMP URL, this :dir allows easy
+   *execution of commands on remote servers*, which to me is the most
+   powerful application of this option.
+
+   #+BEGIN_SRC sh :results raw drawer :dir /ssh:root@dftest2.psi.ch:/etc :exports both
+   hostname
+   pwd
+   #+END_SRC
+
+   #+RESULTS:
+   :RESULTS:
+   dftest2
+   /etc
+   :END:
+
 
 * COMMENT babel settings
   
