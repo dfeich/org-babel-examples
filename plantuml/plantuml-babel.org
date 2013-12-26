@@ -124,6 +124,7 @@
 
 ** simple test
 #+BEGIN_SRC plantuml :file fig/sequence1.png :exports both
+  ' this is a comment
   Alice -> Bob: Authentication Request
   Bob --> Alice: Authentication Response
   John --> Alice: another Authentication Request

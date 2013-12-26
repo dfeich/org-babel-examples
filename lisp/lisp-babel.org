@@ -82,6 +82,75 @@
   |   14 |   70 |  140 |
   |   15 |   75 |  150 |
 
+* Using the CALL syntax to call source blocks
+
+  We first define a function
+  #+NAME: mydouble
+  #+header: :var x=2
+  #+BEGIN_SRC emacs-lisp :results silent
+  (* 2 x)
+  #+END_SRC
+
+  Now we can call this babel function "mydouble" from any place in the document
+  #+CALL: mydouble(x=5)
+
+  #+RESULTS:
+  : 10
+
+
+  #+NAME: mydivide
+  #+header: :var x=2 y=3
+  #+BEGIN_SRC emacs-lisp :results silent
+  (/ x y)
+  #+END_SRC
+
+  #+CALL: mydivide(12,3)
+
+  #+RESULTS:
+  : 4
+
+  #+CALL: mydivide(y=2,x=10)
+
+  #+RESULTS:
+  : 5
+
+** Using src block functions for calculating table fields
+
+   The *sbe* macro allows calling the previously defined src blocks and
+   feeding them then named arguments.
+
+   |   |    A | calc double | lisp double | lisp divide |
+   | ! | colA |        colB |        colC |        colD |
+   |---+------+-------------+-------------+-------------|
+   | # |    1 |           2 |           2 |           2 |
+   | # |    3 |           6 |           6 |           2 |
+   | # |    9 |          18 |          18 |           2 |
+  #+TBLFM: $3=$colA*2::$4='(sbe mydouble (x $colA))::$5='(sbe mydivide (x $colB) (y $colA))
+
+** table lookup functions
+   Interesting advanced possibilities are opened up when using the org table lookup
+   functions
+
+   http://orgmode.org/worg/org-tutorials/org-lookups.html
+
+
+   #+TBLNAME: tblhash
+   | one   | 1 |
+   | two   | 2 |
+   | three | 3 |
+   | four  | 4 |
+
+
+   We fill the second column of the table below according to the
+   associative array defined by the table above. Values which cannot
+   be mapped yield an error
+   | three |      3 |
+   | five  | #ERROR |
+   | two   |      2 |
+   | six   | #ERROR |
+   | one   |      1 |
+   | four  |      4 |
+   #+TBLFM: $2='(org-lookup-first $1 '(remote(tblhash,@1$1..@>$1)) '(remote(tblhash,@1$2..@>$2)))
 
 * Problems, Questions
   - [ ] How can I produce an initial table by code that already has a
@@ -89,3 +158,9 @@
     such a table heading if a table of the same dimension was read in by the
     *:var* directive
 
+* COMMENT org babel settings
+
+Local variables:
+org-confirm-babel-evaluate: nil
+org-export-babel-evaluate: nil
+End:
