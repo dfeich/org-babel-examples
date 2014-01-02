@@ -1,0 +1,20 @@
+
+* Example for using ipython magic commands
+
+#+BEGIN_SRC python :results output
+%timeit 1+1
+#+END_SRC
+
+#+RESULTS:
+: >>> 100000000 loops, best of 3: 17.4 ns per loop
+: >>> 
+
+
+* Babel evnironment setup and ipython setup
+
+Local Variables:
+python-shell-virtualenv-path: "/home/dfeich/py-virtualenv/notebook"
+org-babel-python-command: "/home/dfeich/py-virtualenv/notebook/bin/ipython --no-banner --classic --no-confirm-exit"
+org-confirm-babel-evaluate: nil
+org-export-babel-evaluate: nil
+End:
