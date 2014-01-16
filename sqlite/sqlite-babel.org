@@ -48,6 +48,7 @@
   read in via the *.import* function.
 
   #+BEGIN_SRC sqlite :db example.sqlite :var tbl=table1
+  drop table if exists TableName;
   create table t1 (col1 INTEGER, col2 INTEGER, col3 INTEGER);
   .import "$tbl" t1
   select count(*) from t1;
