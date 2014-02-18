@@ -1,0 +1,53 @@
+#+TITLE: tables
+#+DATE: <2014-02-18 Tue>
+#+AUTHOR: Derek Feichtinger
+#+EMAIL: derek.feichtinger@psi.ch
+#+OPTIONS: ':nil *:t -:t ::t <:t H:3 \n:nil ^:t arch:headline
+#+OPTIONS: author:t c:nil creator:comment d:(not "LOGBOOK") date:t
+#+OPTIONS: e:t email:nil f:t inline:t num:t p:nil pri:nil stat:t
+#+OPTIONS: tags:t tasks:t tex:t timestamp:t toc:t todo:t |:t
+#+CREATOR: Emacs 24.3.1 (Org mode 8.2.5h)
+#+DESCRIPTION:
+#+EXCLUDE_TAGS: noexport
+#+KEYWORDS:
+#+LANGUAGE: en
+#+SELECT_TAGS: export
+
+* tables with lisp formulas
+
+  the fields are read as strings, except if the modifiers ";N" for numeric or ";L" for
+  using literal values are given.
+
+  #+BEGIN_SRC emacs-lisp
+    (defun my-colsum-if (keylist vallist keymatch)
+    "sum values in vallist if the corresponding key matches the keymatch argument"
+      (cl-loop for key in keylist
+               for val in vallist
+               when (equal key keymatch)
+               sum (string-to-number val)))
+  #+END_SRC
+
+  
+  |   | Class      |       value |
+  | ! | class      |       value |
+  |---+------------+-------------|
+  | # | A          |           3 |
+  | # | B          |           8 |
+  | # | C          |           2 |
+  | # | A          |           3 |
+  | # | B          |           5 |
+  | # | C          |           9 |
+  |---+------------+-------------|
+  | # | all values | 3 8 2 3 5 9 |
+  | # | sum        |          30 |
+  | # | sum if A   |           6 |
+  | # | sum if B   |          13 |
+  #+TBLFM: $3='(random 10)::@9$3='(mapconcat 'identity (list @I..@II) " ")::@10$3='(apply '+ (list @I..II));N::@11$3='(my-colsum-if (list @I$class..@II$class) (list @I..II) "A")::@12$3='(my-colsum-if (list @I$class..@II$class) (list @I..II) "B")
+  #+TBLFM: 
+
+* Things to observe
+  - do not use table names like p2_somename. The p2 is interpretet as column P, field 2
+    when you go back from the table editor (C-'), and it will be substituted by the
+    numeric location @2$16. This happens when you use a remote(p2_somename,somefield) reference
+    in a formula. It clearly is a bug.
+    

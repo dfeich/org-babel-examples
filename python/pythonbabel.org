@@ -124,9 +124,10 @@ return fname # return filename to org-mode
    It would probably be nicer to create a special function that formats the
    data frame nicely for org, e.g. with a title row separated by a line
 
-  #+BEGIN_SRC python :results value
+  #+BEGIN_SRC python :results value table
 import pandas as pd
 import numpy as np
+import sys
 
 df = pd.DataFrame({'A' : ['one', 'one', 'two', 'three'] * 3,
                  'B' : ['A', 'B', 'C'] * 4,
@@ -135,22 +136,24 @@ df = pd.DataFrame({'A' : ['one', 'one', 'two', 'three'] * 3,
                  'E' : np.random.randn(12)})
 
 return(np.array(list(df.T.itertuples())).transpose()[1:])
+#df.to_csv(sys.stdout, sep='|',line_terminator='|\n')
+#return (df.to_string(col_space=5, justify='right',index=False))
   
   #+END_SRC
 
   #+RESULTS:
-  | one   | A | foo |  0.981776711429 |  -0.534625693058 |
-  | one   | B | foo | -0.159957563492 |  -0.392953467727 |
-  | two   | C | foo |   1.12441514786 |   0.817269438693 |
-  | three | A | bar |  0.813052653156 |  -0.473085065762 |
-  | one   | B | bar | -0.583659520634 |  -0.857212338808 |
-  | one   | C | bar | -0.840929237602 |  -0.301470368398 |
-  | two   | A | foo |  0.307810394289 | -0.0189981764743 |
-  | three | B | foo |  -1.15280701714 |   -0.11100650077 |
-  | one   | C | foo |   2.20243222838 |    1.62594729903 |
-  | one   | A | bar |  0.720231427818 |   0.331966624854 |
-  | two   | B | bar |  -1.10871874995 |   0.751684918224 |
-  | three | C | bar |  0.694152344696 |    0.47717428871 |
+  | one   | A | foo |   0.0938808446011 |  0.164297355457 |
+  | one   | B | foo |   -0.789300199571 | -0.511961867306 |
+  | two   | C | foo |     1.95021689376 | 0.0232752902683 |
+  | three | A | bar |    0.510081471979 |  0.528985415096 |
+  | one   | B | bar |   -0.488878857101 |   1.25402845388 |
+  | one   | C | bar |   -0.184935360749 | -0.732186323506 |
+  | two   | A | foo |    -1.77738274849 | -0.955535365892 |
+  | three | B | foo |   -0.804053077993 |  -1.53545424683 |
+  | one   | C | foo |   -0.475823420406 | -0.597569166696 |
+  | one   | A | bar |   -0.122500579966 | -0.390227759637 |
+  | two   | B | bar |   -0.182471796578 | -0.394139328993 |
+  | three | C | bar | -0.00648778760846 | 0.0199194965102 |
 
 ** plotting a data frame
 #+TBLNAME: table2
@@ -195,7 +198,7 @@ so I need to insert a command to keep the code functional.
 ** time series resampling
 
   Let's say we are taking measurements twice a day, every 12h.
-  #+BEGIN_SRC python :results valuey :exports both
+  #+BEGIN_SRC python :results value table :exports both
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
