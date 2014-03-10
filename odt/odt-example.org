@@ -1,0 +1,48 @@
+#+TITLE: odt-example
+#+DATE: <2014-03-10 Mon>
+#+AUTHOR: Derek Feichtinger
+#+EMAIL: derek.feichtinger@psi.ch
+#+OPTIONS: ':nil *:t -:t ::t <:t H:3 \n:nil ^:t arch:headline
+#+OPTIONS: author:t c:nil creator:comment d:(not "LOGBOOK") date:t
+#+OPTIONS: e:t email:nil f:t inline:t num:t p:nil pri:nil stat:t
+#+OPTIONS: tags:t tasks:t tex:t timestamp:t toc:t todo:t |:t
+#+CREATOR: Emacs 24.3.1 (Org mode 8.2.5h)
+#+DESCRIPTION:
+#+EXCLUDE_TAGS: noexport
+#+KEYWORDS:
+#+LANGUAGE: en
+#+SELECT_TAGS: export
+
+#+OPTIONS: tex:t
+
+#+ODT_STYLES_FILE: "./styles.odt"
+
+* Table example
+  This table has no rules.  It occupies 80% of page width.  The columns
+  will be in the ratio of 4:7:10.
+  #+ATTR_ODT: :rel-width 80
+  #+ATTR_ODT: :widths 3,6,9
+  | a | b | c |
+  | d | e | f |
+
+  The Swiss-CMS TIER-3 resources in terms of compute power and
+  storage capacity provided are shown in Table [[tbl_AllResources2013]] below.
+
+
+   #+ATTR_ODT: :rel-width 50
+   #+LABEL: tbl_AllResources2013
+   #+CAPTION: PSI CMS Tier-3 Resources
+   | *Resources Q2/2013*          | *Amount*               |
+   |------------------------------+------------------------|
+   | Compute performance          | 5243 HS06 in 336 cores |
+   | Data Set Storage (SE), RAID6 | 759 TB                 |
+   | Home Storage (NFS), backuped | ca 6 TB                |
+   | User interface nodes         | 9 nodes, 72 cores      |
+   | Virtual Servers              | 15                     |
+
+
+* Figure
+
+  #   #+ATTR_ODT: :scale 0.5
+   #+LABEL:fig_t3cumjobs
+   [[file:t3cumjobs2013.png]]
