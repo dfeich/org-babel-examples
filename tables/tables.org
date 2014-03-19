@@ -45,6 +45,156 @@
   #+TBLFM: $3='(random 10)::@9$3='(mapconcat 'identity (list @I..@II) " ")::@10$3='(apply '+ (list @I..II));N::@11$3='(my-colsum-if (list @I$class..@II$class) (list @I..II) "A")::@12$3='(my-colsum-if (list @I$class..@II$class) (list @I..II) "B")
   #+TBLFM: 
 
+* Using src block functions for calculating table fields
+
+  The *org-sbe* (warning: it was called *sbe* before) macro allows
+  calling the previously defined src blocks from within table
+  formulas and feeding them then named arguments.
+
+  |   |    A | calc double | lisp double | lisp divide |
+  | ! | colA |        colB |        colC |        colD |
+  |---+------+-------------+-------------+-------------|
+  | # |    1 |           2 |           2 |           2 |
+  | # |    3 |           6 |           6 |           2 |
+  | # |    9 |          18 |          18 |           2 |
+ #+TBLFM: $3=$colA*2::$4='(org-sbe mydouble (x $colA))::$5='(org-sbe mydivide (x $colB) (y $colA))
+
+  If the field values should be read as strings, one needs to
+  add an additional dollar sign, e.q. =$$1, $$colname=.
+  Here is an example reading in date strings, and using calc
+  functions for doing some time arithmetic.
+  
+  #+name: addmonths
+  #+BEGIN_SRC emacs-lisp :results silent :var argdate="2014-03-01" argmonths="10"
+    (let ((calc-date-format
+	   '(YYYY "-" MM "-" DD)))
+      (math-format-date (calcFunc-bsub (calcFunc-incmonth (math-parse-date argdate) (string-to-number argmonths)) 1))
+      )
+  #+END_SRC
+
+  |   | WP     |                     | WP duration |   WP start |     WP end |
+  |   | number | subject             |      months |       date |       date |
+  | ! | wpid   | wpname              |    wpmonths |      sdate |      edate |
+  |---+--------+---------------------+-------------+------------+------------|
+  | # | WP0    | Project Management  |          24 | 2015-01-01 | 2016-12-30 |
+  | # | WP1    | IT Infrastructure   |          24 | 2015-01-01 | 2016-12-30 |
+  | # | WP2    | IdM Mngm + Rem Acc  |          12 | 2015-01-01 | 2015-12-31 |
+  | # | WP3    | Data Catalog        |           9 | 2015-01-01 | 2015-09-30 |
+  | # | WP4    | provide existing SW |          24 | 2015-01-01 | 2016-12-30 |
+  | # | WP5    | SW development      |          24 | 2015-01-01 | 2016-12-30 |
+  |---+--------+---------------------+-------------+------------+------------|
+  | # |        | TOTAL               |             |            |            |
+  #+TBLFM: @I$6..@II$6='(org-sbe addmonths (argdate $$sdate) (argmonths $$wpmonths))
+
+* a look at the involved lisp functions
+
+  The double quote ends up in passing this kind of code line where
+  the resulting string arguments are headed by a dollar sign:
+
+     #+BEGIN_SRC emacs-lisp
+  (org-sbe addmonths (argdate $"2015-01-01") (argmonths $"24"))
+  #+END_SRC
+
+     #+RESULTS:
+     : 2016-12-30
+
+
+  #+NAME: remtable1
+  #+CAPTION: global model parameters
+  |   | Entry    | Value      |
+  |---+----------+------------|
+  |   | a number | 24         |
+  | ^ |          | ref_number |
+  |   | a date   | 2014-01-02 |
+  | ^ |          | ref_date   |
+
+  There seems to be a bug in the org-table-get-remote-range function. When I reference the remote range by
+  a field name (defined by "^" in the first column), the result is a string that contains
+  the field value wrapped in parentheses:
+  #+BEGIN_SRC emacs-lisp :results output
+    (princ (pp-to-string (org-table-get-remote-range "remtable1" "$ref_number" )))
+    (princ (pp-to-string (org-table-get-remote-range "remtable1" "@2$3" )))
+    (princ (pp-to-string (org-table-get-remote-range "remtable1" "$ref_date" )))
+    (princ (pp-to-string (org-table-get-remote-range "remtable1" "@4$3" )))
+  #+END_SRC
+
+  #+RESULTS:
+  : #("(24)" 1 3
+  :   (face org-table fontified t))
+  : #("24" 0 2
+  :   (fontified t face org-table))
+  : #("(2014-01-02)" 1 11
+  :   (face org-table fontified t))
+  : #("2014-01-02" 0 10
+  :   (fontified t face org-table))
+
+  Exploring the usage of =remote= inside of a table.
+  - The date is read as an equation and I get the result of a substraction 
+  
+  | Entry         | TBLFM field name | TBLFM num ref | lisp + field name |
+  | remote number |               24 |               | (24)              |
+  | remote date   |             2011 |          2011 | (2014-01-02)      |
+  #+TBLFM: @2$2=remote(remtable1,$ref_number)::@2$4='(identity remote(remtable1,$ref_number))::@3$2=remote(remtable1,$ref_date)::@3$3=remote(remtable1,@4$3)::@3$4='(identity remote(remtable1,$ref_date))
+
+
+* Column names and remote references
+
+  - One must be careful and not use a remote column name that also is used in the current table.
+    Seems that the substitution of the value in the current scope takes precedence over the one
+    in the remote scope.
+  - Underscores in column names generate some strange behavior and should for now be avoided.
+  
+  #+NAME: remtable2
+  |   | Entry    | Value | Value2 | Value3  | Value4  |
+  | ! | entry    | value | value2 | value3a | value_a4 |
+  |   | example1 | 1     | 2      | 3       | 4       |
+  |   |          |       |        |         |         |
+
+  |   | Entry | Value | Value2 | Value3 | Value4 |
+  | ! |       |       |        |        |        |
+  |   |       |     1 |      2 |      3 |      1 |
+  #+TBLFM: @3$3=remote(remtable2,@3$value)::@3$4=remote(remtable2,@3$value2)::@3$5=remote(remtable2,@3$value3a)::@3$6=remote(remtable2,@3$value_a4)
+
+  
+* table lookup functions
+  Interesting advanced possibilities are opened up when using the org table lookup
+  functions
+
+  http://orgmode.org/worg/org-tutorials/org-lookups.html
+
+
+  We define a mapping table. Note that we have two mappings for the string "two".
+  #+TBLNAME: tblhash
+  | one   |   1 |
+  | two   |   2 |
+  | three |   3 |
+  | four  |   4 |
+  | two   | 100 |
+
+
+  We fill the second column of the table below according to the
+  associative array defined by the table above. Values which cannot
+  be mapped yield an error. =org-lookup-first= will find the first
+  matching row and give back the associated mapped value.
+  | three |      3 |
+  | five  | #ERROR |
+  | two   |      2 |
+  | six   | #ERROR |
+  | one   |      1 |
+  | four  |      4 |
+  #+TBLFM: $2='(org-lookup-first $1 '(remote(tblhash,@1$1..@>$1)) '(remote(tblhash,@1$2..@>$2)))
+
+
+  =org-lookup-last= accordingly takes the values from the last row that matched.
+  | three |      3 |
+  | five  | #ERROR |
+  | two   |    100 |
+  | six   | #ERROR |
+  | one   |      1 |
+  | four  |      4 |
+  #+TBLFM: $2='(org-lookup-last $1 '(remote(tblhash,@1$1..@>$1)) '(remote(tblhash,@1$2..@>$2)))
+
+
 * Things to observe
   - do not use table names like p2_somename. The p2 is interpretet as column P, field 2
     when you go back from the table editor (C-'), and it will be substituted by the

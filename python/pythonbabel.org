@@ -62,6 +62,27 @@ return np.array([x,y]).transpose()
   | 8 | 24 |
   | 9 | 27 |
 
+* Calling a function in a table
+
+    #+NAME: epoch2day
+    #+BEGIN_SRC python :results output :var epoch=1262675465119
+    time = epoch
+    import datetime
+    strtime = str(time)
+    datetimestamp = datetime.datetime.utcfromtimestamp(int(strtime[:10]))
+    print datetimestamp.strftime('[%Y-%m-%d %a %H:%M:%S]')
+    #+END_SRC
+    
+    #+RESULTS: epoch2day
+    : [2010-01-05 Tue 07:11:05]
+    
+    |         epoch | day    |
+    |---------------+--------|
+    | 1262675465119 | #ERROR |
+    |        123456 | #ERROR |
+    |      99998754 | #ERROR |
+    #+TBLFM: $2='(sbe epoch2day (epoch $1))
+    
 * Matplotlib
 ** plotting of simple graph
 #+begin_src python :results file :exports both

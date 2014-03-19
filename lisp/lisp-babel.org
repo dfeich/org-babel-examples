@@ -22,19 +22,19 @@
 
   #+RESULTS:
   : Emacs version: GNU Emacs 24.3.1 (i686-pc-linux-gnu, GTK+ Version 3.4.2)
-  :  of 2013-08-22 on chindi02, modified by Debian
-  : org version: 8.0.7
+  :  of 2014-02-22 on chindi10, modified by Debian
+  : org version: 8.2.5h
 
 * using a table as input
 
-  We first create a table from a lisp list of lists. Since my final result table
-  should contain three colums, I already insert a header row with the names for
-  the three columns.
+  We first create a table from a lisp *list of lists*. Each inner list
+  will form a row in the resulting table. I already insert a header
+  row with the names of three columns.
 
   #+NAME: make-table1
   #+BEGIN_SRC emacs-lisp :results value :exports both
     (cons '(col1 col2 col3)
-          (loop for i from 5 to 15 collect `(,i ,(* i 5))))
+          (loop for i from 5 to 15 collect `(,i ,(* i 5) "")))
   #+END_SRC
 
   #+TBLNAME: table1
@@ -82,9 +82,11 @@
   |   14 |   70 |  140 |
   |   15 |   75 |  150 |
 
+  
 * Using the CALL syntax to call source blocks
+** simple call syntax
 
-  We first define a function
+   We first define a function
   #+NAME: mydouble
   #+header: :var x=2
   #+BEGIN_SRC emacs-lisp :results silent
@@ -104,53 +106,55 @@
   (/ x y)
   #+END_SRC
 
-  #+CALL: mydivide(12,3)
+  Note that you can pass additional header arguments to the call. The ones
+  added at the end influence the final result, while the ones added in
+  [] are evaluated in the context of the original definition.
+  #+CALL: mydivide(12,3) :results raw
 
   #+RESULTS:
-  : 4
+  4
 
   #+CALL: mydivide(y=2,x=10)
 
   #+RESULTS:
   : 5
 
-** Using src block functions for calculating table fields
+  Note that I can have another piece of code implicitely called by using its name
+  as an input variable in a normal code block. So, I could directly fill the third
+  column of our initial example table without ever printing out the initial example
+  table, by just using as an input (tbl) the name of the initial code block.
 
-   The *sbe* macro allows calling the previously defined src blocks and
-   feeding them then named arguments.
+  #+BEGIN_SRC emacs-lisp  :results value :var tbl=make-table1 :colnames yes
+    (let (result)
+      (dolist (row tbl result)
+        (setf (nth 2 row) (* 2 (nth 1 row)))
+        (setq result (cons row result)))
+      (reverse result))  
+  #+END_SRC
 
-   |   |    A | calc double | lisp double | lisp divide |
-   | ! | colA |        colB |        colC |        colD |
-   |---+------+-------------+-------------+-------------|
-   | # |    1 |           2 |           2 |           2 |
-   | # |    3 |           6 |           6 |           2 |
-   | # |    9 |          18 |          18 |           2 |
-  #+TBLFM: $3=$colA*2::$4='(sbe mydouble (x $colA))::$5='(sbe mydivide (x $colB) (y $colA))
+  #+RESULTS:
+  | col1 | col2 | col3 |
+  |------+------+------|
+  |    5 |   25 |   50 |
+  |    6 |   30 |   60 |
+  |    7 |   35 |   70 |
+  |    8 |   40 |   80 |
+  |    9 |   45 |   90 |
+  |   10 |   50 |  100 |
+  |   11 |   55 |  110 |
+  |   12 |   60 |  120 |
+  |   13 |   65 |  130 |
+  |   14 |   70 |  140 |
+  |   15 |   75 |  150 |
 
-** table lookup functions
-   Interesting advanced possibilities are opened up when using the org table lookup
-   functions
+  
 
-   http://orgmode.org/worg/org-tutorials/org-lookups.html
+* Inline src calls
+  This is the result of an inline src call in lisp:
+  src_emacs-lisp[:var tbl=table1 :results raw]{(nth 0 (nth (- (length tbl) 1) tbl))} 15
 
-
-   #+TBLNAME: tblhash
-   | one   | 1 |
-   | two   | 2 |
-   | three | 3 |
-   | four  | 4 |
-
-
-   We fill the second column of the table below according to the
-   associative array defined by the table above. Values which cannot
-   be mapped yield an error
-   | three |      3 |
-   | five  | #ERROR |
-   | two   |      2 |
-   | six   | #ERROR |
-   | one   |      1 |
-   | four  |      4 |
-   #+TBLFM: $2='(org-lookup-first $1 '(remote(tblhash,@1$1..@>$1)) '(remote(tblhash,@1$2..@>$2)))
+  and this is another:
+  src_emacs-lisp[:results raw]{(org-table-get-remote-range "table1" "@>$1" )} 15
 
 * Problems, Questions
   - [ ] How can I produce an initial table by code that already has a
