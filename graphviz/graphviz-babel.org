@@ -34,7 +34,48 @@ digraph {
   [[file:fig/exmpl1.png]]
 
 * Examples
-** mix
+** color
+   #+BEGIN_SRC dot :file fig/color1.png :exports both
+digraph G {
+/* Node main initialisieren und */
+/* Attribute für ihn setzen     */ 
+ main [shape=box, color=deeppink]
+ 
+ main -> parse -> execute
+ 
+/* Node init initialisieren,       */
+/* Edge von main nach init und     */
+/* Attribute für diese Edge setzen.*/
+ main -> init [color=deeppink, 
+               arrowhead=vee, 
+               arrowtail=vee]
+ 
+/* Attribute für den Node init    */
+/* setzen. Das geht auch, nachdem */
+/* er schon initialisiert ist.    */
+ init [shape=box, color=deeppink]
+ 
+ main -> cleanup
+ execute -> make_string
+ execute -> printf
+ init -> make_string
+ main -> printf
+ 
+/* Bei Edges kann man die        */
+/* Attribute nicht im nachhinein */
+/* setzen. Dabei wird nämlich    */
+/* eine zweite Edge erzeugt.     */
+ execute -> compare
+ execute -> compare [color=green, 
+                     arrowtail=tee]
+}
+
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:fig/color1.png]]
+
+** subcluster
   #+BEGIN_SRC dot :file fig/clust3.png :exports both
 digraph G {
 rankdir=BT;
@@ -80,6 +121,89 @@ b1 -> a3;
 
   #+RESULTS:
   [[file:fig/cluster4.png]]
+
+** flowchart
+
+   #+BEGIN_SRC dot :file fig/flowchart1.png :exports both
+     digraph {
+         label="How to make sure 'input' is valid"
+      
+         start[shape="box", style=rounded];
+         end[shape="box", style=rounded];
+         if_valid[shape="diamond", style=""];
+         message[shape="parallelogram", style=""]
+         input[shape="parallelogram", style=""]
+      
+         start -> input;
+         input -> if_valid;
+         if_valid -> message[label="no"];
+         if_valid -> end[label="yes"];
+         message -> input;
+      
+         if_valid[label="Is input\nvalid?"]
+         message[label="Show\nmessage"]
+         input[label="Prompt\nfor input"]
+
+         {rank=same; message input}
+     }
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:fig/flowchart1.png]]
+
+
+
+  #+BEGIN_SRC dot :file fig/flowchart2.png :exports both
+    digraph {
+    start [label="Start"];
+
+    start -> decision;
+
+    decision [shape=diamond, label="Accessed externally?"];
+
+    decision -> public [label="Yes"];
+    decision -> notpublic [label="No"];
+
+    public [shape=box, label="public"];
+    notpublic [shape=diamond, label="Deny to children?"];
+
+    notpublic -> protected [label="No"]
+    notpublic -> private [label="Yes"]
+
+    protected [shape=box, label="protected"]
+    private [shape=box, label="private"]
+
+    { rank=same; decision; public }
+    { rank=same; notpublic; private }
+
+    }
+
+  #+END_SRC
+
+  #+RESULTS:
+   [[file:fig/flowchart2.png]]
+
+
+  #+BEGIN_SRC dot :file fig/flowchart3.png :exports both
+    digraph G {
+     Back [shape=house,color=gray,style=filled,fillcolor=lightgray] [URL="Back Page"] [tooltip="Back to Main Diagram"]
+     subgraph cluster0 {
+             Node1
+             Back -> Node1 
+             Node2
+             Node1 -> Node2
+             Node3
+             Node1 -> Node3
+             color=invis
+     }
+     Forward [shape=invhouse,color=gray,style=filled,fillcolor=lightgray] [URL="Forward Page"] [tooltip="On to Next Diagram"]
+     Node3 -> Forward
+    }
+     
+  #+END_SRC
+
+  #+RESULTS:
+  [[file:fig/flowchart3.png]]
 
 
 * git graphs

@@ -1,0 +1,64 @@
+#+TITLE: latex-example
+#+DATE: <2014-02-22 Sat>
+#+AUTHOR: Derek Feichtinger
+#+EMAIL: derek.feichtinger@psi.ch
+#+OPTIONS: ':nil *:t -:t ::t <:t H:3 \n:nil ^:t arch:headline
+#+OPTIONS: author:t c:nil creator:comment d:(not "LOGBOOK") date:t
+#+OPTIONS: e:t email:nil f:t inline:t num:t p:nil pri:nil stat:t
+#+OPTIONS: tags:t tasks:t tex:t timestamp:t toc:t todo:t |:t
+#+CREATOR: Emacs 24.3.1 (Org mode 8.2.5h)
+#+DESCRIPTION:
+#+EXCLUDE_TAGS: noexport
+#+KEYWORDS:
+#+LANGUAGE: en
+#+SELECT_TAGS: export
+
+#+DATE: <2014-02-22 Sat>
+#+OPTIONS: texht:t
+#+LATEX_CLASS: article
+#+LATEX_CLASS_OPTIONS: [koma,a4paper]
+#+LATEX_HEADER: \hypersetup{colorlinks=true, linkcolor=blue}
+#+LATEX_HEADER_EXTRA:
+
+
+* Link formatting
+  - This is described in the LaTeX [[http://mirror.unl.edu/ctan/macros/latex/contrib/hyperref/doc/manual.pdf][hyperref]] manual.
+  - This is an example how to get links that are not framed by red
+    rectangles, but just have a blue font color
+    #+BEGIN_EXAMPLE
+    #+LaTeX_HEADER: \hypersetup{colorlinks=true, linkcolor=blue}
+    #+END_EXAMPLE
+* Equations
+  
+This is an example for an equation
+
+$$
+  cores_{extrapol} = cores_{intern2013} \cdot offl\% \cdot \frac{gf \cdot (volume_{user} + volume_{intern})}{volume_{intern}}
+$$
+
+
+This is an example for an equation emedded in the text 
+$cores_{extrapol} = cores_{intern2013} \cdot offl\% \cdot \frac{gf \cdot (volume_{user} + volume_{intern})}{volume_{intern}}$
+
+and here follows a numbered equation that also can be referenced (eq \ref{eq_1}).
+\begin{equation}
+  \label{eq_1}
+  cores_{extrapol} = cores_{intern2013} \cdot offl\% \cdot \frac{gf \cdot (volume_{user} + volume_{intern})}{volume_{intern}}
+\end{equation}
+
+* Figure
+
+  I can reference the figure like this: Fig. \ref{fig_simplegraph1}. Note that there must be
+  no empty line between the link and the meta definitions for name, caption, etc.
+
+  #+NAME: fig_simplegraph1
+  #+CAPTION: A simple graph
+  #+ATTR_LaTeX: :width 0.8\textwidth :float t :placement [H]
+  [[file:../beamer/fig/simplegraph1.png]]
+
+* Tables
+
+  I should try
+  #+BEGIN_EXAMPLE
+  #+attr_latex: :float sidewaystable
+  #+END_EXAMPLE

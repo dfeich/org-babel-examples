@@ -52,3 +52,27 @@
   #+RESULTS:
   : 8
 
+
+  - solving an equation
+    #+BEGIN_SRC calc :exports both
+fsolve(x*2+x=4,x)
+#+END_SRC
+
+    #+RESULTS:
+    : x = 1.33333333333
+
+  
+  - solving a linear system of equations
+    #+BEGIN_SRC calc
+  fsolve([x + y = a, x - y = b],[x,y])
+    #+END_SRC
+
+    #+RESULTS:
+    : [x = a + (b - a) / 2, y = (a - b) / 2]
+
+
+* COMMENT babel settings
+Local variables:
+org-confirm-babel-evaluate: nil
+org-export-babel-evaluate: nil
+End:

@@ -51,6 +51,13 @@
   calling the previously defined src blocks from within table
   formulas and feeding them then named arguments.
 
+  #+NAME: mydouble
+  #+header: :var x=2
+  #+BEGIN_SRC emacs-lisp :results silent
+  (* 2 x)
+  #+END_SRC
+
+  
   |   |    A | calc double | lisp double | lisp divide |
   | ! | colA |        colB |        colC |        colD |
   |---+------+-------------+-------------+-------------|
@@ -87,54 +94,56 @@
   #+TBLFM: @I$6..@II$6='(org-sbe addmonths (argdate $$sdate) (argmonths $$wpmonths))
 
 * a look at the involved lisp functions
+** org-sbe
 
-  The double quote ends up in passing this kind of code line where
-  the resulting string arguments are headed by a dollar sign:
+   The double quote ends up in passing this kind of code line where
+   the resulting string arguments are headed by a dollar sign:
 
-     #+BEGIN_SRC emacs-lisp
-  (org-sbe addmonths (argdate $"2015-01-01") (argmonths $"24"))
-  #+END_SRC
+      #+BEGIN_SRC emacs-lisp
+   (org-sbe addmonths (argdate $"2015-01-01") (argmonths $"24"))
+   #+END_SRC
 
-     #+RESULTS:
-     : 2016-12-30
+      #+RESULTS:
+      : 2016-12-30
 
 
-  #+NAME: remtable1
-  #+CAPTION: global model parameters
-  |   | Entry    | Value      |
-  |---+----------+------------|
-  |   | a number | 24         |
-  | ^ |          | ref_number |
-  |   | a date   | 2014-01-02 |
-  | ^ |          | ref_date   |
+   #+NAME: remtable1
+   #+CAPTION: global model parameters
+   |   | Entry    | Value      |
+   |---+----------+------------|
+   |   | a number | 24         |
+   | ^ |          | ref_number |
+   |   | a date   | 2014-01-02 |
+   | ^ |          | ref_date   |
 
-  There seems to be a bug in the org-table-get-remote-range function. When I reference the remote range by
-  a field name (defined by "^" in the first column), the result is a string that contains
-  the field value wrapped in parentheses:
-  #+BEGIN_SRC emacs-lisp :results output
-    (princ (pp-to-string (org-table-get-remote-range "remtable1" "$ref_number" )))
-    (princ (pp-to-string (org-table-get-remote-range "remtable1" "@2$3" )))
-    (princ (pp-to-string (org-table-get-remote-range "remtable1" "$ref_date" )))
-    (princ (pp-to-string (org-table-get-remote-range "remtable1" "@4$3" )))
-  #+END_SRC
+** org-table-get-remote-range
+   There seems to be a bug in the org-table-get-remote-range function. When I reference the remote range by
+   a field name (defined by "^" in the first column), the result is a string that contains
+   the field value wrapped in parentheses:
+   #+BEGIN_SRC emacs-lisp :results output
+     (princ (pp-to-string (org-table-get-remote-range "remtable1" "$ref_number" )))
+     (princ (pp-to-string (org-table-get-remote-range "remtable1" "@2$3" )))
+     (princ (pp-to-string (org-table-get-remote-range "remtable1" "$ref_date" )))
+     (princ (pp-to-string (org-table-get-remote-range "remtable1" "@4$3" )))
+   #+END_SRC
 
-  #+RESULTS:
-  : #("(24)" 1 3
-  :   (face org-table fontified t))
-  : #("24" 0 2
-  :   (fontified t face org-table))
-  : #("(2014-01-02)" 1 11
-  :   (face org-table fontified t))
-  : #("2014-01-02" 0 10
-  :   (fontified t face org-table))
+   #+RESULTS:
+   : #("(24)" 1 3
+   :   (face org-table fontified t))
+   : #("24" 0 2
+   :   (fontified t face org-table))
+   : #("(2014-01-02)" 1 11
+   :   (face org-table fontified t))
+   : #("2014-01-02" 0 10
+   :   (fontified t face org-table))
 
-  Exploring the usage of =remote= inside of a table.
-  - The date is read as an equation and I get the result of a substraction 
-  
-  | Entry         | TBLFM field name | TBLFM num ref | lisp + field name |
-  | remote number |               24 |               | (24)              |
-  | remote date   |             2011 |          2011 | (2014-01-02)      |
-  #+TBLFM: @2$2=remote(remtable1,$ref_number)::@2$4='(identity remote(remtable1,$ref_number))::@3$2=remote(remtable1,$ref_date)::@3$3=remote(remtable1,@4$3)::@3$4='(identity remote(remtable1,$ref_date))
+   Exploring the usage of =remote= inside of a table.
+   - The date is read as an equation and I get the result of a substraction 
+   
+   | Entry         | TBLFM field name | TBLFM num ref | lisp + field name |
+   | remote number |               24 |               | (24)              |
+   | remote date   |             2011 |          2011 | (2014-01-02)      |
+   #+TBLFM: @2$2=remote(remtable1,$ref_number)::@2$4='(identity remote(remtable1,$ref_number))::@3$2=remote(remtable1,$ref_date)::@3$3=remote(remtable1,@4$3)::@3$4='(identity remote(remtable1,$ref_date))
 
 
 * Column names and remote references
