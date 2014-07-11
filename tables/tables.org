@@ -18,6 +18,16 @@
   the fields are read as strings, except if the modifiers ";N" for numeric or ";L" for
   using literal values are given.
 
+  Tip: try using the table debugger (C-c {) id something goes wrong.
+
+  |   | Row | c2 | c3  | Add | Add2 |
+  | ! |     | c2 | c3  |     |      |
+  | # | A   |  1 | 2   |   3 |    3 |
+  | # | B   |  4 | 7   |  11 |   11 |
+  | # | C   |  4 | str |   4 |    4 |
+  #+TBLFM: $5='(+ (string-to-number $3) (string-to-number $c3))::$6='(+ $c2 $c3);N
+
+  
   #+BEGIN_SRC emacs-lisp
     (defun my-colsum-if (keylist vallist keymatch)
     "sum values in vallist if the corresponding key matches the keymatch argument"
@@ -93,6 +103,49 @@
   | # |        | TOTAL               |             |            |            |
   #+TBLFM: @I$6..@II$6='(org-sbe addmonths (argdate $$sdate) (argmonths $$wpmonths))
 
+
+  A function which sums up the values in a column of table tbl if col1
+  matches match1 and col2 matches match2
+
+  #+NAME: calc_add_if_match2
+  #+HEADER: :var tbl="tbl_grp" col1="group" col2="use" vcol="value" match1="C" match2="1"
+  #+BEGIN_SRC emacs-lisp :exports none 
+     ;; add vcol column values if col1 matches match1 and col2 matchtes match2
+     (let ((c1list (org-table-get-remote-range tbl (format "@I$%s..@>$%s" col1 col1)))
+           (c2list (org-table-get-remote-range tbl (format "@I$%s..@>$%s" col2 col2)))
+           (vallist (org-table-get-remote-range tbl (format "@I$%s..@>$%s" vcol vcol))))
+       (cl-loop for c1tst in c1list
+                for c2tst in c2list
+                for val in vallist
+                when (and (equal c1tst match1) (equal c2tst match2))
+                sum (string-to-number val))
+       )
+  #+END_SRC
+
+  #+RESULTS: calc_add_if_match2
+  : 5
+
+  #+NAME: tbl_grp
+  |   | name    | group | use | value |
+  | ! | name    | group | use | value |
+  |---+---------+-------+-----+-------|
+  |   | john    | B     |   1 |     1 |
+  |   | beth    | B     |   0 |     3 |
+  |   | mike    | C     |   1 |     5 |
+  |   | leslie  | A     |   0 |     7 |
+  |   | barbara | A     |   1 |     4 |
+  |   | ken     | C     |   0 |     2 |
+  |   | thomas  | A     |   1 |     8 |
+
+
+  |   | group | sum |
+  | ! | grp   |     |
+  |---+-------+-----|
+  | # | A     |  12 |
+  | # | B     |   1 |
+  | # | C     |   5 |
+  #+TBLFM: $3='(org-sbe calc_add_if_match2 (tbl $"tbl_grp") (col1 $"group") (col2 $"use") (vcol $"value") (match1 $$grp) (match2 $"1") )
+  
 * a look at the involved lisp functions
 ** org-sbe
 
@@ -117,9 +170,10 @@
    | ^ |          | ref_date   |
 
 ** org-table-get-remote-range
-   There seems to be a bug in the org-table-get-remote-range function. When I reference the remote range by
-   a field name (defined by "^" in the first column), the result is a string that contains
-   the field value wrapped in parentheses:
+   There seems to be a bug in the org-table-get-remote-range
+   function. When I reference the remote range by a field name
+   (defined by "^" in the first column), the result is a string that
+   contains the field value wrapped in parentheses:
    #+BEGIN_SRC emacs-lisp :results output
      (princ (pp-to-string (org-table-get-remote-range "remtable1" "$ref_number" )))
      (princ (pp-to-string (org-table-get-remote-range "remtable1" "@2$3" )))
@@ -138,17 +192,18 @@
    :   (fontified t face org-table))
 
    Exploring the usage of =remote= inside of a table.
-   - The date is read as an equation and I get the result of a substraction 
+   - The date is read as an equation ("-" is minus) and I get the
+     result of a substraction
    
    | Entry         | TBLFM field name | TBLFM num ref | lisp + field name |
-   | remote number |               24 |               | (24)              |
+   | remote number |               24 |            24 | (24)              |
    | remote date   |             2011 |          2011 | (2014-01-02)      |
-   #+TBLFM: @2$2=remote(remtable1,$ref_number)::@2$4='(identity remote(remtable1,$ref_number))::@3$2=remote(remtable1,$ref_date)::@3$3=remote(remtable1,@4$3)::@3$4='(identity remote(remtable1,$ref_date))
+   #+TBLFM: @2$2=remote(remtable1,$ref_number)::@2$3=remote(remtable1,@2$3)::@2$4='(identity remote(remtable1,$ref_number))::@3$2=remote(remtable1,$ref_date)::@3$3=remote(remtable1,@4$3)::@3$4='(identity remote(remtable1,$ref_date))
 
 
 * Column names and remote references
 
-  - One must be careful and not use a remote column name that also is used in the current table.
+  - One must be careful and *not use a remote column name that also is used in the current table*.
     Seems that the substitution of the value in the current scope takes precedence over the one
     in the remote scope.
   - Underscores in column names generate some strange behavior and should for now be avoided.
@@ -205,8 +260,13 @@
 
 
 * Things to observe
-  - do not use table names like p2_somename. The p2 is interpretet as column P, field 2
+  - *do not use table names like p2_somename.* The p2 is interpretet as column P, field 2
     when you go back from the table editor (C-'), and it will be substituted by the
     numeric location @2$16. This happens when you use a remote(p2_somename,somefield) reference
     in a formula. It clearly is a bug.
-    
+
+* Org Babel settings
+Local variables:
+org-confirm-babel-evaluate: nil
+org-export-babel-evaluate: nil
+End:
