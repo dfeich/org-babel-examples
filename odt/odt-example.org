@@ -45,4 +45,4 @@
 
   #   #+ATTR_ODT: :scale 0.5
    #+LABEL:fig_t3cumjobs
-   [[file:t3cumjobs2013.png]]
+   [[file:fig/t3cumjobs2013.png]]

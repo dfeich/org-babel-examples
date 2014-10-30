@@ -29,17 +29,20 @@
 
   We first create a table from a lisp *list of lists*. Each inner list
   will form a row in the resulting table. I already insert a header
-  row with the names of three columns.
+  row with the names of three columns. An separator line can be obtained
+  by having the =hline= symbol in the resulting list.
 
   #+NAME: make-table1
   #+BEGIN_SRC emacs-lisp :results value :exports both
     (cons '(col1 col2 col3)
-          (loop for i from 5 to 15 collect `(,i ,(* i 5) "")))
+          (cons 'hline
+                (loop for i from 5 to 15 collect `(,i ,(* i 5) ""))))
   #+END_SRC
 
   #+TBLNAME: table1
   #+RESULTS: make-table1
   | col1 | col2 | col3 |
+  |------+------+------|
   |    5 |   25 |      |
   |    6 |   30 |      |
   |    7 |   35 |      |
@@ -155,6 +158,22 @@
 
   and this is another:
   src_emacs-lisp[:results raw]{(org-table-get-remote-range "table1" "@>$1" )} 15
+
+
+  src_emacs-lisp[:results value]{(org-table-get-remote-range "table1" "@>$1" )} =15=
+
+* Defining buffer wide variables for src blocks
+  One can use a verbatim block like this
+
+  #+NAME: myvar
+  : world
+
+  #+BEGIN_SRC emacs-lisp :var s=myvar
+  (concat "hello " s)
+  #+END_SRC
+
+  #+RESULTS:
+  : hello world
 
 * Problems, Questions
   - [ ] How can I produce an initial table by code that already has a

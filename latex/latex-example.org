@@ -14,11 +14,18 @@
 #+SELECT_TAGS: export
 
 #+DATE: <2014-02-22 Sat>
-#+OPTIONS: texht:t
+# #+OPTIONS: texht:t
 #+LATEX_CLASS: article
 #+LATEX_CLASS_OPTIONS: [koma,a4paper]
 #+LATEX_HEADER: \hypersetup{colorlinks=true, linkcolor=blue}
-#+LATEX_HEADER_EXTRA:
+#+LATEX_HEADER_EXTRA: \usepackage{units}
+#+LATEX_HEADER_EXTRA: \usepackage{comment}
+
+
+# For export to ODT
+# #+OPTIONS: LaTeX:t
+# #+OPTIONS: tex:imagemagick
+# #+OPTIONS: tex:dvipng
 
 
 * Link formatting
@@ -28,6 +35,7 @@
     #+BEGIN_EXAMPLE
     #+LaTeX_HEADER: \hypersetup{colorlinks=true, linkcolor=blue}
     #+END_EXAMPLE
+
 * Equations
   
 This is an example for an equation
@@ -46,6 +54,17 @@ and here follows a numbered equation that also can be referenced (eq \ref{eq_1})
   cores_{extrapol} = cores_{intern2013} \cdot offl\% \cdot \frac{gf \cdot (volume_{user} + volume_{intern})}{volume_{intern}}
 \end{equation}
 
+# Units should be typeset differently from math symbols. This can be done using
+# the =units.sty= package that can be loaded in a =#+LATEX_HEADER_EXTRA: \usepackage{units}=
+# definition.
+
+# $$
+# \unit[20]{s} \cdot \unit[9.81]{m/s^2} = \unit[196.2]{m/s} 
+# $$
+
+
+#+LaTeX: \pagebreak
+
 * Figure
 
   I can reference the figure like this: Fig. \ref{fig_simplegraph1}. Note that there must be
@@ -57,8 +76,34 @@ and here follows a numbered equation that also can be referenced (eq \ref{eq_1})
   [[file:../beamer/fig/simplegraph1.png]]
 
 * Tables
+** DOES NOT WORK: Radio tables and skipping columns and rows
 
+   The =:splice t= setting in the following ORGTBL definition
+   will result in only the table's body lines to be returned,
+   and not to wrap them into a tabular environment.
+
+   # NOTE: This example only works if the comment environment has been
+   # included.
+   
+#+ BEGIN RECEIVE ORGTBL salesfigures
+#+ END RECEIVE ORGTBL salesfigures
+
+*** COMMENT location of the src table
+
+   #+ORGTBL: SEND salesfigures orgtbl-to-orgtbl :splice t :skip 2
+   | Month | Days | Nr sold | per day |
+   |-------+------+---------+---------|
+   | Jan   |   23 |      55 |     2.4 |
+   | Feb   |   21 |      16 |     0.8 |
+   | March |   22 |     278 |    12.6 |
+   #+TBLFM: $4=$3/$2;%.1f
+
+
+   
+** TODO things to try
   I should try
   #+BEGIN_EXAMPLE
   #+attr_latex: :float sidewaystable
   #+END_EXAMPLE
+
+  

@@ -430,6 +430,14 @@ digraph G
 
 * COMMENT babel settings
 
+  Note: I'm using here a global hook for redisplaying the images after a source block evaluation.
+  Another way of doing it on a single src block basis is by way of the *post* argument:
+
+  #+BEGIN_SRC dot :file fig/color1.png :exports both :post (org-redisplay-inline-images)
+  
+  #+END_SRC
+
+
 Local Variables:
 org-babel-after-execute-hook: (lambda () (org-display-inline-images nil t) (org-redisplay-inline-images))
 org-confirm-babel-evaluate: nil

@@ -28,7 +28,8 @@
 
 
 # #+latex_header: \mode<beamer>{\usetheme{Madrid}}
-#+BEAMER_THEME: Madrid
+# #+BEAMER_THEME: Madrid
+#+BEAMER_THEME: Hydrogen
 
 # One could also fine tune a number of theme settings instead of specifying the full theme
 # #+BEAMER_COLOR_THEME: default
@@ -125,7 +126,7 @@ with its own headline, is displayed in a block:
     :PROPERTIES:
     :BEAMER_env: beamercolorbox
     :END:
-    This does not work
+    The beamercolorbox does not seem to work
     #+BEGIN_EXAMPLE
     \begin{beamercolorbox}[shadow=true, rounded=true]{eecks}
     ...
@@ -137,19 +138,21 @@ with its own headline, is displayed in a block:
    :BEAMER_env: fullframe
    :END:
 
-   A =fullframe= is a =frame= with an ignored title. =frametitle= is set to the empty string
+   A =fullframe= is a =frame= with an ignored slide
+   title. =frametitle= is set to the empty string
 
 ** ignoreheading					    :B_ignoreheading:
    :PROPERTIES:
    :BEAMER_env: ignoreheading
    :END:
 
-   - A headline with an =ignoreheading= environment will have its contents only
-     inserted in the output.
-     + Contents is not inserted in any =frame= environment.
+   - A headline with an =ignoreheading= environment will only have its contents
+     inserted in the output. The heading text itself is ignored.
+     + Contents are not inserted in any =frame= environment.
 
-   - This special value is useful to have data between frames, or to properly
-     close a =column= environment.
+   - ignoreheading is useful as a structural element in order to again
+     place normal text after a previous element (like a block or a
+     column environment).
 
 ** =structureenv= environment
 *** structureenv 					     :B_structureenv:
@@ -158,12 +161,15 @@ with its own headline, is displayed in a block:
     :END:
     - For highlighting text.
     - To help the audience see the structure of your presentation.
+    - *TODO:* Currently I see no effect on the text style when using
+      structureenv
 
 *** end of structureenv					    :B_ignoreheading:
     :PROPERTIES:
     :BEAMER_env: ignoreheading
     :END:
-    - might need to use =ignoreheading= in order to then insert some more normal text.
+    - might need to use =ignoreheading= (like here) in order to then
+      insert some more normal text after the structureenv.
 
 ** =definition= environment
 
@@ -174,7 +180,7 @@ with its own headline, is displayed in a block:
     :END:
     Contents of the definition
 
-** =proof= environment
+** =proof= environment and revealing line by line
 *** proof							    :B_proof:
     :PROPERTIES:
     :BEAMER_env: proof
@@ -262,7 +268,7 @@ x =
 
 ** Summary
    - org is an incredible tool for time management
-   - @but@ it is also excellent for writing and for preparing presentations
+   - *but* it is also excellent for writing and for preparing presentations
    - Beamer is a very powerful \LaTeX{} package for presentations
    - the combination is unbeatable!
 

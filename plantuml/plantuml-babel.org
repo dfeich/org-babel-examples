@@ -36,28 +36,24 @@
   Emacs variable org-plantuml-jar-path:/home/dfeich/.emacs.d/javalib/plantuml.jar
 
 
-  PlantUML version 7979 (Wed Sep 04 18:17:25 CEST 2013)
+  PlantUML version 8004 (Sat Aug 23 18:23:53 CEST 2014)
   (GPL source distribution)
   OpenJDK Runtime Environment
-  OpenJDK Server VM
-  1.6.0_27-b27
+  OpenJDK 64-Bit Server VM
+  1.7.0_65-b32
   Linux
 
   The environment variable GRAPHVIZ_DOT has not been set
   Dot executable is /usr/bin/dot
-  Dot version: dot - graphviz version 2.26.3 (20100126.1600)
+  Dot version: dot - graphviz version 2.36.0 (20140111.2315)
   Installation seems OK. File generation OK
 
-  PlantUML version 7979 (Wed Sep 04 18:17:25 CEST 2013)
+  PlantUML version 8004 (Sat Aug 23 18:23:53 CEST 2014)
 
-  Last available version for download : 7979
+  Last available version for download : 8004
 
   Your version is up to date.
 #+end_example
-
-  #+BEGIN_SRC sh :results output :var jpath=(expand-file-name org-plantuml-jar-path)
-  java -jar "$jpath" -help
-  #+END_SRC
 
 
 **  Help text
@@ -83,6 +79,8 @@
       -tpng		To generate images using PNG format (default)
       -tsvg		To generate images using SVG format
       -teps		To generate images using EPS format
+      -tpdf		To generate images using PDF format
+      -tvdx		To generate images using VDX format
       -txmi		To generate XMI file for class diagram
       -thtml		To generate HTML files for class diagram
       -ttxt		To generate images with ASCII art
@@ -90,6 +88,7 @@
       -o[utput] "dir"	To generate images in the specified directory
       -DVAR1=value	To set a preprocessing variable as if '!define VAR1 value' were used
       -Sparam1=value	To set a skin parameter as if 'skinparam param1 value' were used
+      -r[ecurse]		recurse through directories
       -config "file"	To read the provided config file before each diagram
       -charset xxx	To use a specific charset (default is UTF-8)
       -e[x]clude pattern	To exclude files that match the provided pattern
@@ -103,18 +102,22 @@
       -testdot		To test the installation of graphviz
       -graphvizdot "exe"	To specify dot executable
       -p[ipe]		To use stdin for PlantUML source and stdout for PNG/SVG/EPS generation
-      -computeurl		To compute the encoded URL of a PlantUML source file
+      -encodesprite 4|8|16[z] "file"	To encode a sprite at gray level (z for compression) from an image
+      -computeurl|-encodeurl	To compute the encoded URL of a PlantUML source file
       -decodeurl		To retrieve the PlantUML source from an encoded URL
       -syntax		To report any syntax error from standard input without generating images
       -language		To print the list of PlantUML keywords
       -nosuggestengine	To disable the suggest engine when errors in diagrams
       -checkonly		To check the syntax of files without generating images
-      -failonerror	To stop processing if syntax error in diagram occurs
+      -failfast		To stop processing as soon as a syntax error in diagram occurs
+      -failfast2		To do a first syntax check before processing files, to fail even faster
       -pattern		To print the list of Regular Expression used by PlantUML
       -duration		To print the duration of complete diagrams processing
       -nbthread N		To use (N) threads for processing
       -nbthread auto	To use 4 threads for processing
       -author[s]		To print information about PlantUML authors
+      -overwrite		To allow to overwrite read only files
+      -printfonts		To print fonts available on your system
 
   If needed, you can setup the environment variable GRAPHVIZ_DOT.
 #+end_example
@@ -208,7 +211,7 @@ rectangle Gateway {
 [[file:fig/sequence4.png]]
 
 
-** activity diagrams
+** old style activity diagrams
 #+BEGIN_SRC plantuml :file fig/activity1.png
 title Example Activity Diagram
 note right: Example Function
@@ -291,6 +294,32 @@ endif
 [[file:fig/activity2.png]]
 
 
+
+** new style activity diagrams
+   - http://plantuml.sourceforge.net/activity2.html
+
+*** swimlanes
+
+   Swimlanes actually are activity diagrams using the new syntax.
+   
+   #+BEGIN_SRC plantuml :file fig/swimlane1.png
+@startuml
+|Swimlane1|
+start
+:foo1;
+|#AntiqueWhite|Swimlane2|
+:foo2;
+:foo3;
+|Swimlane1|
+:foo4;
+|Swimlane2|
+:foo5;
+stop
+@enduml
+   #+END_SRC
+
+#+RESULTS:
+[[file:fig/swimlane1.png]]
 
 * COMMENT babel settings
 
