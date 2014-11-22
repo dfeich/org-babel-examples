@@ -5,25 +5,32 @@
 #+DESCRIPTION: 
 #+KEYWORDS: 
 #+LANGUAGE:  en
-#+OPTIONS:   H:2 num:t toc:t \n:nil @:t ::t |:t ^:t -:t f:t *:t <:t
-#+OPTIONS:   TeX:t LaTeX:t skip:nil d:nil todo:t pri:nil tags:not-in-toc
-#+INFOJS_OPT: view:nil toc:nil ltoc:t mouse:underline buttons:0 path:http://orgmode.org/org-info.js
-#+EXPORT_SELECT_TAGS: export
-#+EXPORT_EXCLUDE_TAGS: noexport
-#+LINK_UP:   
-#+LINK_HOME: 
+#+OPTIONS:   num:t toc:t ::t |:t ^:{} -:t f:t *:t <:t
+#+OPTIONS:   tex:t d:nil todo:t pri:nil tags:nil
+#+OPTIONS:   timestamp:t
 
-#+startup: oddeven
+# this allows defining headlines to be exported/not be exported
+#+SELECT_TAGS: export
+#+EXCLUDE_TAGS: noexport
 
+# this triggers loading the beamer menu (C-c C-b) when the file is read
 #+startup: beamer
+
 #+LaTeX_CLASS: beamer
+
 # #+LaTeX_CLASS_OPTIONS: [bigger]
-#+LaTeX_CLASS_OPTIONS: [presentation]
+# #+LaTeX_CLASS_OPTIONS: [presentation]
+
+# this setting affects whether the initial PSI picture correctly fills
+# the title page, since it scales the title text
+#+LaTeX_CLASS_OPTIONS: [t,10pt]
 
 
 #+COLUMNS: %20ITEM %13BEAMER_env(Env) %6BEAMER_envargs(Args) %4BEAMER_col(Col) %7BEAMER_extra(Extra)
 
-#  obsolete: #+BEAMER_FRAME_LEVEL: 2
+# export second level headings as beamer frames. All headlines below
+# the org-beamer-frame-level (i.e. below H value in OPTIONS), are
+# exported as blocks
 #+OPTIONS: H:2
 
 
@@ -38,8 +45,27 @@
 # #+BEAMER_OUTER_THEME:
 # #+LATEX_CLASS: beamer
 
+# this can be used to define the transparency of the covered layers
+#+LATEX: \setbeamercovered{transparent=15}
+
 #+BEAMER_HEADER:
 
+* COMMENT Some remarks to options
+  - [[info:org#Export%20settings][info:org#Export settings]]
+  - ^:{} interpret abc_{subs} as subscript, but not abc_subs
+  - num:t configures whether to use section numbers. If set to a number
+    only headlines of this level or above will be numbered
+  - ::t defines that lines starting with ":" will use fixed width font
+  - |:t include tables in export
+  - -:t Non-nil means interpret "\-", "--" and "---" for export.
+  - f:t include footnotes
+  - *:t Non-nil means interpret
+    : *word*, /word/, _word_ and +word+.
+  - <:t toggle inclusion of timestamps
+  - timestamp:t include a document creation timestamp into the exported file
+  - todo:t include exporting of todo keywords
+  - d:nil do not export org heading drawers
+  - tags:nil do not export headline tags
 
 
 * Introduction
@@ -52,9 +78,9 @@
   #+END_SRC
 
   #+RESULTS:
-  : Emacs version: GNU Emacs 24.3.1 (i686-pc-linux-gnu, GTK+ Version 3.4.2)
-  :  of 2014-02-22 on chindi10, modified by Debian
-  : org version: 8.2.5h
+  : Emacs version: GNU Emacs 24.4.1 (x86_64-unknown-linux-gnu, GTK+ Version 3.10.8)
+  :  of 2014-10-31 on dflt1w
+  : org version: 8.2.10
 
 ** Overview
 - This is based on an [[http://orgmode.org/worg/exporters/beamer/tutorial.html][the Worg hosted example by Eric S. Fraga]] and on the
@@ -147,7 +173,8 @@ with its own headline, is displayed in a block:
    :END:
 
    - A headline with an =ignoreheading= environment will only have its contents
-     inserted in the output. The heading text itself is ignored.
+     displayed in the output. The heading text itself is ignored, and no
+     heading bar is shown.
      + Contents are not inserted in any =frame= environment.
 
    - ignoreheading is useful as a structural element in order to again
@@ -191,8 +218,61 @@ with its own headline, is displayed in a block:
     - <4-> But /q + 1/ is greater than /1/, thus divisible by some prime number
       not in the first /p/ numbers.\qedhere
 
+* Using Beamer_act for overlays
+** Two blocks
+*** First Block 						    :B_block:
+   :PROPERTIES:
+   :BEAMER_env: block
+   :END:
+   - this is visible from the beginning
+*** Second Block 					       :B_alertblock:
+   :PROPERTIES:
+   :BEAMER_env: alertblock
+   :BEAMER_act: <2->
+   :END:      
+   - and this one is revealed afterwards by using the BEAMER_act
+     keyword in the PROPERTIES section.
+     
+** Two blocks with invisible layering
+#+LATEX: \setbeamercovered{invisible}
+*** First Block 						    :B_block:
+   :PROPERTIES:
+   :BEAMER_env: block
+   :END:
+   - this is visible from the beginning
+*** Second Block 					       :B_alertblock:
+   :PROPERTIES:
+   :BEAMER_env: alertblock
+   :BEAMER_act: <2->
+   :END:      
+   - and this one is revealed afterwards by using the BEAMER_act
+     keyword in the PROPERTIES section.
+     
+** Two blocks with a different transparency setting
+#+LATEX: \setbeamercovered{transparent=60}
+*** First Block 						    :B_block:
+   :PROPERTIES:
+   :BEAMER_env: block
+   :END:
+   - this is visible from the beginning
+*** Second Block 					       :B_alertblock:
+   :PROPERTIES:
+   :BEAMER_env: alertblock
+   :BEAMER_act: <2->
+   :END:      
+   - and this one is revealed afterwards by using the BEAMER_act
+     keyword in the PROPERTIES section.
+     
+*** Third Block 					       :B_alertblock:
+   :PROPERTIES:
+   :BEAMER_env: alertblock
+   :BEAMER_act: <3->
+   :END:      
+   - and this one is revealed afterwards by using the BEAMER_act
+     keyword in the PROPERTIES section.
+     
 * Multiple Columns
-** Two columns
+** Blocks in two columns
 
 *** A left block					      :B_block:BMCOL:
     :PROPERTIES:
@@ -209,7 +289,7 @@ with its own headline, is displayed in a block:
     :END:
     - this is the right column
       
-** Two columns
+** A Block and a figure
 
 *** A block							      :BMCOL:
     :PROPERTIES:
@@ -224,7 +304,7 @@ with its own headline, is displayed in a block:
     :PROPERTIES:
     :BEAMER_col: 0.6
     :END:
-    #+ATTR_LATEX: width=\textwidth
+    #+ATTR_LaTeX: :width 1.0\textwidth :float t :placement [H]
     [[file:fig/simplegraph1.png]]
 
 ** Babel
@@ -273,13 +353,19 @@ x =
    - the combination is unbeatable!
 
 
-* Appendix
-** Appendix NAME XX XX XX					 :B_appendix:
+* Appendix							 :B_appendix:
+  :PROPERTIES:
+  :BEAMER_env: appendix
+  :END:
+** Appendix
    :PROPERTIES:
-   :BEAMER_env: appendix
    :END:
 
-** Some details
+   SOME BACKUP SLIDES
+
+** Backup slide 1
+   Some backup info
+** Backup slide 2
    These details are not part of the main talk.
 
 * COMMENT org babel settings
