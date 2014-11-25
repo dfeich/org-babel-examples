@@ -45,6 +45,9 @@
 # #+BEAMER_OUTER_THEME:
 # #+LATEX_CLASS: beamer
 
+# I want to define a style for hyperlinks
+#+LATEX_HEADER: \hypersetup{colorlinks=true, linkcolor=blue}
+
 # this can be used to define the transparency of the covered layers
 #+LATEX: \setbeamercovered{transparent=15}
 
@@ -248,8 +251,9 @@ with its own headline, is displayed in a block:
    - and this one is revealed afterwards by using the BEAMER_act
      keyword in the PROPERTIES section.
      
-** Two blocks with a different transparency setting
-#+LATEX: \setbeamercovered{transparent=60}
+** Three blocks with a different transparency setting
+#+LATEX: \setbeamercovered{transparent=50}
+
 *** First Block 						    :B_block:
    :PROPERTIES:
    :BEAMER_env: block
@@ -289,9 +293,9 @@ with its own headline, is displayed in a block:
     :END:
     - this is the right column
       
-** A Block and a figure
+** A text section and a figure
 
-*** A block							      :BMCOL:
+*** A text section 						      :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.4
     :END:
@@ -306,6 +310,30 @@ with its own headline, is displayed in a block:
     :END:
     #+ATTR_LaTeX: :width 1.0\textwidth :float t :placement [H]
     [[file:fig/simplegraph1.png]]
+
+
+** A Block and a figure
+
+*** A text section						      :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.4
+    :END:
+# #+LATEX: \vbox to .2\textheight{%
+# #+LATEX: \vfill
+#+LATEX: \vspace{0.2\textheight}
+    - a centered text section. I found no good way for
+      using =\vfill= or =\minipage= as referenced [[http://tex.stackexchange.com/questions/15244/why-does-vfill-not-work-inside-a-beamer-column][here]]
+
+# #+LATEX: \vfill
+# #+LATEX: }%
+
+*** A screenshot 					    :BMCOL:B_example:
+    :PROPERTIES:
+    :BEAMER_col: 0.6
+    :END:
+    #+ATTR_LaTeX: :width 1.0\textwidth :float t :placement [H]
+    [[file:fig/simplegraph1.png]]
+
 
 ** Babel
    :PROPERTIES:

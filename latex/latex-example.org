@@ -75,6 +75,11 @@ and here follows a numbered equation that also can be referenced (eq \ref{eq_1})
   #+ATTR_LaTeX: :width 0.8\textwidth :float t :placement [H]
   [[file:../beamer/fig/simplegraph1.png]]
 
+  A pdf can be included the same way
+  #+BEGIN_EXAMPLE
+  #+ATTR_LATEX: :options page=10 :width 10cm
+  [[file:myfig.pdf]]
+  #+END_EXAMPLE
 * Tables
 ** DOES NOT WORK: Radio tables and skipping columns and rows
 
