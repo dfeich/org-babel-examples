@@ -37,7 +37,64 @@
       $now(0) => <11:03:18pm Sun Aug 11, 2013>$
       $unixtime(now(0)) => 1376262280$
 
+* calc usage in tables
+** Unit conversions
+   - from http://article.gmane.org/gmane.emacs.orgmode/93489
 
+   Displaying all calc units
+   #+BEGIN_SRC emacs-lisp
+     (calc-view-units-table 1)
+   #+END_SRC
+
+   | distance | time   | speed       |
+   |----------+--------+-------------|
+   | 3 km     | 2.5 hr | 1.2 km / hr |
+   #+TBLFM:  @2$3=$1/$2
+
+   | km    |      ft |
+   |-------+---------|
+   | 2.5km | 8202.10 |
+   #+TBLFM: $2='(calc-eval (math-convert-units (calc-eval $1 'raw) (calc-eval "ft" 'raw))); %.2f
+
+   | speed        | simplified speed |
+   |--------------+------------------|
+   | 40km / 2.5hr | 16. km / hr      |
+   #+TBLFM:  @2$2=usimplify($1)
+
+   
+   Defining a new calc function for unit conversion with defmath
+   #+BEGIN_SRC emacs-lisp
+   (defmath uconv (expr target-units &optional pure)
+     (math-convert-units expr target-units pure))
+   #+END_SRC
+
+   #+RESULTS:
+   : calcFunc-uconv
+
+   | km     | ft           |
+   |--------+--------------|
+   | 2.5 km | 8202.0997 ft |
+   #+TBLFM: $2=uconv($1, ft)
+
+   Using the units from the table header:
+
+   |  km |        ft |
+   |-----+-----------|
+   | 2.5 | 8202.0997 |
+   #+TBLFM: $2 = uconv($1 * @<$1, @<$2, t)
+
+   The same without a user's defmath:
+
+   |  km |        ft |
+   |-----+-----------|
+   | 2.5 | 8202.0997 |
+   #+TBLFM: $2 = usimplify($1 * @<$1 / @<$2)
+
+   | Unit | Definition |
+   |------+------------|
+   | km   | #ERROR     |
+   #+TBLFM: @2$2='(calc-get-unit-definition $1)
+   
 * babel calc
 
   Not too useful, currently. Embedded calc certainly is better for inlining
@@ -70,7 +127,14 @@ fsolve(x*2+x=4,x)
     #+RESULTS:
     : [x = a + (b - a) / 2, y = (a - b) / 2]
 
+* calc from lisp
 
+  calc-eval can be used for most interactions with calc. 'push puts the number
+  on the stack.
+  #+BEGIN_SRC emacs-lisp
+  (progn (calc-eval "10 ft" 'push) (calc-explain-units))
+  #+END_SRC
+  
 * COMMENT babel settings
 Local variables:
 org-confirm-babel-evaluate: nil
