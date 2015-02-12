@@ -80,7 +80,29 @@ and here follows a numbered equation that also can be referenced (eq \ref{eq_1})
   #+ATTR_LATEX: :options page=10 :width 10cm
   [[file:myfig.pdf]]
   #+END_EXAMPLE
+* Footnote test
+
+   This is a text with a footnote[fn:1]. The footnote will be displayed
+   on the bottom of the current page. One can also place all footnotes
+   in a separate chapter called /footnotes/ at the end of the org file[fn:2].
+
+
+   
 * Tables
+** Math in tables
+
+   Use /math/ or /inline math/ together with /array/ environment
+   
+   #+ATTR_LaTeX: :mode math :environment array
+   | Column 1 | Column 2 |
+   |----------+----------|
+   | \sin(x)  | \tan(x)  |
+
+   #+ATTR_LaTeX: :mode inline-math :environment array
+   | Column 1 | Column 2 |
+   |----------+----------|
+   | \sin(x)  | \tan(x)  |
+
 ** DOES NOT WORK: Radio tables and skipping columns and rows
 
    The =:splice t= setting in the following ORGTBL definition
@@ -104,11 +126,18 @@ and here follows a numbered equation that also can be referenced (eq \ref{eq_1})
    #+TBLFM: $4=$3/$2;%.1f
 
 
-   
+
 ** TODO things to try
   I should try
   #+BEGIN_EXAMPLE
   #+attr_latex: :float sidewaystable
   #+END_EXAMPLE
 
+  to get a table oriented sideways
   
+* Footnotes
+
+  # No indentation is allowed for footnotes
+
+[fn:1] This is the footnote text
+[fn:2] this is a footnote from the end of the org document

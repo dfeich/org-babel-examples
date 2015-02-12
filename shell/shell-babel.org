@@ -38,7 +38,9 @@
   |   14 |   70 |      |
   |   15 |   75 |      |
 
+  sidenote: the -n flag results in line numbers for the exported source code.
 
+  #+NAME: src-table2
   #+BEGIN_SRC sh :results value :exports both :var tbl=table1 :colnames yes -n
     while read a b rest; do
         echo $a $b $((b*2))
@@ -60,6 +62,14 @@
   |   13 |   65 |  130 |
   |   14 |   70 |  140 |
   |   15 |   75 |  150 |
+
+  One can use a slice indexing for only importing a subrange of a table
+  #+BEGIN_SRC sh :results value :exports both :var slice=src-table2[3:10,0:1] :colnames yes
+  echo $slice
+  #+END_SRC
+
+  #+RESULTS:
+  : 7 35 8 40 9 45 10 50 11 55 12 60 13 65
 
 * additional supported options
 ** dir

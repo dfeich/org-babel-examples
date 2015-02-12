@@ -109,9 +109,11 @@
   (/ x y)
   #+END_SRC
 
-  Note that you can pass additional header arguments to the call. The ones
-  added at the end influence the final result, while the ones added in
-  [] are evaluated in the context of the original definition.
+  Note that *you can/must pass additional header arguments* to the
+  call. The ones added at the end influence the final result
+  (e.g. putting it into a drawer), while the ones added in [] are
+  evaluated in the context of the original definition (e.g whether to
+  capture the output).
   #+CALL: mydivide(12,3) :results raw
 
   #+RESULTS:

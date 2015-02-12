@@ -36,7 +36,7 @@
   Emacs variable org-plantuml-jar-path:/home/dfeich/.emacs.d/javalib/plantuml.jar
 
 
-  PlantUML version 8004 (Sat Aug 23 18:23:53 CEST 2014)
+  PlantUML version 8015 (Sun Dec 14 16:41:52 CET 2014)
   (GPL source distribution)
   OpenJDK Runtime Environment
   OpenJDK 64-Bit Server VM
@@ -48,9 +48,9 @@
   Dot version: dot - graphviz version 2.36.0 (20140111.2315)
   Installation seems OK. File generation OK
 
-  PlantUML version 8004 (Sat Aug 23 18:23:53 CEST 2014)
+  PlantUML version 8015 (Sun Dec 14 16:41:52 CET 2014)
 
-  Last available version for download : 8004
+  Last available version for download : 8015
 
   Your version is up to date.
 #+end_example
@@ -318,8 +318,9 @@ stop
 @enduml
    #+END_SRC
 
-#+RESULTS:
-[[file:fig/swimlane1.png]]
+   #+RESULTS:
+   [[file:fig/swimlane1.png]]
+
 
 * COMMENT babel settings
 

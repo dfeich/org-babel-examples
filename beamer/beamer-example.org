@@ -18,11 +18,17 @@
 
 #+LaTeX_CLASS: beamer
 
-# #+LaTeX_CLASS_OPTIONS: [bigger]
-# #+LaTeX_CLASS_OPTIONS: [presentation]
+#    LATEX CLASS OPTIONS
+# [bigger]
+# [presentation]
+# [handout] : print handouts, i.e. slides with overlays will be printed with
+#   all overlays turned on.
 
 # this setting affects whether the initial PSI picture correctly fills
-# the title page, since it scales the title text
+# the title page, since it scales the title text. One can also use the
+# notes=show or notes=only options to produce notes pages in the output.
+# #+LaTeX_CLASS_OPTIONS: [t,10pt,notes=only]
+
 #+LaTeX_CLASS_OPTIONS: [t,10pt]
 
 
@@ -117,6 +123,28 @@ with its own headline, is displayed in a block:
 
     \hfill \(\qed\)
 
+** Some text features
+
+   The double =@@= can be used to enclose avtive code. Here we use it to specify
+   beamer code that will highlight text by specifying an overlay.
+   
+   A *@@beamer:<2->@@useful* feature
+
+   The following setting acts like =\begin{itemize}[<+->]=. So, it will cause the
+   list items to appear one after the other.
+
+   #+ATTR_BEAMER: :overlay +-
+   - item 1
+   - item 2
+   - item 3
+
+** This is a notes page						     :B_note:
+   :PROPERTIES:
+   :BEAMER_env: note
+   :END:
+
+   This is a notes page with some information.
+   
 * A collection of example pages
 ** block environments
    
@@ -220,6 +248,21 @@ with its own headline, is displayed in a block:
     - <3-> Then /q + 1/ is not divisible by any of them.
     - <4-> But /q + 1/ is greater than /1/, thus divisible by some prime number
       not in the first /p/ numbers.\qedhere
+
+** Tables
+   The size of the table font can be chosen by giving a =#+LATEX: \small=
+   command (or =\tiny= or =\footnotesize=)
+
+   #+LATEX: \footnotesize
+    #+NAME: tblWNs2014
+    | WNs | Processors         | Cores/node | HS06/node | total cores | total HS06 |
+    |-----+--------------------+------------+-----------+-------------+------------|
+    |  20 | 2*Xeon X5560       |          8 |       118 |         160 |       2360 |
+    |  11 | 2*E5-2670 2.60GHz  |         16 |       263 |         176 |       2893 |
+    |   4 | 2*AMD 6272 2.40GHz |         32 |       241 |         128 |        964 |
+    |-----+--------------------+------------+-----------+-------------+------------|
+    |  35 |                    |            |           |         464 |       6217 |
+#+TBLFM: @I$6..@II$6=$1*$4::@I$5..@II$5=$1*$3::@>$1=vsum(@I..@II)::@>$5..@>$6=vsum(@I..@II)
 
 * Using Beamer_act for overlays
 ** Two blocks
@@ -389,7 +432,7 @@ x =
    :PROPERTIES:
    :END:
 
-   SOME BACKUP SLIDES
+   SOME BACKUP SLIDES. The Appendix will not be listed in the table of contents.
 
 ** Backup slide 1
    Some backup info
