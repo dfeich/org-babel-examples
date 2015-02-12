@@ -33,14 +33,15 @@
 * Generating a table
 
   #+BEGIN_SRC python -n :exports both :results value table
-x = range(1,10)
-y = [xe*3 for xe in x]
-return [x,y]
+    x = range(1,10)
+    y = [xe*3 for xe in x]
+    return [x,y]
   #+END_SRC
 
   #+RESULTS:
   | 1 | 2 | 3 |  4 |  5 |  6 |  7 |  8 |  9 |
   | 3 | 6 | 9 | 12 | 15 | 18 | 21 | 24 | 27 |
+
 
 
   #+BEGIN_SRC python -n :exports both :results value table
@@ -145,21 +146,81 @@ return fname # return filename to org-mode
    It would probably be nicer to create a special function that formats the
    data frame nicely for org, e.g. with a title row separated by a line
 
-  #+BEGIN_SRC python :results value table
-import pandas as pd
-import numpy as np
-import sys
+#+NAME: dframeToOrg
+   #+BEGIN_SRC python
+    def dataFrameToOrgTbl(dframe, name=None, caption=None, attr=None, index=True):
+        if name:
+            print "#+NAME: %s" % name
 
-df = pd.DataFrame({'A' : ['one', 'one', 'two', 'three'] * 3,
-                 'B' : ['A', 'B', 'C'] * 4,
-                 'C' : ['foo', 'foo', 'foo', 'bar', 'bar', 'bar'] * 2,
-                 'D' : np.random.randn(12),
-                 'E' : np.random.randn(12)})
+        if caption:
+            print "#+CAPTION: %s" % caption
 
-return(np.array(list(df.T.itertuples())).transpose()[1:])
-#df.to_csv(sys.stdout, sep='|',line_terminator='|\n')
-#return (df.to_string(col_space=5, justify='right',index=False))
-  
+        if attr:
+            print "#+ATTR_LATEX: %s" % attr
+
+
+        lines = '|' + dframe.to_csv(None, sep='|', line_terminator='|\n|', encoding='utf-8', index=index).rstrip("|").rstrip("\n")
+
+        for i,l in enumerate(lines.split('\n')):
+            if i == 1:
+                print "|-----"
+            print l   
+   #+END_SRC
+
+
+
+   #+BEGIN_SRC python :results output org :noweb yes
+    import pandas as pd
+    import numpy as np
+
+    <<dframeToOrg>>
+    df = pd.DataFrame({'A' : ['one', 'one', 'two', 'three'] * 3,
+                     'B' : ['A', 'B', 'C'] * 4,
+                     'C' : ['foo', 'foo', 'foo', 'bar', 'bar', 'bar'] * 2,
+                     'D' : np.random.randn(12),
+                     'E' : np.random.randn(12)})
+
+    dataFrameToOrgTbl(df)
+   #+END_SRC
+
+   #+RESULTS:
+   #+BEGIN_SRC org
+   |    | A     | B | C   |               D |               E |
+   |----+-------+---+-----+-----------------+-----------------|
+   |  0 | one   | A | foo |  -0.27171981642 |  0.393290173652 |
+   |  1 | one   | B | foo |  -2.49502154035 |  0.316291887355 |
+   |  2 | two   | C | foo |  0.406974439509 | -0.260608399369 |
+   |  3 | three | A | bar |  -1.01581826508 |  -0.40314275924 |
+   |  4 | one   | B | bar |   1.08136872224 | -0.858113669675 |
+   |  5 | one   | C | bar |  0.824388686002 | -0.710188452329 |
+   |  6 | two   | A | foo |  0.472313307757 |  0.326397221895 |
+   |  7 | three | B | foo |   0.79193490859 |  0.927607026723 |
+   |  8 | one   | C | foo | -0.511009737206 | -0.202544634949 |
+   |  9 | one   | A | bar | -0.529983312821 | -0.995200617497 |
+   | 10 | two   | B | bar | -0.797371718556 |   1.03751171535 |
+   | 11 | three | C | bar |   1.06208233764 | -0.455015077621 |
+   #+END_SRC
+
+   
+   older alternatives:
+   #+BEGIN_SRC python :results value table
+    import pandas as pd
+    import numpy as np
+    import sys
+
+    df = pd.DataFrame({'A' : ['one', 'one', 'two', 'three'] * 3,
+                     'B' : ['A', 'B', 'C'] * 4,
+                     'C' : ['foo', 'foo', 'foo', 'bar', 'bar', 'bar'] * 2,
+                     'D' : np.random.randn(12),
+                     'E' : np.random.randn(12)})
+
+    return(np.array(list(df.T.itertuples())).transpose()[1:])
+    #df.to_csv(sys.stdout, sep='|',line_terminator='|\n')
+    #return (df.to_string(col_space=5, justify='right',index=False))
+
+    # this is a good one
+    #print '|',(df.to_csv(None, sep='|', line_terminator='|\n|', encoding='utf-8'))
+
   #+END_SRC
 
   #+RESULTS:
@@ -255,7 +316,40 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
   2013-07-10 06:00:00    180          180    20
 #+end_example
 
+* Unicode related problems
 
+  The output terminal to which org babel writes output seems to be a dumb ASCII type
+  of terminal. If one wants to print non-ASCII characters, the characteristics of
+  the output device must be defined using the =codecs= module.
+  
+  #+BEGIN_SRC python :results output
+    # -*- coding: iso-8859-15 -*-
+
+    # the above line is needed, so that python accepts the Umlauts
+    # in the following line
+    strg = u'Can we see Umlauts? äöü. And accents? éè.'
+
+    import sys
+
+    try:
+        print strg
+    except:
+        print "Expected error:", sys.exc_info()[0]
+
+    import codecs
+    sys.stdout = codecs.getwriter('utf8')(sys.stdout)
+
+    print "\nNow it works:\n", strg
+
+  #+END_SRC
+
+  #+RESULTS:
+  : Unexpected error: <type 'exceptions.UnicodeEncodeError'>
+  : 
+  : Now it works:
+  : Can we see Umlauts? äöü. And accents? éè.
+
+  
 * COMMENT Environment setup and test
   #+BEGIN_SRC python :exports both :results value
 import sys
@@ -273,9 +367,10 @@ virtual environment
 python-shell-virtualenv-path affects sessions via the run-python function
 org-babel-python-command affects non-session src blocks
 
+# python-shell-virtualenv-path: "/home/dfeich/py-virtualenv/notebook"
+# org-babel-python-command: "/home/dfeich/py-virtualenv/notebook/bin/python"
+
 Local Variables:
-python-shell-virtualenv-path: "/home/dfeich/py-virtualenv/notebook"
-org-babel-python-command: "/home/dfeich/py-virtualenv/notebook/bin/python"
 org-confirm-babel-evaluate: nil
 org-export-babel-evaluate: nil
 End:

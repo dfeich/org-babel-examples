@@ -1,3 +1,22 @@
+* Note
+
+  ipython babel works best for testing interactive magic commands, but there are problems
+  when code blocks are copied into the babel session (in ipython these snippets need
+  to get pasted using %paste or %cpaste).
+
+  there is a discussion and a defadvice in this discussion
+  http://emacs.stackexchange.com/questions/3859/working-setup-for-ipython-in-babel
+
+  #+BEGIN_SRC emacs-lisp
+; use %cpaste to paste code into ipython in org mode
+(defadvice org-babel-python-evaluate-session
+  (around org-python-use-cpaste
+         (session body &optional result-type result-params) activate)
+  "add a %cpaste and '--' to the body, so that ipython does the right thing."
+  (setq body (concat "%cpaste -q \n" body "\n--"))
+  ad-do-it
+  )
+#+END_SRC
 
 * Example for using ipython magic commands
 
@@ -10,7 +29,7 @@
 : >>> 
 
 
-* Babel evnironment setup and ipython setup
+* Babel environment setup and ipython setup
 
 Local Variables:
 python-shell-virtualenv-path: "/home/dfeich/py-virtualenv/notebook"
