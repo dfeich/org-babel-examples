@@ -28,6 +28,18 @@
 # #+OPTIONS: tex:dvipng
 
 
+* Version information
+  #+BEGIN_SRC emacs-lisp :results output :exports results
+    (princ (concat (format "Emacs version: %s\n" (emacs-version))
+                   (format "org version: %s\n" (org-version))))
+    
+  #+END_SRC
+
+  #+RESULTS:
+  : Emacs version: GNU Emacs 24.4.1 (x86_64-unknown-linux-gnu, GTK+ Version 3.10.8)
+  :  of 2014-10-31 on dflt1w
+  : org version: 8.2.10
+
 * Link formatting
   - This is described in the LaTeX [[http://mirror.unl.edu/ctan/macros/latex/contrib/hyperref/doc/manual.pdf][hyperref]] manual.
   - This is an example how to get links that are not framed by red
@@ -89,22 +101,74 @@ and here follows a numbered equation that also can be referenced (eq \ref{eq_1})
 
    
 * Tables
+
+  Whether table captions appear above or below the table can be configured using this
+  variable
+  #+BEGIN_SRC emacs-lisp
+    (setq org-latex-table-caption-above nil)
+  #+END_SRC
+
+
+  
+
 ** Math in tables
 
-   Use /math/ or /inline math/ together with /array/ environment
-   
+   Use /math/ or /inline math/ together with /array/ environment.
+
+   Here we use the simple math mode
    #+ATTR_LaTeX: :mode math :environment array
    | Column 1 | Column 2 |
    |----------+----------|
    | \sin(x)  | \tan(x)  |
 
+   This uses the =inline-math= mode
    #+ATTR_LaTeX: :mode inline-math :environment array
    | Column 1 | Column 2 |
    |----------+----------|
    | \sin(x)  | \tan(x)  |
 
+
+** Table font size
+
+   The font size is determined by the =:font= switch in the =#+ATTR_LATEX= line.
+   #+ATTR_LATEX: :placement [H]
+   | Column 1  | Column 2        |
+   |-----------+-----------------|
+   | Some text | Some other text |
+   | 10        | 20              |
+
+   When I use a caption, the latex export uses a =table=
+   environment. The previous captionless table used the =tabular=
+   environment.
+
+   #+CAPTION: Table small size
+   #+ATTR_LATEX: :placement [H] :font \small
+   | Column 1  | Column 2        |
+   |-----------+-----------------|
+   | Some text | Some other text |
+   | 10        | 20              |
+
+   #+CAPTION: Table footnotesize
+   #+ATTR_LATEX: :placement [H] :font \footnotesize
+   | Column 1  | Column 2        |
+   |-----------+-----------------|
+   | Some text | Some other text |
+   | 10        | 20              |
+
+   #+CAPTION: Table tiny size
+   #+ATTR_LATEX: :placement [H] :font \tiny
+   | Column 1  | Column 2        |
+   |-----------+-----------------|
+   | Some text | Some other text |
+   | 10        | 20              |
+
+
 ** DOES NOT WORK: Radio tables and skipping columns and rows
 
+   The reason why it does not work is that the feature is only
+   implemented for some modes. Org is not among them.
+   See Org info chapter: /A.6.2 A LaTeX example of radio tables/.
+   
    The =:splice t= setting in the following ORGTBL definition
    will result in only the table's body lines to be returned,
    and not to wrap them into a tabular environment.
@@ -112,12 +176,12 @@ and here follows a numbered equation that also can be referenced (eq \ref{eq_1})
    # NOTE: This example only works if the comment environment has been
    # included.
    
-#+ BEGIN RECEIVE ORGTBL salesfigures
-#+ END RECEIVE ORGTBL salesfigures
+# BEGIN RECEIVE ORGTBL salesfigures
+# END RECEIVE ORGTBL salesfigures
 
 *** COMMENT location of the src table
 
-   #+ORGTBL: SEND salesfigures orgtbl-to-orgtbl :splice t :skip 2
+   #+ORGTBL: SEND salesfigures orgtbl-to-latex :splice t :skip 2
    | Month | Days | Nr sold | per day |
    |-------+------+---------+---------|
    | Jan   |   23 |      55 |     2.4 |
@@ -141,3 +205,9 @@ and here follows a numbered equation that also can be referenced (eq \ref{eq_1})
 
 [fn:1] This is the footnote text
 [fn:2] this is a footnote from the end of the org document
+* COMMENT org babel settings
+
+Local variables:
+org-confirm-babel-evaluate: nil
+org-export-babel-evaluate: nil
+End:
