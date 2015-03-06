@@ -13,13 +13,15 @@
 #+LANGUAGE: en
 #+SELECT_TAGS: export
 
-#+DATE: <2014-02-22 Sat>
 # #+OPTIONS: texht:t
 #+LATEX_CLASS: article
 #+LATEX_CLASS_OPTIONS: [koma,a4paper]
 #+LATEX_HEADER: \hypersetup{colorlinks=true, linkcolor=blue}
 #+LATEX_HEADER_EXTRA: \usepackage{units}
 #+LATEX_HEADER_EXTRA: \usepackage{comment}
+
+# Needed for rotating floats, e.g. for placing the sidewaystable
+#+LATEX_HEADER_EXTRA: \usepackage{rotfloat}
 
 
 # For export to ODT
@@ -163,7 +165,25 @@ and here follows a numbered equation that also can be referenced (eq \ref{eq_1})
    | 10        | 20              |
 
 
-** DOES NOT WORK: Radio tables and skipping columns and rows
+** Sidewaystable
+
+   Using the sidewaystable together with a =:placement [H]= specifier
+   requires that one uses the =rotfloat= environment.
+
+   #+NAME: tblSideways
+   #+CAPTION: A sidewaystable
+   #+ATTR_LATEX: :font \footnotesize :float sidewaystable :placement [H]
+   | Column 1 | Column 2 | Column 3 | Column 4 | Column 5 | Column 6 |
+   |----------+----------+----------+----------+----------+----------|
+   |        1 |       10 |      100 |     1000 | example  | result   |
+   |        2 |       11 |      101 |     1001 | example  | result   |
+   |        3 |       12 |      102 |     1002 | example  | result   |
+   |        4 |       13 |      103 |     1003 | example  | result   |
+   |        5 |       14 |      104 |     1004 | example  | result   |
+   |        6 |       15 |      105 |     1005 | example  | result   |
+   |        7 |       16 |      106 |     1006 | example  | result   |
+   
+** COMMENT DOES NOT WORK: Radio tables and skipping columns and rows
 
    The reason why it does not work is that the feature is only
    implemented for some modes. Org is not among them.
@@ -191,13 +211,6 @@ and here follows a numbered equation that also can be referenced (eq \ref{eq_1})
 
 
 
-** TODO things to try
-  I should try
-  #+BEGIN_EXAMPLE
-  #+attr_latex: :float sidewaystable
-  #+END_EXAMPLE
-
-  to get a table oriented sideways
   
 * Footnotes
 
