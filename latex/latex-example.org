@@ -23,6 +23,10 @@
 # Needed for rotating floats, e.g. for placing the sidewaystable
 #+LATEX_HEADER_EXTRA: \usepackage{rotfloat}
 
+# lmodern provides Latin Modern Type1 fonts. If this is left
+# out, Type3 fonts are used which results in a document from
+# which one cannot copy (symbol crap) and that is not searchable
+#+LATEX_HEADER_EXTRA: \usepackage{lmodern}
 
 # For export to ODT
 # #+OPTIONS: LaTeX:t
@@ -42,13 +46,16 @@
   :  of 2014-10-31 on dflt1w
   : org version: 8.2.10
 
-* Link formatting
-  - This is described in the LaTeX [[http://mirror.unl.edu/ctan/macros/latex/contrib/hyperref/doc/manual.pdf][hyperref]] manual.
-  - This is an example how to get links that are not framed by red
-    rectangles, but just have a blue font color
-    #+BEGIN_EXAMPLE
-    #+LaTeX_HEADER: \hypersetup{colorlinks=true, linkcolor=blue}
-    #+END_EXAMPLE
+* Some LaTeX links
+  - Link formatting
+    - This is described in the LaTeX [[http://mirror.unl.edu/ctan/macros/latex/contrib/hyperref/doc/manual.pdf][hyperref]] manual.
+    - This is an example how to get links that are not framed by red
+      rectangles, but just have a blue font color
+      #+BEGIN_EXAMPLE
+      #+LaTeX_HEADER: \hypersetup{colorlinks=true, linkcolor=blue}
+      #+END_EXAMPLE
+  - Building a LaTeX Document Class
+    - http://tutex.tug.org/pracjourn/2005-4/hefferon/hefferon.pdf
 
 * Equations
   
@@ -81,12 +88,30 @@ and here follows a numbered equation that also can be referenced (eq \ref{eq_1})
 
 * Figure
 
-  I can reference the figure like this: Fig. \ref{fig_simplegraph1}. Note that there must be
-  no empty line between the link and the meta definitions for name, caption, etc.
+  I can reference the figure like this: Fig. \ref{fig_simplegraph1}.
+
+  Note
+  - there must be no empty line between the link and the meta
+    definitions for name, caption, etc.
+  - The OPTION =tex:t= must be set for references to work.
+
+  | Specifier | Permission                                                                                                                                                |
+  |-----------+-----------------------------------------------------------------------------------------------------------------------------------------------------------|
+  | h         | Place the float here, i.e., approximately at the same point it occurs in the source text (however, not exactly at the spot)                               |
+  | t         | Position at the top of the page.                                                                                                                          |
+  | b         | Position at the bottom of the page.                                                                                                                       |
+  | p         | Put on a special page for floats only.                                                                                                                    |
+  | !         | Override internal parameters LaTeX uses for determining "good" float positions.                                                                           |
+  | H         | Places the float at precisely the location in the LaTeX code. Requires the float package,[1] e.g., \usepackage{float}. This is somewhat equivalent to h!. |
 
   #+NAME: fig_simplegraph1
   #+CAPTION: A simple graph
   #+ATTR_LaTeX: :width 0.8\textwidth :float t :placement [H]
+  [[file:../beamer/fig/simplegraph1.png]]
+
+  #+NAME: fig_simplegraph1b
+  #+CAPTION: A simple graph
+  #+ATTR_LaTeX: :width 0.4\textwidth,right :float t :placement [H]
   [[file:../beamer/fig/simplegraph1.png]]
 
   A pdf can be included the same way
@@ -211,7 +236,27 @@ and here follows a numbered equation that also can be referenced (eq \ref{eq_1})
 
 
 
-  
+* Text font size
+  #+LATEX:\Huge
+  Text Example
+  #+LATEX:\huge
+  Text Example
+  #+LATEX:\LARGE
+  Text Example
+  #+LATEX:\Large
+  Text Example
+  #+LATEX:\large
+  Text Example
+  #+LATEX:\normalsize (default)
+  Text Example
+  #+LATEX:\small
+  Text Example
+  #+LATEX:\footnotesize
+  Text Example
+  #+LATEX:\scriptsize
+  Text Example
+  #+LATEX:\tiny
+  Text Example
 * Footnotes
 
   # No indentation is allowed for footnotes
