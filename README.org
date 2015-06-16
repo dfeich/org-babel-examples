@@ -18,13 +18,18 @@
 This is my collection of example documents to demonstrate the usage of org-babel
 with different languages.
 
-I have used org and especially the org-babel functionality for writing manuals for
+I have used org and especially the org-babel functionality for a large
+number of use cases. Please understand that I cannot include the full
+documents here (many of them contain internal information), but every
+time I learn something new, I try to update these recipe collections.
+
+Use cases where I profited from using Org + Babel:
 - writing documentation for *programming projects* (e.g. for python)
 - for documenting *benchmarking* tests
 - documenting the *installation of servers*. E.g. the complete
   installation of an OpenLDAP master and its slaves is an executable
-  document. By making smart use of tramp + ssh configuration (check
-  the ControlMaster and ProxyCommand options), the code is executed on
+  document. By making smart use of tramp + ssh configuration (look up
+  the ControlMaster and ProxyCommand SSH options), the code is executed on
   the servers a few hops away. The documentation I publish via my
   *Twiki exporter* on our intranet.
 - creating *OpenDocument documents* from clean templates. This even helped in
