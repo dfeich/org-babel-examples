@@ -344,7 +344,7 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
   #+END_SRC
 
   #+RESULTS:
-  : Unexpected error: <type 'exceptions.UnicodeEncodeError'>
+  : Expected error: <type 'exceptions.UnicodeEncodeError'>
   : 
   : Now it works:
   : Can we see Umlauts? äöü. And accents? éè.

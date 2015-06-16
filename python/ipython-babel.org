@@ -1,3 +1,60 @@
+* Version information
+  
+  #+BEGIN_SRC emacs-lisp -n :exports both
+    (princ (concat
+            (format "Emacs version: %s\n"
+                    (emacs-version))
+            (format "org version: %s\n"
+                    (org-version))
+            ;; (format "ob-ipython version: %s\n"
+            ;; (pkg-info-version-info 'ob-ipython))
+            ))        
+  #+END_SRC
+
+  #+RESULTS:
+  : Emacs version: GNU Emacs 24.5.1 (x86_64-unknown-linux-gnu, GTK+ Version 3.10.8)
+  :  of 2015-05-04 on dflt1w
+  : org version: 8.2.10
+
+  The examples also use the =ob-ipython= package from MELPA
+
+* Simple examples
+
+  #+BEGIN_SRC ipython :session ip1
+  %matplotlib inline
+  import matplotlib.pyplot as plt
+  import numpy as np
+#+END_SRC
+
+  #+RESULTS:
+
+#+BEGIN_SRC ipython :session ip1 :results value :exports both
+  def foo(x):
+      return x + 9
+
+  [foo(x) + 7 for x in range(7)]
+#+END_SRC  
+
+#+RESULTS:
+: [16, 17, 18, 19, 20, 21, 22]
+
+#+BEGIN_SRC ipython :session ip1 :file ipython-babel_att/image.png :exports both
+  plt.hist(np.random.randn(20000), bins=200)
+#+END_SRC
+
+#+RESULTS:
+[[file:ipython-babel_att/image.png]]
+
+
+Currently there is still some missing functionality: The =:results output= switch is not
+implemented correctly. The output appears in a separate buffer.
+
+#+BEGIN_SRC ipython :session ip1
+print "this is an echo"
+#+END_SRC
+
+#+RESULTS:
+  
 * Note
 
   ipython babel works best for testing interactive magic commands, but there are problems
@@ -20,20 +77,20 @@
 
 * Example for using ipython magic commands
 
-#+BEGIN_SRC python :results output
+#+BEGIN_SRC ipython :session ip1 :results output
 %timeit 1+1
 #+END_SRC
 
 #+RESULTS:
-: >>> 100000000 loops, best of 3: 17.4 ns per loop
-: >>> 
 
 
 * Babel environment setup and ipython setup
 
-Local Variables:
+Before the advent of op-ipython I used a virtualenv with these settings:
 python-shell-virtualenv-path: "/home/dfeich/py-virtualenv/notebook"
 org-babel-python-command: "/home/dfeich/py-virtualenv/notebook/bin/ipython --no-banner --classic --no-confirm-exit"
+
+Local Variables:
 org-confirm-babel-evaluate: nil
 org-export-babel-evaluate: nil
 End:

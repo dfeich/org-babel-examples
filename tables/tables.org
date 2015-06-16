@@ -77,10 +77,10 @@
   | # |    9 |          18 |          18 |           2 |
  #+TBLFM: $3=$colA*2::$4='(org-sbe mydouble (x $colA))::$5='(org-sbe mydivide (x $colB) (y $colA))
 
-  If the field values should be read as strings, one needs to
-  add an additional dollar sign, e.q. =$$1, $$colname=.
-  Here is an example reading in date strings, and using calc
-  functions for doing some time arithmetic.
+  *If the field values should be read as strings*, one needs to add an
+  additional dollar sign, e.q. =$$1, $$colname=.  Here is an example
+  reading in date strings, and using calc functions for doing some
+  time arithmetic.
   
   #+name: addmonths
   #+BEGIN_SRC emacs-lisp :results silent :var argdate="2014-03-01" argmonths="10"
@@ -146,29 +146,46 @@
   | # | B     |   1 |
   | # | C     |   5 |
   #+TBLFM: $3='(org-sbe calc_add_if_match2 (tbl $"tbl_grp") (col1 $"group") (col2 $"use") (vcol $"value") (match1 $$grp) (match2 $"1") )
-  
+
+   #+NAME: timeadd
+   #+BEGIN_SRC emacs-lisp :results value :var inputtime="9:00" delta="30"
+     (let ((date (org-parse-time-string
+                  (concat "2015-06-01 "
+                          (substring-no-properties inputtime)))))
+       (setf (nth 1 date) (+ (nth 1 date) (string-to-number delta)))
+       (format-time-string "%H:%M" (apply 'encode-time date)))
+   #+END_SRC
+
+   | Item                              | duration | starting |
+   |                                   |    (min) |  time AM |
+   |-----------------------------------+----------+----------|
+   | Presentation by the candidate     |       20 |     8:30 |
+   | Presentation Questions            |       10 |    08:50 |
+   | Break                             |       15 |    09:00 |
+   | Main interview                    |       90 |    09:15 |
+   | Break                             |       15 |    10:45 |
+   | HR Interview (S. Lopo)            |       60 |    11:00 |
+   | optional Lunch / Coffee           |       60 |    12:00 |
+   | optional interview (J. Standfuss) |       30 |    13:00 |
+   #+TBLFM: @4$3..@>$3='(org-sbe timeadd (inputtime $@-1) (delta $@-1$-1))
+
 ** a look at the involved lisp functions
+
 *** org-sbe
 
-    The double quote ends up in passing this kind of code line where
+    #+BEGIN_EXAMPLE
+#+TBLFM: @I$6..@II$6='(org-sbe addmonths (argdate $$sdate) (argmonths $$wpmonths))
+    #+END_EXAMPLE
+
+    The double dollar ends up in passing this kind of code line where
     the resulting string arguments are headed by a dollar sign:
 
-       #+BEGIN_SRC emacs-lisp
+    #+BEGIN_SRC emacs-lisp
     (org-sbe addmonths (argdate $"2015-01-01") (argmonths $"24"))
     #+END_SRC
 
        #+RESULTS:
        : 2016-12-30
-
-
-    #+NAME: remtable1
-    #+CAPTION: global model parameters
-    |   | Entry    | Value      |
-    |---+----------+------------|
-    |   | a number | 24         |
-    | ^ |          | ref_number |
-    |   | a date   | 2014-01-02 |
-    | ^ |          | ref_date   |
 
 *** org-table-get-remote-range
     There seems to be a bug in the org-table-get-remote-range
@@ -196,9 +213,21 @@
     - The date is read as an equation ("-" is minus) and I get the
       result of a substraction
     
-    | Entry         | TBLFM field name | TBLFM num ref | lisp + field name |
-    | remote number |               24 |            24 | (24)              |
-    | remote date   |             2011 |          2011 | (2014-01-02)      |
+    Table for remote table test
+    #+NAME: remtable1
+    #+CAPTION: global model parameters
+    |   | Entry    | Value      |
+    |---+----------+------------|
+    |   | a number | 24         |
+    | ^ |          | ref_number |
+    |   | a date   | 2014-01-02 |
+    | ^ |          | ref_date   |
+
+
+    Here we try different ways of referencing remote fields
+    | Entry         | field name ref | num ref | lisp + field name |
+    | remote number |             24 |      24 | (24)              |
+    | remote date   |           2011 |    2011 | (2014-01-02)      |
     #+TBLFM: @2$2=remote(remtable1,$ref_number)::@2$3=remote(remtable1,@2$3)::@2$4='(identity remote(remtable1,$ref_number))::@3$2=remote(remtable1,$ref_date)::@3$3=remote(remtable1,@4$3)::@3$4='(identity remote(remtable1,$ref_date))
 
 

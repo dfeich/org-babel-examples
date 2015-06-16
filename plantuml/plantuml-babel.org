@@ -321,7 +321,48 @@ stop
    #+RESULTS:
    [[file:fig/swimlane1.png]]
 
+** Class diagram
+   http://plantuml.sourceforge.net/classes.html
+   
+   #+BEGIN_SRC plantuml :file fig/class1.png
+     class Proposal {
+     also called a "study"
+     ..
+     ProposalID
+     Proposer
+     PrincipalInvestigator
+     }
 
+     class Visit << (V,#Ff8c00) >> {
+     has a 1:1 mapping to a
+     single user. Also used to
+     reserve badges.
+     ..
+     Username
+     starttime
+     endtime
+     proposalID
+     beamline
+     }
+
+     note left: why is Visit linked\nto a single beamline?
+
+     class Shift {
+     ProposalID
+     starttime
+     endtime
+     contactPerson
+     }
+
+     Proposal *-- Shift
+     Proposal *-- Visit
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:fig/class1.png]]
+
+* TODO
+  - example for scaling =scale 800*600=
 * COMMENT babel settings
 
 Local Variables:
