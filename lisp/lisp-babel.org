@@ -14,23 +14,23 @@
 #+SELECT_TAGS: export
 
 * Version information
-  #+BEGIN_SRC emacs-lisp :results output
+  #+BEGIN_SRC emacs-lisp :results output :exports both
     (princ (concat (format "Emacs version: %s\n" (emacs-version))
                    (format "org version: %s\n" (org-version))))
     
   #+END_SRC
 
   #+RESULTS:
-  : Emacs version: GNU Emacs 24.3.1 (i686-pc-linux-gnu, GTK+ Version 3.4.2)
-  :  of 2014-02-22 on chindi10, modified by Debian
-  : org version: 8.2.5h
+  : Emacs version: GNU Emacs 24.5.1 (x86_64-unknown-linux-gnu, GTK+ Version 3.10.8)
+  :  of 2015-05-04 on dflt1w
+  : org version: 8.2.10
 
 * using a table as input
 
   We first create a table from a lisp *list of lists*. Each inner list
   will form a row in the resulting table. I already insert a header
-  row with the names of three columns. An separator line can be obtained
-  by having the =hline= symbol in the resulting list.
+  row with the names of three columns. A separator line can be obtained
+  by putting the =hline= symbol into the resulting list.
 
   #+NAME: make-table1
   #+BEGIN_SRC emacs-lisp :results value :exports both
@@ -61,6 +61,9 @@
   by using the *:colnames yes* header argument. This also causes the
   result table to contain the headers (as long as the new table has the
   same number of columns as the original table)
+
+  Here I also demonstrate the use of the *-n* option that will export
+  the code with line numbers.
   
   #+BEGIN_SRC emacs-lisp -n :results value :var tbl=table1 :colnames yes :exports both
     (let (result)
@@ -89,23 +92,27 @@
 * calling source blocks as a function
 ** simple call syntax
 
-   We first define a function
-  #+NAME: mydouble
+   We first define a function in a named code block called =mydouble=. The
+   variable x will be passed in by defining a header argument =:var x=
+
+   #+NAME: mydouble
   #+header: :var x=2
-  #+BEGIN_SRC emacs-lisp :results silent
+  #+BEGIN_SRC emacs-lisp :results silent :exports code
   (* 2 x)
   #+END_SRC
 
-  Now we can call this babel function "mydouble" from any place in the document
+  Now we can call this babel function by using the code block's name
+  =mydouble= from any place in the document. For example:
   #+CALL: mydouble(x=5)
 
   #+RESULTS:
   : 10
 
 
+  Another example where we pass in two variables x and y.
   #+NAME: mydivide
   #+header: :var x=2 y=3
-  #+BEGIN_SRC emacs-lisp :results silent
+  #+BEGIN_SRC emacs-lisp :results silent :exports code
   (/ x y)
   #+END_SRC
 
@@ -114,20 +121,24 @@
   (e.g. putting it into a drawer), while the ones added in [] are
   evaluated in the context of the original definition (e.g whether to
   capture the output).
-  #+CALL: mydivide(12,3) :results raw
+  #+CALL: mydivide(12,3) :results value
 
   #+RESULTS:
-  4
+  : 4
+
+  Another alternative calling syntax
 
   #+CALL: mydivide(y=2,x=10)
 
   #+RESULTS:
   : 5
 
-  Note that I *can have another piece of code implicitely called* by using its name
-  as an input variable in a normal code block. So, I could directly fill the third
-  column of our initial example table without ever printing out the initial example
-  table, by just using as an input (tbl) the name of the initial code block.
+  Note that I *can have another piece of code implicitly called* by
+  using its name as an input variable in a normal code block. So, I
+  could directly fill the third column of our initial example table
+  without ever having to print out that table table. We can just pass
+  into the next function a variable =tbl= and the name of the initial
+  code block =make-table1=.
 
   #+BEGIN_SRC emacs-lisp  :results value :var tbl=make-table1 :colnames yes
     (let (result)
@@ -165,12 +176,13 @@
   src_emacs-lisp[:results value]{(org-table-get-remote-range "table1" "@>$1" )} =15=
 
 * Defining buffer wide variables for src blocks
-  One can use a verbatim block like this
+  One can use a verbatim block like this. I define a named block =myvar= and
+  I pass it into the variable s of the following code block.
 
   #+NAME: myvar
   : world
 
-  #+BEGIN_SRC emacs-lisp :var s=myvar
+  #+BEGIN_SRC emacs-lisp :var s=myvar :exports both
   (concat "hello " s)
   #+END_SRC
 
