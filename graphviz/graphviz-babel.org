@@ -1,3 +1,30 @@
+#+TITLE: graphviz-babel
+#+DATE: <2015-06-17 Wed>
+#+AUTHOR: Derek Feichtinger
+#+EMAIL: derek.feichtinger@psi.ch
+#+OPTIONS: ':nil *:t -:t ::t <:t H:3 \n:nil ^:t arch:headline
+#+OPTIONS: author:t c:nil creator:comment d:(not "LOGBOOK") date:t
+#+OPTIONS: e:t email:nil f:t inline:t num:t p:nil pri:nil stat:t
+#+OPTIONS: tags:t tasks:t tex:t timestamp:t toc:t todo:t |:t
+#+CREATOR: Emacs 24.5.1 (Org mode 8.2.10)
+#+DESCRIPTION:
+#+EXCLUDE_TAGS: noexport
+#+KEYWORDS:
+#+LANGUAGE: en
+#+SELECT_TAGS: export
+
+* Version information
+  #+BEGIN_SRC emacs-lisp :results output :exports both
+    (princ (concat (format "Emacs version: %s\n" (emacs-version))
+                   (format "org version: %s\n" (org-version))))
+    
+  #+END_SRC
+
+  #+RESULTS:
+  : Emacs version: GNU Emacs 24.5.1 (x86_64-unknown-linux-gnu, GTK+ Version 3.10.8)
+  :  of 2015-05-04 on dflt1w
+  : org version: 8.2.10
+
 
 * Links
   - [[http://www.graphviz.org/doc/info/colors.html][graphviz colors]]
@@ -74,6 +101,7 @@ digraph G {
 
    #+RESULTS:
    [[file:fig/color1.png]]
+
 
 ** subcluster
   #+BEGIN_SRC dot :file fig/clust3.png :exports both
@@ -437,9 +465,12 @@ digraph G
   
   #+END_SRC
 
+  Note: Since minted (which I use for source code coloring) does not contain a lexer
+  for dot, I disable it by setting =org-latex-listings= to =nil= in this buffer.
 
 Local Variables:
 org-babel-after-execute-hook: (lambda () (org-display-inline-images nil t) (org-redisplay-inline-images))
+org-latex-listings: nil
 org-confirm-babel-evaluate: nil
 org-export-babel-evaluate: nil
 End:
