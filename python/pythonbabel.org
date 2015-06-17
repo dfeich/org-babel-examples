@@ -23,15 +23,16 @@
   #+END_SRC
 
   #+RESULTS:
-  : Emacs version: GNU Emacs 24.3.1 (i686-pc-linux-gnu, GTK+ Version 3.4.2)
-  :  of 2013-10-03 on hamsa, modified by Debian
-  : org version: 8.2.3b
+  : Emacs version: GNU Emacs 24.5.1 (x86_64-unknown-linux-gnu, GTK+ Version 3.10.8)
+  :  of 2015-05-04 on dflt1w
+  : org version: 8.2.10
 
 * Links and Documentation
   - http://orgmode.org/worg/org-contrib/babel/languages/ob-doc-python.html
 
-* Generating a table
+* Generating tables as output
 
+  Example 1:
   #+BEGIN_SRC python -n :exports both :results value table
     x = range(1,10)
     y = [xe*3 for xe in x]
@@ -44,6 +45,7 @@
 
 
 
+  Example 2:
   #+BEGIN_SRC python -n :exports both :results value table
 import numpy as np
 
@@ -63,29 +65,41 @@ return np.array([x,y]).transpose()
   | 8 | 24 |
   | 9 | 27 |
 
-* Calling a function in a table
+* Calling a python function in an org table
 
+  Here I define the function. It takes =epoch= as the variable, which
+  is a unix time stamp. I want to have it converted to an Org type
+  time format.
+  
     #+NAME: epoch2day
-    #+BEGIN_SRC python :results output :var epoch=1262675465119
+    #+BEGIN_SRC python :results output :var epoch=1262675465119 :exports both
     time = epoch
     import datetime
     strtime = str(time)
     datetimestamp = datetime.datetime.utcfromtimestamp(int(strtime[:10]))
     print datetimestamp.strftime('[%Y-%m-%d %a %H:%M:%S]')
     #+END_SRC
-    
+
     #+RESULTS: epoch2day
     : [2010-01-05 Tue 07:11:05]
+
+  In the table we need to refer to the named source block by using
+  the a short lisp form involving =org-sbe=. If the table value that is
+  referred to in the function
+  is to be interpreted as a number, the reference uses
+  a single dollar sign, etc $1 (as here). If it should be interpreted
+  as a string, one puts an additional dollar sign in front, e.g. $$1.
     
-    |         epoch | day    |
-    |---------------+--------|
-    | 1262675465119 | #ERROR |
-    |        123456 | #ERROR |
-    |      99998754 | #ERROR |
-    #+TBLFM: $2='(sbe epoch2day (epoch $1))
+    
+    |         epoch | day                       |
+    |---------------+---------------------------|
+    | 1262675465119 | [2010-01-05 Tue 07:11:05] |
+    |        123456 | [1970-01-02 Fri 10:17:36] |
+    |      99998754 | [1973-03-03 Sat 09:25:54] |
+    #+TBLFM: $2='(org-sbe epoch2day (epoch $1))
     
 * Matplotlib
-** plotting of simple graph
+** plotting of a simple graph
 #+begin_src python :results file :exports both
 import matplotlib, numpy
 matplotlib.use('Agg')
@@ -101,7 +115,7 @@ return 'python-matplot-fig.png' # return filename to org-mode
 #+RESULTS:
 [[file:python-matplot-fig.png]]
 
-** Plotting from a table
+** Plotting from an Org table
 
 The table is passed to python as a list
 
@@ -138,16 +152,14 @@ return fname # return filename to org-mode
 
 * Pandas
 ** printing a data frame as a table
-   In order to get a nice org table, it is necessary to pass the
-   frame's contents back as a list. The column names end up as the
-   first row in the table. I cut this row away by using the [1:]
-   slice.
 
-   It would probably be nicer to create a special function that formats the
-   data frame nicely for org, e.g. with a title row separated by a line
-
+   I define a function in a named src block with name =dframeToOrg=.
+   This will print out a nice table format that org will recognize.
+   The function currently assumes that the first line is the title
+   line, and will put a horizontal line below it.
+   
 #+NAME: dframeToOrg
-   #+BEGIN_SRC python
+   #+BEGIN_SRC python :exports source
     def dataFrameToOrgTbl(dframe, name=None, caption=None, attr=None, index=True):
         if name:
             print "#+NAME: %s" % name
@@ -167,12 +179,15 @@ return fname # return filename to org-mode
             print l   
    #+END_SRC
 
+   In the following source block, I demonstrate how to use the =noweb=
+   syntax of including a named block within another, by referring to
+   our DataFrame printing block by =<<dframeToOrg>>=
 
-
-   #+BEGIN_SRC python :results output org :noweb yes
+   #+BEGIN_SRC python :results output raw drawer :noweb yes :exports both
     import pandas as pd
     import numpy as np
 
+    # Here the block will be inserted
     <<dframeToOrg>>
     df = pd.DataFrame({'A' : ['one', 'one', 'two', 'three'] * 3,
                      'B' : ['A', 'B', 'C'] * 4,
@@ -184,26 +199,35 @@ return fname # return filename to org-mode
    #+END_SRC
 
    #+RESULTS:
-   #+BEGIN_SRC org
-   |    | A     | B | C   |               D |               E |
-   |----+-------+---+-----+-----------------+-----------------|
-   |  0 | one   | A | foo |  -0.27171981642 |  0.393290173652 |
-   |  1 | one   | B | foo |  -2.49502154035 |  0.316291887355 |
-   |  2 | two   | C | foo |  0.406974439509 | -0.260608399369 |
-   |  3 | three | A | bar |  -1.01581826508 |  -0.40314275924 |
-   |  4 | one   | B | bar |   1.08136872224 | -0.858113669675 |
-   |  5 | one   | C | bar |  0.824388686002 | -0.710188452329 |
-   |  6 | two   | A | foo |  0.472313307757 |  0.326397221895 |
-   |  7 | three | B | foo |   0.79193490859 |  0.927607026723 |
-   |  8 | one   | C | foo | -0.511009737206 | -0.202544634949 |
-   |  9 | one   | A | bar | -0.529983312821 | -0.995200617497 |
-   | 10 | two   | B | bar | -0.797371718556 |   1.03751171535 |
-   | 11 | three | C | bar |   1.06208233764 | -0.455015077621 |
-   #+END_SRC
+   :RESULTS:
+   |    | A     | B | C   |                D |                E |
+   |----+-------+---+-----+------------------+------------------|
+   |  0 | one   | A | foo |  -0.236396241307 |  -0.276568067645 |
+   |  1 | one   | B | foo |   -1.01951010991 |     1.7453786746 |
+   |  2 | two   | C | foo |   -1.29371941308 |    1.09264039165 |
+   |  3 | three | A | bar |   -1.04427788416 |   0.513056847005 |
+   |  4 | one   | B | bar |   0.572505261205 |  -0.115515573013 |
+   |  5 | one   | C | bar |  -0.198276698791 |   0.303982746716 |
+   |  6 | two   | A | foo |   -2.50621425568 |   0.332395607933 |
+   |  7 | three | B | foo |   0.201709578183 |  -0.856279014171 |
+   |  8 | one   | C | foo |   -2.03374293998 |  -0.622682697996 |
+   |  9 | one   | A | bar |  -0.268297986255 | 0.00646257542859 |
+   | 10 | two   | B | bar |    1.19869717505 |    0.48755007568 |
+   | 11 | three | C | bar | -0.0958952713139 |    1.04738590497 |
+   :END:
 
+
+   The noweb syntax is mostly used in literate programing, where
+   we produce code files from the org file (the process is
+   called /tangling/).
    
-   older alternatives:
-   #+BEGIN_SRC python :results value table
+*** an older and simpler dataFrame printing alternative:
+   In order to get a nice org table, it is necessary to pass the
+   frame's contents back as a list. The column names end up as the
+   first row in the table. I cut this row away by using the [1:]
+   slice.
+
+    #+BEGIN_SRC python :results value table
     import pandas as pd
     import numpy as np
     import sys
@@ -237,7 +261,7 @@ return fname # return filename to org-mode
   | two   | B | bar |   -0.182471796578 | -0.394139328993 |
   | three | C | bar | -0.00648778760846 | 0.0199194965102 |
 
-** plotting a data frame
+** plotting a data frame (and placing a code reference)
 #+TBLNAME: table2
 | x |  y |
 |---+----|
@@ -251,11 +275,17 @@ return fname # return filename to org-mode
 #+TBLFM: @2$2..@>$2=$1*$1::@3$1..@>$1=@-1 + 1
 
 Here we also show how a code reference works. It can be inserted using
-the *org-store-link* command while editing the src code in a dedicated
-buffer: in line [[(zcol)]] we define a new column. The *-r* flag
-removes the reference from the source code listing in the output.
-Regrettably the reference is not removed when the code gets executed,
-so I need to insert a command to keep the code functional.
+the *org-store-link* command while editing the src code in the dedicated
+buffer:
+
+In line [[(zcol)]] we define a new column (in this sentence you should see
+the number of the respective line in the exported file)
+
+The *-r* flag in the =BEGIN_SRC= line removes the reference string
+from the source code listing in the output (else the string would have
+ended up in the exported version's source code).  Regrettably the
+reference is not removed when the code gets executed, so I need to
+insert language specific commenting to keep the code functional.
 
   #+BEGIN_SRC python -n -r :results file :var data=table2 :exports both
     import matplotlib
@@ -316,13 +346,13 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
   2013-07-10 06:00:00    180          180    20
 #+end_example
 
-* Unicode related problems
+* Unicode related problems in Org Babel
 
   The output terminal to which org babel writes output seems to be a dumb ASCII type
   of terminal. If one wants to print non-ASCII characters, the characteristics of
   the output device must be defined using the =codecs= module.
   
-  #+BEGIN_SRC python :results output
+  #+BEGIN_SRC python :results output :exports both
     # -*- coding: iso-8859-15 -*-
 
     # the above line is needed, so that python accepts the Umlauts
@@ -364,8 +394,11 @@ return(sys.executable)
 These definitions are necessary for having babel use the correct
 virtual environment
 
-python-shell-virtualenv-path affects sessions via the run-python function
-org-babel-python-command affects non-session src blocks
+Before using the anaconda python distribution I was a heavy user of python
+virtualenv. I do not use this much any more, but these are the relevant
+options:
+- python-shell-virtualenv-path: only affects sessions via the run-python function
+- org-babel-python-command: defines executable for non-session src blocks
 
 # python-shell-virtualenv-path: "/home/dfeich/py-virtualenv/notebook"
 # org-babel-python-command: "/home/dfeich/py-virtualenv/notebook/bin/python"
