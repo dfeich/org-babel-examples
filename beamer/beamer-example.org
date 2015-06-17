@@ -41,8 +41,12 @@
 
 
 # #+latex_header: \mode<beamer>{\usetheme{Madrid}}
-# #+BEAMER_THEME: Madrid
-#+BEAMER_THEME: Hydrogen
+#+BEAMER_THEME: Madrid
+# #+BEAMER_THEME: Hydrogen
+
+# Note: custom style files can be placed centrally in the user specific directory
+# ~/texmf/tex. This will be searched recursively, so substructures are possible.
+# q.v. http://tex.stackexchange.com/questions/1137/where-do-i-place-my-own-sty-or-cls-files-to-make-them-available-to-all-my-te
 
 # One could also fine tune a number of theme settings instead of specifying the full theme
 # #+BEAMER_COLOR_THEME: default
@@ -439,6 +443,9 @@ x =
 ** Backup slide 2
    These details are not part of the main talk.
 
+* TODO
+  - show how to embed SVG pictures
+    
 * COMMENT org babel settings
 Local variables:
 org-confirm-babel-evaluate: nil
