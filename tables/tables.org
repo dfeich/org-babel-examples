@@ -18,7 +18,7 @@
   the fields are read as strings, except if the modifiers ";N" for numeric or ";L" for
   using literal values are given.
 
-  Tip: try using the table debugger (C-c {) id something goes wrong.
+  Tip: try using the table debugger (C-c {) if something goes wrong.
 
   |   | Row | c2 | c3  | Add | Add2 |
   | ! |     | c2 | c3  |     |      |
@@ -58,9 +58,9 @@
 * Using src block functions for calculating table fields
 ** basic usage
 
-  The *org-sbe* (warning: it was called *sbe* before) macro allows
-  calling the previously defined src blocks from within table
-  formulas and feeding them then named arguments.
+  The *org-sbe* macro (warning: it was called *sbe* in earlier org
+  versions) allows calling the previously defined src blocks from
+  within table formulas and feeding them then named arguments.
 
   #+NAME: mydouble
   #+header: :var x=2
@@ -77,10 +77,11 @@
   | # |    9 |          18 |          18 |           2 |
  #+TBLFM: $3=$colA*2::$4='(org-sbe mydouble (x $colA))::$5='(org-sbe mydivide (x $colB) (y $colA))
 
-  *If the field values should be read as strings*, one needs to add an
-  additional dollar sign, e.q. =$$1, $$colname=.  Here is an example
-  reading in date strings, and using calc functions for doing some
-  time arithmetic.
+  *If the field references should be read as strings*, one needs to
+  add an additional dollar sign, e.q. =$$1, $$colname=, a single
+  dollar sign =$1= reads the field value as a number.  Here is an
+  example reading in date strings, and using calc functions for doing
+  some time arithmetic.
   
   #+name: addmonths
   #+BEGIN_SRC emacs-lisp :results silent :var argdate="2014-03-01" argmonths="10"
@@ -110,7 +111,7 @@
 
   #+NAME: calc_add_if_match2
   #+HEADER: :var tbl="tbl_grp" col1="group" col2="use" vcol="value" match1="C" match2="1"
-  #+BEGIN_SRC emacs-lisp :exports none 
+  #+BEGIN_SRC emacs-lisp :exports code 
      ;; add vcol column values if col1 matches match1 and col2 matchtes match2
      (let ((c1list (org-table-get-remote-range tbl (format "@I$%s..@>$%s" col1 col1)))
            (c2list (org-table-get-remote-range tbl (format "@I$%s..@>$%s" col2 col2)))
@@ -138,6 +139,9 @@
   |   | ken     | C     |   0 |     2 |
   |   | thomas  | A     |   1 |     8 |
 
+  To demonstrate the above code, we use it to find the sum of all values in the
+  above table where the =group= matches the group column in the table below, and
+  where the =use= column matches "1".
 
   |   | group | sum |
   | ! | grp   |     |
@@ -147,8 +151,10 @@
   | # | C     |   5 |
   #+TBLFM: $3='(org-sbe calc_add_if_match2 (tbl $"tbl_grp") (col1 $"group") (col2 $"use") (vcol $"value") (match1 $$grp) (match2 $"1") )
 
+
+  Here another function to add up a time interval and a clock value.
    #+NAME: timeadd
-   #+BEGIN_SRC emacs-lisp :results value :var inputtime="9:00" delta="30"
+   #+BEGIN_SRC emacs-lisp :results value :var inputtime="9:00" delta="30" :exports both
      (let ((date (org-parse-time-string
                   (concat "2015-06-01 "
                           (substring-no-properties inputtime)))))
@@ -156,17 +162,23 @@
        (format-time-string "%H:%M" (apply 'encode-time date)))
    #+END_SRC
 
-   | Item                              | duration | starting |
-   |                                   |    (min) |  time AM |
-   |-----------------------------------+----------+----------|
-   | Presentation by the candidate     |       20 |     8:30 |
-   | Presentation Questions            |       10 |    08:50 |
-   | Break                             |       15 |    09:00 |
-   | Main interview                    |       90 |    09:15 |
-   | Break                             |       15 |    10:45 |
-   | HR Interview (S. Lopo)            |       60 |    11:00 |
-   | optional Lunch / Coffee           |       60 |    12:00 |
-   | optional interview (J. Standfuss) |       30 |    13:00 |
+   #+RESULTS: timeadd
+   : 09:30
+
+  And we use it for calculating the clock value for an interview schedule in
+  the following table.
+  
+  | Item                          | duration | starting |
+  |                               |    (min) |  time AM |
+  |-------------------------------+----------+----------|
+  | Presentation by the candidate |       20 |     8:30 |
+  | Presentation Questions        |       10 |    08:50 |
+  | Break                         |       15 |    09:00 |
+  | Main interview                |       90 |    09:15 |
+  | Break                         |       15 |    10:45 |
+  | HR Interview                  |       60 |    11:00 |
+  | optional Lunch / Coffee       |       60 |    12:00 |
+  | optional interview            |       30 |    13:00 |
    #+TBLFM: @4$3..@>$3='(org-sbe timeadd (inputtime $@-1) (delta $@-1$-1))
 
 ** a look at the involved lisp functions
