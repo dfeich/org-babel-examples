@@ -71,7 +71,7 @@
   #+RESULTS:
   : 7 35 8 40 9 45 10 50 11 55 12 60 13 65
 
-* additional supported options
+* additionally supported options
 ** dir
    One can use the :dir option to have the shell code executed within 
    a particular working directory.
@@ -85,7 +85,11 @@
 
    Since the directory can also be a TRAMP URL, this :dir allows easy
    *execution of commands on remote servers*, which to me is the most
-   powerful application of this option.
+   powerful application of this option. Combine this option with
+   the SSH configuration options *ControlMaster and ProxyCommand* to
+   tunnel all connections through an initial control connection (without having
+   to authenticate each time) and to jump through multiple hops.
+  
 
    #+BEGIN_SRC sh :results raw drawer :dir /ssh:root@dftest2.psi.ch:/etc :exports both
    hostname
@@ -103,4 +107,6 @@
   
   Local Variables:
   org-babel-sh-command: "/bin/bash"
+  org-confirm-babel-evaluate: nil
+  org-export-babel-evaluate: nil
   End:

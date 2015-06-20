@@ -365,8 +365,12 @@ stop
   - example for scaling =scale 800*600=
 * COMMENT babel settings
 
+  Note: Since minted (which I use for source code coloring) does not contain a lexer
+  for dot, I disable it by setting =org-latex-listings= to =nil= in this buffer.
+
 Local Variables:
 org-babel-after-execute-hook: (lambda () (org-display-inline-images nil t) (org-redisplay-inline-images))
+org-latex-listings: nil
 org-confirm-babel-evaluate: nil
 org-export-babel-evaluate: nil
 End:
