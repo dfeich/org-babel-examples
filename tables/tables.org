@@ -15,8 +15,8 @@
 
 * tables with lisp formulas
 
-  the fields are read as strings, except if the modifiers ";N" for numeric or ";L" for
-  using literal values are given.
+  the fields are read as strings, except if the modifiers =N= for
+  numeric or =L= for using literal values are given.
 
   Tip: try using the table debugger (C-c {) if something goes wrong.
 
@@ -27,8 +27,9 @@
   | # | C   |  4 | str |   4 |    4 |
   #+TBLFM: $5='(+ (string-to-number $3) (string-to-number $c3))::$6='(+ $c2 $c3);N
 
-  
-  #+BEGIN_SRC emacs-lisp
+
+  For the next example, this lisp function must be defined
+  #+BEGIN_SRC emacs-lisp :exports code
     (defun my-colsum-if (keylist vallist keymatch)
     "sum values in vallist if the corresponding key matches the keymatch argument"
       (cl-loop for key in keylist
@@ -55,6 +56,23 @@
   #+TBLFM: $3='(random 10)::@9$3='(mapconcat 'identity (list @I..@II) " ")::@10$3='(apply '+ (list @I..II));N::@11$3='(my-colsum-if (list @I$class..@II$class) (list @I..II) "A")::@12$3='(my-colsum-if (list @I$class..@II$class) (list @I..II) "B")
   #+TBLFM: 
 
+  Using the =L= modifier, one can have the references be interpreted as literal
+  lisp values.
+
+  | candidate                 | type    |
+  |---------------------------+---------|
+  | 'mapconcat                | symbol  |
+  | "text"                    | string  |
+  | 1                         | integer |
+  | 1.0                       | float   |
+  | '(1 2 3)                  | cons    |
+  | [1 2 3 4]                 | vector  |
+  | (+ 3 4)                   | integer |
+  | nil                       | symbol  |
+  | (concat "hello" " world") | string  |
+  |                           | #ERROR  |
+  #+TBLFM: @I$2..@>$2='(type-of $1);L
+
 * Using src block functions for calculating table fields
 ** basic usage
 
@@ -77,111 +95,115 @@
   | # |    9 |          18 |          18 |           2 |
  #+TBLFM: $3=$colA*2::$4='(org-sbe mydouble (x $colA))::$5='(org-sbe mydivide (x $colB) (y $colA))
 
-  *If the field references should be read as strings*, one needs to
-  add an additional dollar sign, e.q. =$$1, $$colname=, a single
-  dollar sign =$1= reads the field value as a number.  Here is an
-  example reading in date strings, and using calc functions for doing
-  some time arithmetic.
-  
-  #+name: addmonths
-  #+BEGIN_SRC emacs-lisp :results silent :var argdate="2014-03-01" argmonths="10"
-    (let ((calc-date-format
-	   '(YYYY "-" MM "-" DD)))
-      (math-format-date (calcFunc-bsub (calcFunc-incmonth (math-parse-date argdate) (string-to-number argmonths)) 1))
-      )
-  #+END_SRC
-
-  |   | WP     |                     | WP duration |   WP start |     WP end |
-  |   | number | subject             |      months |       date |       date |
-  | ! | wpid   | wpname              |    wpmonths |      sdate |      edate |
-  |---+--------+---------------------+-------------+------------+------------|
-  | # | WP0    | Project Management  |          24 | 2015-01-01 | 2016-12-30 |
-  | # | WP1    | IT Infrastructure   |          24 | 2015-01-01 | 2016-12-30 |
-  | # | WP2    | IdM Mngm + Rem Acc  |          12 | 2015-01-01 | 2015-12-31 |
-  | # | WP3    | Data Catalog        |           9 | 2015-01-01 | 2015-09-30 |
-  | # | WP4    | provide existing SW |          24 | 2015-01-01 | 2016-12-30 |
-  | # | WP5    | SW development      |          24 | 2015-01-01 | 2016-12-30 |
-  |---+--------+---------------------+-------------+------------+------------|
-  | # |        | TOTAL               |             |            |            |
-  #+TBLFM: @I$6..@II$6='(org-sbe addmonths (argdate $$sdate) (argmonths $$wpmonths))
-
-
-  A function which sums up the values in a column of table tbl if col1
-  matches match1 and col2 matches match2
-
-  #+NAME: calc_add_if_match2
-  #+HEADER: :var tbl="tbl_grp" col1="group" col2="use" vcol="value" match1="C" match2="1"
-  #+BEGIN_SRC emacs-lisp :exports code 
-     ;; add vcol column values if col1 matches match1 and col2 matchtes match2
-     (let ((c1list (org-table-get-remote-range tbl (format "@I$%s..@>$%s" col1 col1)))
-           (c2list (org-table-get-remote-range tbl (format "@I$%s..@>$%s" col2 col2)))
-           (vallist (org-table-get-remote-range tbl (format "@I$%s..@>$%s" vcol vcol))))
-       (cl-loop for c1tst in c1list
-                for c2tst in c2list
-                for val in vallist
-                when (and (equal c1tst match1) (equal c2tst match2))
-                sum (string-to-number val))
+** specifying whether referred fields are numbers or strings
+   *If the field references should be read as strings*, one needs to
+   add an additional dollar sign, e.q. =$$1, $$colname=, a single
+   dollar sign =$1= reads the field value as a number.  Here is an
+   example reading in date strings, and using calc functions for doing
+   some time arithmetic.
+   
+   #+name: addmonths
+   #+BEGIN_SRC emacs-lisp :results silent :var argdate="2014-03-01" argmonths="10"
+     (let ((calc-date-format
+	    '(YYYY "-" MM "-" DD)))
+       (math-format-date (calcFunc-bsub (calcFunc-incmonth (math-parse-date argdate) (string-to-number argmonths)) 1))
        )
-  #+END_SRC
-
-  #+RESULTS: calc_add_if_match2
-  : 5
-
-  #+NAME: tbl_grp
-  |   | name    | group | use | value |
-  | ! | name    | group | use | value |
-  |---+---------+-------+-----+-------|
-  |   | john    | B     |   1 |     1 |
-  |   | beth    | B     |   0 |     3 |
-  |   | mike    | C     |   1 |     5 |
-  |   | leslie  | A     |   0 |     7 |
-  |   | barbara | A     |   1 |     4 |
-  |   | ken     | C     |   0 |     2 |
-  |   | thomas  | A     |   1 |     8 |
-
-  To demonstrate the above code, we use it to find the sum of all values in the
-  above table where the =group= matches the group column in the table below, and
-  where the =use= column matches "1".
-
-  |   | group | sum |
-  | ! | grp   |     |
-  |---+-------+-----|
-  | # | A     |  12 |
-  | # | B     |   1 |
-  | # | C     |   5 |
-  #+TBLFM: $3='(org-sbe calc_add_if_match2 (tbl $"tbl_grp") (col1 $"group") (col2 $"use") (vcol $"value") (match1 $$grp) (match2 $"1") )
-
-
-  Here another function to add up a time interval and a clock value.
-   #+NAME: timeadd
-   #+BEGIN_SRC emacs-lisp :results value :var inputtime="9:00" delta="30" :exports both
-     (let ((date (org-parse-time-string
-                  (concat "2015-06-01 "
-                          (substring-no-properties inputtime)))))
-       (setf (nth 1 date) (+ (nth 1 date) (string-to-number delta)))
-       (format-time-string "%H:%M" (apply 'encode-time date)))
    #+END_SRC
 
-   #+RESULTS: timeadd
-   : 09:30
+   |   | WP     |                     | WP duration |   WP start |     WP end |
+   |   | number | subject             |      months |       date |       date |
+   | ! | wpid   | wpname              |    wpmonths |      sdate |      edate |
+   |---+--------+---------------------+-------------+------------+------------|
+   | # | WP0    | Project Management  |          24 | 2015-01-01 | 2016-12-30 |
+   | # | WP1    | IT Infrastructure   |          24 | 2015-01-01 | 2016-12-30 |
+   | # | WP2    | IdM Mngm + Rem Acc  |          12 | 2015-01-01 | 2015-12-31 |
+   | # | WP3    | Data Catalog        |           9 | 2015-01-01 | 2015-09-30 |
+   | # | WP4    | provide existing SW |          24 | 2015-01-01 | 2016-12-30 |
+   | # | WP5    | SW development      |          24 | 2015-01-01 | 2016-12-30 |
+   |---+--------+---------------------+-------------+------------+------------|
+   | # |        | TOTAL               |             |            |            |
+   #+TBLFM: @I$6..@II$6='(org-sbe addmonths (argdate $$sdate) (argmonths $$wpmonths))
 
-  And we use it for calculating the clock value for an interview schedule in
-  the following table.
+
+   A function which sums up the values in a column of table tbl if col1
+   matches match1 and col2 matches match2
+
+   #+NAME: calc_add_if_match2
+   #+HEADER: :var tbl="tbl_grp" col1="group" col2="use" vcol="value" match1="C" match2="1"
+   #+BEGIN_SRC emacs-lisp :exports code 
+      ;; add vcol column values if col1 matches match1 and col2 matchtes match2
+      (let ((c1list (org-table-get-remote-range tbl (format "@I$%s..@>$%s" col1 col1)))
+            (c2list (org-table-get-remote-range tbl (format "@I$%s..@>$%s" col2 col2)))
+            (vallist (org-table-get-remote-range tbl (format "@I$%s..@>$%s" vcol vcol))))
+       	(cl-loop for c1tst in c1list
+                 for c2tst in c2list
+                 for val in vallist
+                 when (and (equal c1tst match1) (equal c2tst match2))
+                 sum (string-to-number val))
+       	)
+   #+END_SRC
+
+   #+RESULTS: calc_add_if_match2
+   : 5
+
+   #+NAME: tbl_grp
+   |   | name    | group | use | value |
+   | ! | name    | group | use | value |
+   |---+---------+-------+-----+-------|
+   |   | john    | B     |   1 |     1 |
+   |   | beth    | B     |   0 |     3 |
+   |   | mike    | C     |   1 |     5 |
+   |   | leslie  | A     |   0 |     7 |
+   |   | barbara | A     |   1 |     4 |
+   |   | ken     | C     |   0 |     2 |
+   |   | thomas  | A     |   1 |     8 |
+
+   To demonstrate the above code, we use it to fill the sum column in
+   the table below. We sum up all values in the above table where the
+   =group= matches the given target group column, and where the =use=
+   column matches "1".
+
+   |   | target group | sum |
+   | ! | grp          |     |
+   |---+--------------+-----|
+   | # | A            |  12 |
+   | # | B            |   1 |
+   | # | C            |   5 |
+   #+TBLFM: $3='(org-sbe calc_add_if_match2 (tbl $"tbl_grp") (col1 $"group") (col2 $"use") (vcol $"value") (match1 $$grp) (match2 $"1") )
+
+** a nicer function for adding up time values
+
+   Here another function to add up a time interval and a clock value.
+    #+NAME: timeadd
+    #+BEGIN_SRC emacs-lisp :results value :var inputtime="9:00" delta="30" :exports both
+      (let ((date (org-parse-time-string
+                   (concat "2015-06-01 "
+                           (substring-no-properties inputtime)))))
+       	(setf (nth 1 date) (+ (nth 1 date) (string-to-number delta)))
+       	(format-time-string "%H:%M" (apply 'encode-time date)))
+    #+END_SRC
+
+    #+RESULTS: timeadd
+    : 09:30
+
+   And we use it for calculating the clock value for an interview schedule in
+   the following table.
+   
+   | Item                          | duration | starting |
+   |                               |    (min) |  time AM |
+   |-------------------------------+----------+----------|
+   | Presentation by the candidate |       20 |     8:30 |
+   | Presentation Questions        |       10 |    08:50 |
+   | Break                         |       15 |    09:00 |
+   | Main interview                |       90 |    09:15 |
+   | Break                         |       15 |    10:45 |
+   | HR Interview                  |       60 |    11:00 |
+   | optional Lunch / Coffee       |       60 |    12:00 |
+   | optional interview            |       30 |    13:00 |
+    #+TBLFM: @4$3..@>$3='(org-sbe timeadd (inputtime $@-1) (delta $@-1$-1))
+
   
-  | Item                          | duration | starting |
-  |                               |    (min) |  time AM |
-  |-------------------------------+----------+----------|
-  | Presentation by the candidate |       20 |     8:30 |
-  | Presentation Questions        |       10 |    08:50 |
-  | Break                         |       15 |    09:00 |
-  | Main interview                |       90 |    09:15 |
-  | Break                         |       15 |    10:45 |
-  | HR Interview                  |       60 |    11:00 |
-  | optional Lunch / Coffee       |       60 |    12:00 |
-  | optional interview            |       30 |    13:00 |
-   #+TBLFM: @4$3..@>$3='(org-sbe timeadd (inputtime $@-1) (delta $@-1$-1))
-
-** a look at the involved lisp functions
+** an analytic look at the involved lisp functions
 
 *** org-sbe
 
@@ -241,6 +263,30 @@
     | remote number |             24 |      24 | (24)              |
     | remote date   |           2011 |    2011 | (2014-01-02)      |
     #+TBLFM: @2$2=remote(remtable1,$ref_number)::@2$3=remote(remtable1,@2$3)::@2$4='(identity remote(remtable1,$ref_number))::@3$2=remote(remtable1,$ref_date)::@3$3=remote(remtable1,@4$3)::@3$4='(identity remote(remtable1,$ref_date))
+
+* time calculations
+
+  Time calculations can be done using the =T= modifier, which
+  will expect input in HH:MM[:SS] format and deliver output
+  in HH:MM[:SS] format.
+
+  For the last column I use the =t= modifier, which delivers
+  the result as a float according to the setting of the
+  variable =org-table-duration-custom-format= ('hours by default).
+
+  
+  | Item                          | duration | starting | total |
+  |                               |    (min) |  time AM | hours |
+  |-------------------------------+----------+----------+-------|
+  | Presentation by the candidate |    00:20 |     8:30 |  8.50 |
+  | Presentation Questions        |    00:10 | 08:50:00 |  8.83 |
+  | Break                         |    00:15 | 09:00:00 |  9.00 |
+  | Main interview                |    00:90 | 09:15:00 |  9.25 |
+  | Break                         |    00:15 | 10:45:00 | 10.75 |
+  | HR Interview                  |    00:60 | 11:00:00 | 11.00 |
+  | optional Lunch / Coffee       |    00:60 | 12:00:00 | 12.00 |
+  | optional interview            |    00:30 | 13:00:00 | 13.00 |
+   #+TBLFM: @4$3..@>$3=@-1 + @-1$-1;T::@3$4..@>$4=$-1;t
 
 
 * Column names and remote references
@@ -343,7 +389,7 @@
    |   |     |     |
 #+TBLFM: @3$2=remote(remtableIdColName,@3$one)
 
-* Org Babel settings
+* COMMENT Org Babel settings
 Local variables:
 org-confirm-babel-evaluate: nil
 org-export-babel-evaluate: nil
