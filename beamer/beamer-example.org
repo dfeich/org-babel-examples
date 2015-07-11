@@ -1,13 +1,15 @@
 #+TITLE:     Org-Mode Beamer Example
 #+AUTHOR:    Derek Feichtinger
 #+EMAIL:     derek.feichtinger@psi.ch
-#+DATE:      2010-03-30 Tue
+#+DATE:      [2015-07-12 Sun]
 #+DESCRIPTION: 
 #+KEYWORDS: 
 #+LANGUAGE:  en
 #+OPTIONS:   num:t toc:t ::t |:t ^:{} -:t f:t *:t <:t
 #+OPTIONS:   tex:t d:nil todo:t pri:nil tags:nil
 #+OPTIONS:   timestamp:t
+
+# started this on 2010-03-30 Tue
 
 # this allows defining headlines to be exported/not be exported
 #+SELECT_TAGS: export
@@ -63,8 +65,11 @@
 
 #+BEAMER_HEADER:
 
-* COMMENT Some remarks to options
+* COMMENT Some remarks on options
   - [[info:org#Export%20settings][info:org#Export settings]]
+  - The H:2 setting in the options line is important for setting the
+    Beamer frame level. Headlines will become frames when their level
+    is equal to =org-beamer-frame-level=.
   - ^:{} interpret abc_{subs} as subscript, but not abc_subs
   - num:t configures whether to use section numbers. If set to a number
     only headlines of this level or above will be numbered
@@ -82,6 +87,21 @@
 
 
 * Introduction
+** A title page for this section
+   # usually I leave the heading empty (just spaces)
+   # this is the only good way of making section title slides
+   # I have found up to now.
+
+   #+begin_beamer
+   \vspace{0.3\textheight}
+   \begin{center}
+     \begin{minipage}[h]{.75\textwidth}
+       \centering
+       {\Huge Introduction}
+     \end{minipage}
+   \end{center}
+   #+end_beamer
+
 ** Org mode version information
 
   #+BEGIN_SRC emacs-lisp :results output :exports results
@@ -95,14 +115,13 @@
   :  of 2014-10-31 on dflt1w
   : org version: 8.2.10
 
-** Overview
-- This is based on an [[http://orgmode.org/worg/exporters/beamer/tutorial.html][the Worg hosted example by Eric S. Fraga]] and on the
-  [[https://github.com/fniessen/refcard-org-beamer/blob/master/Org-Beamer-refcard.txt][beamer reference card]] by Fabrice Niessen on GitHub.
-- The H:2 setting in the options line is important for setting the Beamer frame level. Headlines
-  will become frames when their level is equal to =org-beamer-frame-level=.
-- nice link: [[http://www.hartwork.org/beamer-theme-matrix/][beamer theme matrix]]
-- [[http://www.mathematik.uni-leipzig.de/~hellmund/LaTeX/beamer2.pdf][nice example on beamer features (pure Latex)]]
-- http://www2.informatik.hu-berlin.de/~mischulz/beamer.html
+** Sources and Links
+- I started this example based on [[http://orgmode.org/worg/exporters/beamer/tutorial.html][the Worg hosted example by Eric S. Fraga]]
+- Basic LaTeX Beamer links
+  - [[http://www2.informatik.hu-berlin.de/~mischulz/beamer.html][An introduction to Beamer (German)]]
+  - great [[https://github.com/fniessen/refcard-org-beamer/blob/master/Org-Beamer-refcard.txt][beamer reference card]] by Fabrice Niessen on GitHub.
+  - nice link for choosing a theme: [[http://www.hartwork.org/beamer-theme-matrix/][beamer theme matrix]]
+  - [[http://www.mathematik.uni-leipzig.de/~hellmund/LaTeX/beamer2.pdf][nice example of beamer features (pure Latex)]]
 
 
 ** A simple slide
@@ -127,20 +146,20 @@ with its own headline, is displayed in a block:
 
     \hfill \(\qed\)
 
-** Some text features
+** Tables
+   The size of the table font can be chosen by giving a =#+LATEX: \small=
+   command (or =\tiny= or =\footnotesize=)
 
-   The double =@@= can be used to enclose avtive code. Here we use it to specify
-   beamer code that will highlight text by specifying an overlay.
-   
-   A *@@beamer:<2->@@useful* feature
-
-   The following setting acts like =\begin{itemize}[<+->]=. So, it will cause the
-   list items to appear one after the other.
-
-   #+ATTR_BEAMER: :overlay +-
-   - item 1
-   - item 2
-   - item 3
+   #+LATEX: \footnotesize
+    #+NAME: tblWNs2014
+    | WNs | Processors         | Cores/node | HS06/node | total cores | total HS06 |
+    |-----+--------------------+------------+-----------+-------------+------------|
+    |  20 | 2*Xeon X5560       |          8 |       118 |         160 |       2360 |
+    |  11 | 2*E5-2670 2.60GHz  |         16 |       263 |         176 |       2893 |
+    |   4 | 2*AMD 6272 2.40GHz |         32 |       241 |         128 |        964 |
+    |-----+--------------------+------------+-----------+-------------+------------|
+    |  35 |                    |            |           |         464 |       6217 |
+#+TBLFM: @I$6..@II$6=$1*$4::@I$5..@II$5=$1*$3::@>$1=vsum(@I..@II)::@>$5..@>$6=vsum(@I..@II)
 
 ** This is a notes page						     :B_note:
    :PROPERTIES:
@@ -253,23 +272,31 @@ with its own headline, is displayed in a block:
     - <4-> But /q + 1/ is greater than /1/, thus divisible by some prime number
       not in the first /p/ numbers.\qedhere
 
-** Tables
-   The size of the table font can be chosen by giving a =#+LATEX: \small=
-   command (or =\tiny= or =\footnotesize=)
+* Animations by overlays
+** Highlighting text
 
-   #+LATEX: \footnotesize
-    #+NAME: tblWNs2014
-    | WNs | Processors         | Cores/node | HS06/node | total cores | total HS06 |
-    |-----+--------------------+------------+-----------+-------------+------------|
-    |  20 | 2*Xeon X5560       |          8 |       118 |         160 |       2360 |
-    |  11 | 2*E5-2670 2.60GHz  |         16 |       263 |         176 |       2893 |
-    |   4 | 2*AMD 6272 2.40GHz |         32 |       241 |         128 |        964 |
-    |-----+--------------------+------------+-----------+-------------+------------|
-    |  35 |                    |            |           |         464 |       6217 |
-#+TBLFM: @I$6..@II$6=$1*$4::@I$5..@II$5=$1*$3::@>$1=vsum(@I..@II)::@>$5..@>$6=vsum(@I..@II)
+   The double =@@= can be used to enclose avtive code. Here we use it to specify
+   beamer code that will highlight text by specifying an overlay.
+   
+   A *@@beamer:<2->@@useful* feature
 
-* Using Beamer_act for overlays
-** Two blocks
+** Lists
+   For the first list we use an =#+ATTR_BEAMER: :overlay +-= specification.
+
+   It acts like =\begin{itemize}[<+->]=. So, it will cause the
+   list items to appear one after the other.
+
+   #+ATTR_BEAMER: :overlay +-
+   - item 1
+   - item 2
+   - item 3
+
+   For the second list we classify each line by angular brackets
+   - <1-> item 1
+   - <2-> item 2
+   - <3-> item 3
+
+** Two blocks animated by BEAMER_act
 *** First Block 						    :B_block:
    :PROPERTIES:
    :BEAMER_env: block
@@ -298,30 +325,52 @@ with its own headline, is displayed in a block:
    - and this one is revealed afterwards by using the BEAMER_act
      keyword in the PROPERTIES section.
      
-** Three blocks with a different transparency setting
-#+LATEX: \setbeamercovered{transparent=50}
+** different transparency setting and default overlay 
+   :PROPERTIES:
+   :BEAMER_act: [<+->]
+   :END:      
+
+   #+LATEX: \setbeamercovered{transparent=50}
 
 *** First Block 						    :B_block:
    :PROPERTIES:
    :BEAMER_env: block
    :END:
-   - this is visible from the beginning
+   this is visible from the beginning. Note that we specified another
+   transparency compared to the previous slide.
 *** Second Block 					       :B_alertblock:
    :PROPERTIES:
    :BEAMER_env: alertblock
-   :BEAMER_act: <2->
    :END:      
-   - and this one is revealed afterwards by using the BEAMER_act
-     keyword in the PROPERTIES section.
+   and this is revealed later by using the BEAMER_act
+   keyword in the frame's PROPERTIES section.
      
 *** Third Block 					       :B_alertblock:
    :PROPERTIES:
    :BEAMER_env: alertblock
-   :BEAMER_act: <3->
    :END:      
-   - and this one is revealed afterwards by using the BEAMER_act
-     keyword in the PROPERTIES section.
+   Same here!
      
+** plain text between two blocks
+*** block 1							    :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
+    The first block
+*** ign							    :B_ignoreheading:
+    :PROPERTIES:
+    :BEAMER_env: ignoreheading
+    :END:
+    #+LATEX: \onslide<2-> A plain text paragraph. I only managed to get the right uncovering
+    behavior by using =#+LATEX: \onslide<2->= in front of the paragraph.
+*** block 2							    :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :BEAMER_act: <3->
+    :END:      
+    The second block
+    
+
 * Multiple Columns
 ** Blocks in two columns
 
@@ -354,14 +403,15 @@ with its own headline, is displayed in a block:
 *** A screenshot 					    :BMCOL:B_example:
     :PROPERTIES:
     :BEAMER_col: 0.6
+    :BEAMER_env: example
     :END:
     #+ATTR_LaTeX: :width 1.0\textwidth :float t :placement [H]
     [[file:fig/simplegraph1.png]]
 
 
-** A Block and a figure
+** A centered text section and a figure
 
-*** A text section						      :BMCOL:
+*** A centered text section 					      :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.4
     :END:
@@ -374,9 +424,10 @@ with its own headline, is displayed in a block:
 # #+LATEX: \vfill
 # #+LATEX: }%
 
-*** A screenshot 					    :BMCOL:B_example:
+*** A screenshot					    :B_example:BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.6
+    :BEAMER_env: example
     :END:
     #+ATTR_LaTeX: :width 1.0\textwidth :float t :placement [H]
     [[file:fig/simplegraph1.png]]
@@ -443,7 +494,7 @@ x =
 ** Backup slide 2
    These details are not part of the main talk.
 
-* TODO
+* COMMENT TODO
   - show how to embed SVG pictures
     
 * COMMENT org babel settings
