@@ -24,12 +24,14 @@
 # [bigger]
 # [presentation]
 # [handout] : print handouts, i.e. slides with overlays will be printed with
-#   all overlays turned on.
+#   all overlays turned on (no animations).
+# [notes=show] : show notes in the generated output (note pages follow the real page)
+# [notes=only] : only render the nodes pages
 
 # this setting affects whether the initial PSI picture correctly fills
 # the title page, since it scales the title text. One can also use the
 # notes=show or notes=only options to produce notes pages in the output.
-# #+LaTeX_CLASS_OPTIONS: [t,10pt,notes=only]
+# #+LaTeX_CLASS_OPTIONS: [t,10pt,notes=show]
 
 #+LaTeX_CLASS_OPTIONS: [t,10pt]
 
@@ -60,10 +62,15 @@
 # I want to define a style for hyperlinks
 #+LATEX_HEADER: \hypersetup{colorlinks=true, linkcolor=blue}
 
+# This line inserts a table of contents with the current section highlighted at
+# the beginning of each section
+#+latex_header: \AtBeginSection[]{\begin{frame}<beamer>\frametitle{Topic}\tableofcontents[currentsection]\end{frame}}
+
 # this can be used to define the transparency of the covered layers
 #+LATEX: \setbeamercovered{transparent=15}
 
 #+BEAMER_HEADER:
+
 
 * COMMENT Some remarks on options
   - [[info:org#Export%20settings][info:org#Export settings]]
@@ -87,7 +94,7 @@
 
 
 * Introduction
-** A title page for this section
+** An alternative title page for a section
    # usually I leave the heading empty (just spaces)
    # this is the only good way of making section title slides
    # I have found up to now.
@@ -101,29 +108,44 @@
      \end{minipage}
    \end{center}
    #+end_beamer
-
+** Instructions
+   Look at the *Org source* file to learn about available options. I also
+   added many comments explaining the usage, there.
+   - generating presentation notes.
+   - inserting a table of contents with the current section highlighted at
+     the beginning of each section.
+   - configuring transparency of yet uncovered overlay elements.
+     
 ** Org mode version information
 
+   #+LATEX: \small
   #+BEGIN_SRC emacs-lisp :results output :exports results
-    (princ (concat (format "Emacs version: %s\n" (emacs-version))
-                   (format "org version: %s\n" (org-version))))
+    (princ (concat (format "Emacs version:\n%s\n" (emacs-version))
+                   (format "\norg version: %s\n" (org-version))))
     
   #+END_SRC
 
   #+RESULTS:
-  : Emacs version: GNU Emacs 24.4.1 (x86_64-unknown-linux-gnu, GTK+ Version 3.10.8)
-  :  of 2014-10-31 on dflt1w
+  : Emacs version:
+  : GNU Emacs 24.5.1 (x86_64-unknown-linux-gnu, GTK+ Version 3.10.8)
+  :  of 2015-05-04 on dflt1w
+  : 
   : org version: 8.2.10
+
 
 ** Sources and Links
 - I started this example based on [[http://orgmode.org/worg/exporters/beamer/tutorial.html][the Worg hosted example by Eric S. Fraga]]
 - Basic LaTeX Beamer links
   - [[http://www2.informatik.hu-berlin.de/~mischulz/beamer.html][An introduction to Beamer (German)]]
-  - great [[https://github.com/fniessen/refcard-org-beamer/blob/master/Org-Beamer-refcard.txt][beamer reference card]] by Fabrice Niessen on GitHub.
+  - great [[https://github.com/fniessen/refcard-org-beamer][beamer reference card]] by Fabrice Niessen on GitHub.
   - nice link for choosing a theme: [[http://www.hartwork.org/beamer-theme-matrix/][beamer theme matrix]]
   - [[http://www.mathematik.uni-leipzig.de/~hellmund/LaTeX/beamer2.pdf][nice example of beamer features (pure Latex)]]
 
-
+*** Note							     :B_note:
+    :PROPERTIES:
+    :BEAMER_env: note
+    :END:
+    - an example of a note
 ** A simple slide
 This slide consists of some text with a number of bullet points:
 - the first, very *important*, point!
