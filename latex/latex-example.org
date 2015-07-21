@@ -69,11 +69,16 @@ $$
   cores_{extrapol} = cores_{intern2013} \cdot offl\% \cdot \frac{gf \cdot (volume_{user} + volume_{intern})}{volume_{intern}}
 $$
 
+#+LATEX: \vspace{0.1\textheight}
 
-This is an example for an equation emedded in the text 
+This is an example for an equation embedded in the text 
 $cores_{extrapol} = cores_{intern2013} \cdot offl\% \cdot \frac{gf \cdot (volume_{user} + volume_{intern})}{volume_{intern}}$
+The text continues after the formula.
 
-and here follows a numbered equation that also can be referenced (eq \ref{eq_1}).
+#+LATEX: \vspace{0.1\textheight}
+
+Here follows a numbered equation that also can be referenced like in the following
+parentheses (eq \ref{eq_1}).
 \begin{equation}
   \label{eq_1}
   cores_{extrapol} = cores_{intern2013} \cdot offl\% \cdot \frac{gf \cdot (volume_{user} + volume_{intern})}{volume_{intern}}
@@ -90,23 +95,25 @@ and here follows a numbered equation that also can be referenced (eq \ref{eq_1})
 
 #+LaTeX: \pagebreak
 
-* Figure
+* Figures
 
   I can reference the figure like this: Fig. \ref{fig_simplegraph1}.
 
   Note
-  - there must be no empty line between the link and the meta
+  - there must be no empty line between the picture's link and the meta
     definitions for name, caption, etc.
   - The OPTION =tex:t= must be set for references to work.
 
-  | Specifier | Permission                                                                                                                                                |
-  |-----------+-----------------------------------------------------------------------------------------------------------------------------------------------------------|
-  | h         | Place the float here, i.e., approximately at the same point it occurs in the source text (however, not exactly at the spot)                               |
-  | t         | Position at the top of the page.                                                                                                                          |
-  | b         | Position at the bottom of the page.                                                                                                                       |
-  | p         | Put on a special page for floats only.                                                                                                                    |
-  | !         | Override internal parameters LaTeX uses for determining "good" float positions.                                                                           |
-  | H         | Places the float at precisely the location in the LaTeX code. Requires the float package,[1] e.g., \usepackage{float}. This is somewhat equivalent to h!. |
+  | Specifier | Permission                                                                      |
+  |-----------+---------------------------------------------------------------------------------|
+  | h         | Place the float here, i.e., approximately at the same point it occurs in the    |
+  |           | source text (however, not exactly at the spot)                                  |
+  | t         | Position at the top of the page.                                                |
+  | b         | Position at the bottom of the page.                                             |
+  | p         | Put on a special page for floats only.                                          |
+  | !         | Override internal parameters LaTeX uses for determining "good" float positions. |
+  | H         | Places the float at precisely the location in the LaTeX code. Requires the      |
+  |           | float package,[1] e.g., \usepackage{float}. This is somewhat equivalent to h!.                                                                                |
 
   #+NAME: fig_simplegraph1
   #+CAPTION: A simple graph
@@ -114,15 +121,25 @@ and here follows a numbered equation that also can be referenced (eq \ref{eq_1})
   [[file:../beamer/fig/simplegraph1.png]]
 
   #+NAME: fig_simplegraph1b
-  #+CAPTION: A simple graph
+  #+CAPTION: A simple graph at half the width
   #+ATTR_LaTeX: :width 0.4\textwidth,right :float t :placement [H]
   [[file:../beamer/fig/simplegraph1.png]]
 
-  A pdf can be included the same way
+  #+NAME: fig_simplegraph1c
+  #+CAPTION: A simple graph rotated 270\textdegree
+  #+ATTR_LaTeX: :width 0.8\textwidth,right :float t :placement [H] :options angle=270
+  [[file:../beamer/fig/simplegraph1.png]]
+  
+  A pdf can be included the same way, e.g. by specifying
   #+BEGIN_EXAMPLE
   #+ATTR_LATEX: :options page=10 :width 10cm
   [[file:myfig.pdf]]
   #+END_EXAMPLE
+
+** inclusion of SVG graphics
+
+   q.v. my plantuml related documentation.
+   
 * Footnote test
 
    This is a text with a footnote[fn:1]. The footnote will be displayed
@@ -132,8 +149,9 @@ and here follows a numbered equation that also can be referenced (eq \ref{eq_1})
 
    
 * Tables
+** nicer table formatting using booktab style
 
-  Some [[http://www.inf.ethz.ch/personal/markusp/teaching/guides/guide-tables.pdf][interesting tips]] for booktab style tables by M. Püschel.
+   Some [[http://www.inf.ethz.ch/personal/markusp/teaching/guides/guide-tables.pdf][interesting tips]] for booktab style tables by M. Püschel.
   
   Whether table captions appear above or below the table can be configured using this
   variable:

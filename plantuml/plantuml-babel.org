@@ -14,6 +14,8 @@
 #+LINK_HOME: 
 #+XSLT:
 
+#+LATEX_HEADER_EXTRA: \usepackage{svg}
+
 * Links
   - http://plantuml.sourceforge.net/
   - [[file:~/Documents/external_documentation/PlantUML_Language_Reference_Guide.pdf][my local copy of the language reference]]
@@ -136,6 +138,30 @@
 
 #+RESULTS:
 [[file:fig/sequence1.png]]
+
+** simple test with SVG graphic
+
+   The /svg/ package uses inkscape to separate the text and graphical
+   elements of the SVG into a Tex file (*.pdf_tex) and a PDF file
+   containig the graph elements.  E.g. svg-sequence1.svg into
+   svg-sequence1.pdf_tex and svg-sequence1.pdf.
+
+   Currently, SVG pictures can only be rendered correctly, *if the picture
+   is in the same directory* as the tex (and therefore also org q) source file.
+
+   # #+LATEX: \setsvg{svgpath = fig/}
+   # #+LATEX: \setsvg{path = fig/}   
+
+   #+BEGIN_SRC plantuml :file svg-sequence1.svg :exports both
+     ' this is a comment
+     Alice -> Bob: Authentication Request
+     Bob --> Alice: Authentication Response
+     John --> Alice: another Authentication Request
+     Alice --> John: another Authentication Response
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:svg-sequence1.svg]]
 
 
 ** sequence diagrams
