@@ -1,5 +1,5 @@
 #+TITLE: latex-example
-#+DATE: <2014-02-22 Sat>
+#+DATE: <2015-07-25 Sat>
 #+AUTHOR: Derek Feichtinger
 #+EMAIL: derek.feichtinger@psi.ch
 #+OPTIONS: ':nil *:t -:t ::t <:t H:3 \n:nil ^:t arch:headline
@@ -17,6 +17,8 @@
 #+LATEX_CLASS: article
 #+LATEX_CLASS_OPTIONS: [koma,a4paper]
 #+LATEX_HEADER: \hypersetup{colorlinks=true, linkcolor=blue}
+
+# LATEX_HEADER_EXTRA lines will not be loaded when previewing LaTeX snippets
 #+LATEX_HEADER_EXTRA: \usepackage{units}
 #+LATEX_HEADER_EXTRA: \usepackage{comment}
 
@@ -32,6 +34,15 @@
 # thicker lines on top and on the bottom
 #+LATEX_HEADER_EXTRA: \usepackage{booktabs}
 
+# Index creation
+#+LATEX_HEADER_EXTRA: \usepackage{makeidx}
+#+LATEX_HEADER_EXTRA: \makeindex
+
+# I define a useful macro for marking index words
+#+BEGIN_LaTeX
+\DeclareRobustCommand{\myindex}[1]{#1\index{#1}}
+#+END_LaTeX
+
 # For export to ODT
 # #+OPTIONS: LaTeX:t
 # #+OPTIONS: tex:imagemagick
@@ -46,8 +57,8 @@
   #+END_SRC
 
   #+RESULTS:
-  : Emacs version: GNU Emacs 24.4.1 (x86_64-unknown-linux-gnu, GTK+ Version 3.10.8)
-  :  of 2014-10-31 on dflt1w
+  : Emacs version: GNU Emacs 24.5.1 (x86_64-unknown-linux-gnu, GTK+ Version 3.10.8)
+  :  of 2015-05-04 on dflt1w
   : org version: 8.2.10
 
 * Some LaTeX links
@@ -113,7 +124,7 @@ parentheses (eq \ref{eq_1}).
   | p         | Put on a special page for floats only.                                          |
   | !         | Override internal parameters LaTeX uses for determining "good" float positions. |
   | H         | Places the float at precisely the location in the LaTeX code. Requires the      |
-  |           | float package,[1] e.g., \usepackage{float}. This is somewhat equivalent to h!.                                                                                |
+  |           | float package, e.g., \usepackage{float}. This is somewhat equivalent to h!.                                                                                   |
 
   #+NAME: fig_simplegraph1
   #+CAPTION: A simple graph
@@ -122,12 +133,12 @@ parentheses (eq \ref{eq_1}).
 
   #+NAME: fig_simplegraph1b
   #+CAPTION: A simple graph at half the width
-  #+ATTR_LaTeX: :width 0.4\textwidth,right :float t :placement [H]
+  #+ATTR_LaTeX: :width 0.4\textwidth :float t :placement [H]
   [[file:../beamer/fig/simplegraph1.png]]
 
   #+NAME: fig_simplegraph1c
   #+CAPTION: A simple graph rotated 270\textdegree
-  #+ATTR_LaTeX: :width 0.8\textwidth,right :float t :placement [H] :options angle=270
+  #+ATTR_LaTeX: :width 0.8\textwidth :float t :placement [H] :options angle=270
   [[file:../beamer/fig/simplegraph1.png]]
   
   A pdf can be included the same way, e.g. by specifying
@@ -140,12 +151,15 @@ parentheses (eq \ref{eq_1}).
 
    q.v. my plantuml related documentation.
    
-* Footnote test
+* Footnotes and margin notes
 
-   This is a text with a footnote[fn:1]. The footnote will be displayed
+   This is a text with a \myindex{footnote} [fn:1]. The footnote will be displayed
    on the bottom of the current page. One can also place all footnotes
    in a separate chapter called /footnotes/ at the end of the org file[fn:2].
 
+   \myindex{Margin notes} one can set by directly inlining the LaTeX command
+   #+LATEX:\marginpar{\textit{a margin note}}
+   as demonstrated here.
 
    
 * Tables
@@ -310,6 +324,33 @@ parentheses (eq \ref{eq_1}).
   Text Example
   #+LATEX:\tiny
   Text Example
+  #+LATEX:\normalsize (default)
+
+* Index creation
+
+  Must be solved by including LaTeX source commands:
+  - Requires in the preamble
+    - =\usepackage{makeidx}=
+    - =\makeindex=
+  - Mark up words by =\index{word}=
+  - At the location where the index should apear, use =\printindex=
+  - to render the document, a call to the =makeindex= binary needs to
+    be added in the build command. I use the following definition in
+    my =init.el=.
+    #+BEGIN_SRC emacs-lisp
+      (setq org-latex-pdf-process
+            (let
+                ((cmd (concat "pdflatex -shell-escape -interaction nonstopmode"
+                              " -output-directory %o %f")))
+              (list cmd
+                    "cd %o; if test -r %b.idx; then makeindex %b.idx; fi"
+                    cmd
+                    cmd)))
+    #+END_SRC
+
+
+  #+LATEX:\printindex
+
 * Footnotes
 
   # No indentation is allowed for footnotes
