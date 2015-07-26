@@ -1,0 +1,198 @@
+#+TITLE: Ditaa org babel examples
+#+DATE: <2015-07-26 Sun>
+#+AUTHOR: Derek
+#+EMAIL: derek.feichtinger@psi.ch
+#+OPTIONS: ':nil *:t -:t ::t <:t H:3 \n:nil ^:t arch:headline
+#+OPTIONS: author:t c:nil creator:comment d:(not "LOGBOOK") date:t
+#+OPTIONS: e:t email:nil f:t inline:t num:t p:nil pri:nil stat:t
+#+OPTIONS: tags:t tasks:t tex:t timestamp:t toc:t todo:t |:t
+#+CREATOR: Emacs 24.5.1 (Org mode 8.2.10)
+#+DESCRIPTION:
+#+EXCLUDE_TAGS: noexport
+#+KEYWORDS:
+#+LANGUAGE: en
+#+SELECT_TAGS: export
+
+
+* Documentation and links
+
+  - [[http://ditaa.sourceforge.net][Ditaa on sourceforge]]
+  - Drawin is mostly done in Emacs *Artist mode*
+    - when using C-c ' =org-edit-special= the edit buffer is placed in
+      artist mode
+    - [[help:artist-mode][emacs help page on artist mode]]
+    - [[http://www.cinsk.org/emacs/emacs-artist.html][nice screencast by Seong-Kook Shin]]
+    - when drawing using the keys
+      - *polyline*: =return= will begin a line, =C-u return= will end
+	the polyline
+      - *cut*: =C-c C-a C-k= for entering cut mode. Hit =return= to start
+	opening a rectangle. Hit =Return= again for cutting the rectangle.
+      - *paste*: =C-c C-a M-w= for entering past mode. Hit =return= for
+	pasting.
+
+
+* Information on local installation
+#+BEGIN_SRC sh :results output :var jpath=(expand-file-name org-ditaa-jar-path) :exports results
+  echo "Emacs variable org-plantuml-jar-path:$jpath\n"
+  if test ! -r "$jpath"; then
+     echo "ERROR: Cannot read the file"
+     return
+  fi
+  java -jar "$jpath"
+  #+END_SRC
+
+#+RESULTS:
+#+begin_example
+Emacs variable org-plantuml-jar-path:/home/dfeich/.emacs.d/javalib/ditaa/ditaa.jar
+
+
+ditaa version 0.9, Copyright (C) 2004--2009  Efstathios (Stathis) Sideris
+
+usage: java -jar ditaa.jar <inpfile> [outfile] [-A] [-d] [-E] [-e
+       <ENCODING>] [-h] [--help] [-o] [-r] [-s <SCALE>] [-S] [-t <TABS>]
+       [-v]
+ -A,--no-antialias          Turns anti-aliasing off.
+ -d,--debug                 Renders the debug grid over the resulting
+                            image.
+ -E,--no-separation         Prevents the separation of common edges of
+                            shapes.
+ -e,--encoding <ENCODING>   The encoding of the input file.
+ -h,--html                  In this case the input is an HTML file. The
+                            contents of the <pre class="textdiagram"> tags
+                            are rendered as diagrams and saved in the
+                            images directory and a new HTML file is
+                            produced with the appropriate <img> tags.
+    --help                  Prints usage help.
+ -o,--overwrite             If the filename of the destination image
+                            already exists, an alternative name is chosen.
+                            If the overwrite option is selected, the image
+                            file is instead overwriten.
+ -r,--round-corners         Causes all corners to be rendered as round
+                            corners.
+ -s,--scale <SCALE>         A natural number that determines the size of
+                            the rendered image. The units are fractions of
+                            the default size (2.5 renders 1.5 times bigger
+                            than the default).
+ -S,--no-shadows            Turns off the drop-shadow effect.
+ -t,--tabs <TABS>           Tabs are normally interpreted as 8 spaces but
+                            it is possible to change that using this
+                            option. It is not advisable to use tabs in
+                            your diagrams.
+ -v,--verbose               Makes ditaa more verbose.
+#+end_example
+
+
+* Ditaa tests
+
+  #+BEGIN_SRC ditaa :file fig/ditaa-concept.png :exports both
+
+        +--------+   +-------+    +-------+
+        |        | --+ ditaa +--> |       |
+        |  Text  |   +-------+    |diagram|
+        |Document|   |!magic!|    |       |
+        |     {d}|   |       |    |       |
+        +---+----+   +-------+    +-------+
+            :                         ^
+            |       Lots of work      |
+            +-------------------------+
+  #+END_SRC
+
+  #+RESULTS:
+  [[file:fig/ditaa-concept.png]]
+  
+  #+BEGIN_SRC ditaa :file fig/ditaatest1.png :cmdline -s 0.8
+
+    +----------------------+         +------------------+----+
+    | This is a box   |    +---------+  and this is     |    |
+    |                 |    |         |  another         |    |
+    |                 |    |         |                  |    |
+    |                 |    |         |                  |    |            +-------+
+    +-------+--------------+         +------------------+----+		  |       |
+            |								  |       |
+            |								  | {mo}  |
+            :           /------------------------------\      |      ^	  +-------+
+            |           |                              |      |      |
+            |           |   and yet another, but       |      |      |
+            +---------->+   with round corners         |      |      |    +-------+
+                        |   o list item 1              |      |      |    |       |
+                        |   o list item 2              |      |      |    |       |
+                        \------------------------------/      V      |    | {tr}  |       
+                                                                          +-------+       
+                                                                                          
+      +----------+       +--------------+       +---------------+    +-------+    +-------+
+      | Storage  |       | Document     |       | Input/Output  |    |       |    |       |
+      |          |       |              |       |               |    |       |    |       |
+      | cGRE     +-------+ cYEL         +---=---+ cRED          |    | {o}   |    | {c}   |
+      |          |       |              |       |               |    +-------+    +-------+
+      | {s}      |       | {d}          |       | {io}          |
+      +----------+       +--------------+       +---------------+
+
+
+  #+END_SRC
+
+  #+RESULTS:
+  [[file:fig/ditaatest1.png]]
+
+
+  Example from http://doc.norang.ca/org-mode.html#playingwithditaa
+
+  #+BEGIN_SRC ditaa :file fig/ditaatest2.png :cmdline -r -s 0.8
+    +-----------+        +---------+
+    |    PLC    |        |         |
+    |  Network  +<------>+   PLC   +<---=---------+
+    |    cRED   |        |  c707   |              |
+    +-----------+        +----+----+              |
+                              ^                   |
+                              |                   |
+                              |  +----------------|-----------------+
+                              |  |                |                 |
+                              v  v                v                 v
+      +----------+       +----+--+--+      +-------+---+      +-----+-----+       Windows clients
+      |          |       |          |      |           |      |           |      +----+      +----+
+      | Database +<----->+  Shared  +<---->+ Executive +<-=-->+ Operator  +<---->|cYEL| . . .|cYEL|
+      |   c707   |       |  Memory  |      |   c707    |      | Server    |      |    |      |    |
+      +--+----+--+       |{d} cGRE  |      +------+----+      |   c707    |      +----+      +----+
+         ^    ^          +----------+             ^           +-------+---+
+         |    |                                   |
+         |    +--------=--------------------------+
+         v
++--------+--------+
+|                 |
+| Millwide System |            -------- Data ---------
+| cBLU            |            --=----- Signals ---=--
++-----------------+
+
+  #+END_SRC
+
+  #+RESULTS:
+  [[file:fig/ditaatest2.png]]
+
+
+
+
+  #+BEGIN_SRC ditaa :file fig/polyline.png
+                                                               
+    +---+    +----+    +---+                                   
+    |   |    |    |    |   |          +--+  +--+               
+    |   +----+    +----+   |          |  |  |  |               
+    |                      |     -----+  +--+  |       +------*
+    |      some shape      |                   |       |
+    | cRED                 |           +----*-------*--+
+    +----------------------+     ------+
+  #+END_SRC
+
+  #+RESULTS:
+  [[file:fig/polyline.png]]
+
+
+* COMMENT babel settings
+
+  Note: Since minted (which I use for source code coloring) does not contain a lexer
+  for ditaa, I disable it by setting =org-latex-listings= to =nil= in this buffer.
+
+Local Variables:
+org-babel-after-execute-hook: (lambda () (org-display-inline-images nil t) (org-redisplay-inline-images))
+org-latex-listings: nil
+org-confirm-babel-evaluate: nil
+org-export-babel-evaluate: nil
+End:
