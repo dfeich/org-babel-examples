@@ -234,6 +234,27 @@ b1 -> a3;
   [[file:fig/flowchart3.png]]
 
 
+* Entity Relationship
+
+  - from http://www.tonyballantyne.com/graphs.html
+  - Problem: contrary to the web reference, Loan is
+    not put in the middle of Book and Customer
+
+  #+BEGIN_SRC dot :file fig/er1.png :exports both
+    digraph ER{
+            node[shape=box];
+            Book;
+            Loan;
+            Customer;
+            {rank=same;Book,Customer,Loan}
+            Book->Loan[dir="forward",arrowhead="crow",arrowtail="normal"];
+            Customer->Loan[dir="forward",arrowhead="crow",arrowtail="normal"];
+    }
+  #+END_SRC
+
+  #+RESULTS:
+  [[file:fig/er1.png]]
+
 * git graphs
 ** schemas with points
 *** using weight
