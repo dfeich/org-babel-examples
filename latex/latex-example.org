@@ -1,12 +1,22 @@
-#+TITLE: latex-example
-#+DATE: <2015-07-25 Sat>
+# this is an org macro for defining linebreaks for fields like the title or authors
+# it contains definitions for both latex and html
+# from http://emacs.stackexchange.com/questions/255/new-line-in-title-of-an-org-mode-exported-html-document
+#+MACRO: NEWLINE @@latex:\\@@ @@html:<br>@@
+
+#+TITLE: Org-mode Latex Export {{{NEWLINE}}} Example
+# #+DATE: <2015-07-25 Sat>
 #+AUTHOR: Derek Feichtinger
 #+EMAIL: derek.feichtinger@psi.ch
 #+OPTIONS: ':nil *:t -:t ::t <:t H:3 \n:nil ^:t arch:headline
-#+OPTIONS: author:t c:nil creator:comment d:(not "LOGBOOK") date:t
+#+OPTIONS: author:t c:nil d:(not "LOGBOOK") date:t
 #+OPTIONS: e:t email:nil f:t inline:t num:t p:nil pri:nil stat:t
 #+OPTIONS: tags:t tasks:t tex:t timestamp:t toc:t todo:t |:t
-#+CREATOR: Emacs 24.3.1 (Org mode 8.2.5h)
+
+# if the creator option is t, then use the string from CREATOR or the
+# default if that is not set. The string is put at the end of the
+# document.
+#+OPTIONS: creator:t
+# #+CREATOR: Emacs 24.3.1 (Org mode 8.2.5h)
 #+DESCRIPTION:
 #+EXCLUDE_TAGS: noexport
 #+KEYWORDS:
