@@ -71,7 +71,7 @@
   | nil                       | symbol  |
   | (concat "hello" " world") | string  |
   |                           | #ERROR  |
-  #+TBLFM: @I$2..@>$2='(type-of $1);L
+  #+TBLFM: @2$2..@>$2='(type-of $1);L
 
 * Using src block functions for calculating table fields
 ** basic usage
@@ -86,6 +86,12 @@
   (* 2 x)
   #+END_SRC
 
+  #+NAME: mydivide
+  #+header: :var x=2 y=2
+  #+BEGIN_SRC emacs-lisp :results silent
+  (/ x y)
+  #+END_SRC
+
   
   |   |    A | calc double | lisp double | lisp divide |
   | ! | colA |        colB |        colC |        colD |
@@ -93,7 +99,7 @@
   | # |    1 |           2 |           2 |           2 |
   | # |    3 |           6 |           6 |           2 |
   | # |    9 |          18 |          18 |           2 |
- #+TBLFM: $3=$colA*2::$4='(org-sbe mydouble (x $colA))::$5='(org-sbe mydivide (x $colB) (y $colA))
+  #+TBLFM: $3=$colA*2::$4='(org-sbe mydouble (x $colA))::$5='(org-sbe mydivide (x $colB) (y $colA))
 
 ** specifying whether referred fields are numbers or strings
    *If the field references should be read as strings*, one needs to
@@ -114,15 +120,15 @@
    |   | number | subject             |      months |       date |       date |
    | ! | wpid   | wpname              |    wpmonths |      sdate |      edate |
    |---+--------+---------------------+-------------+------------+------------|
-   | # | WP0    | Project Management  |          24 | 2015-01-01 | 2016-12-30 |
-   | # | WP1    | IT Infrastructure   |          24 | 2015-01-01 | 2016-12-30 |
+   | # | WP0    | Project Management  |          24 | 2015-01-01 | 2016-12-31 |
+   | # | WP1    | IT Infrastructure   |          24 | 2015-01-01 | 2016-12-31 |
    | # | WP2    | IdM Mngm + Rem Acc  |          12 | 2015-01-01 | 2015-12-31 |
    | # | WP3    | Data Catalog        |           9 | 2015-01-01 | 2015-09-30 |
-   | # | WP4    | provide existing SW |          24 | 2015-01-01 | 2016-12-30 |
-   | # | WP5    | SW development      |          24 | 2015-01-01 | 2016-12-30 |
+   | # | WP4    | provide existing SW |          24 | 2015-01-01 | 2016-12-31 |
+   | # | WP5    | SW development      |          24 | 2015-01-01 | 2016-12-31 |
    |---+--------+---------------------+-------------+------------+------------|
    | # |        | TOTAL               |             |            |            |
-   #+TBLFM: @I$6..@II$6='(org-sbe addmonths (argdate $$sdate) (argmonths $$wpmonths))
+   #+TBLFM: @4$6..@9$6='(org-sbe addmonths (argdate $$sdate) (argmonths $$wpmonths))
 
 
    A function which sums up the values in a column of table tbl if col1
