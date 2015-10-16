@@ -12,7 +12,6 @@
 #+KEYWORDS:
 #+LANGUAGE: en
 #+SELECT_TAGS: export
-
 * Version information
   #+BEGIN_SRC emacs-lisp -n :exports both
         (princ (concat
@@ -136,6 +135,7 @@ import matplotlib
 import numpy as np
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+import seaborn
 
 fname='python-matplot-fig2.png'
 ar = np.array(data).transpose()
@@ -293,6 +293,7 @@ insert language specific commenting to keep the code functional.
     import pandas as pd
     import numpy as np
     matplotlib.use('Agg')
+    import seaborn
     
     fname='python-matplot-fig3.png'
     df = pd.DataFrame(data)
