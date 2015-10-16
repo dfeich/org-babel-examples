@@ -83,6 +83,8 @@
     - http://tutex.tug.org/pracjourn/2005-4/hefferon/hefferon.pdf
 
 * Equations
+
+- Nice link for mathematical symbols [[https://en.wikipedia.org/wiki/List_of_mathematical_symbols_by_subject][on wikipedia]]:
   
 This is an example for an equation
 
@@ -113,6 +115,17 @@ parentheses (eq \ref{eq_1}).
 # \unit[20]{s} \cdot \unit[9.81]{m/s^2} = \unit[196.2]{m/s} 
 # $$
 
+from an [[http://stefaanlippens.net/textnormal][article by Stefaan Lippens]] on on using /textnormal/ for including
+normal text correctly in a math environment.
+
+\begin{eqnarray*}
+ \int_1^9 x dx & & \textrm{this is textrm}\\
+ \sum_1^9 y    & & \textsf{this is textsf}\\
+ \prod_1^9 z   & & \textnormal{this is textnormal}
+\end{eqnarray*}
+
+Only textnormal will guarantee that the text appears in the default font of
+the document.
 
 #+LaTeX: \pagebreak
 
