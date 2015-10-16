@@ -184,6 +184,13 @@ usage: java -jar ditaa.jar <inpfile> [outfile] [-A] [-d] [-E] [-e
   #+RESULTS:
   [[file:fig/polyline.png]]
 
+* Problems
+  - characters which are used as graphic elements get interpreted within text, e.g "1-100" will
+    end up with the "-" being rendered as a line segment.
+    - workaround: Use similar looking UTF-8 characters
+      | Instead of | UTF-8 char |
+      |------------+------------|
+      | -          | EM DASH    |
 
 * COMMENT babel settings
 
