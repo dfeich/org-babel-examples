@@ -380,6 +380,37 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
   : Now it works:
   : Can we see Umlauts? äöü. And accents? éè.
 
+  Another possibility is to change the default encoding, even
+  though this seems less clean, since it requires reloading sys.
+  #+BEGIN_SRC python :results output :exports both
+    # -*- coding: iso-8859-15 -*-
+    import sys
+
+    strg = u'Can we see Umlauts? äöü. And accents? éè.'
+
+    print 'default encoding is now %s' % sys.getdefaultencoding()
+    try:
+        print strg
+    except:
+        print "Expected error:", sys.exc_info()[0]
+
+    # THESE ARE THE RELEVANT LINES
+    reload(sys)  
+    sys.setdefaultencoding('utf8')
+
+    print '\ndefault encoding is now %s' % sys.getdefaultencoding()
+    print "Now it works:\n", strg
+
+  #+END_SRC
+
+  #+RESULTS:
+  : default encoding is now ascii
+  : Expected error: <type 'exceptions.UnicodeEncodeError'>
+  : 
+  : default encoding is now utf8
+  : Now it works:
+  : Can we see Umlauts? äöü. And accents? éè.
+
   
 * COMMENT Environment setup and test
   #+BEGIN_SRC python :exports both :results value
