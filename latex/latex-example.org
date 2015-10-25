@@ -71,8 +71,302 @@
   :  of 2015-05-04 on dflt1w
   : org version: 8.2.10
 
-* Some LaTeX links
-  - Link formatting
+* Major document elements
+** Equations
+
+ - Nice link for mathematical symbols [[https://en.wikipedia.org/wiki/List_of_mathematical_symbols_by_subject][on wikipedia]]:
+  
+ This is an example for an equation
+
+ $$
+   cores_{extrapol} = cores_{intern2013} \cdot offl\% \cdot \frac{gf \cdot (volume_{user} + volume_{intern})}{volume_{intern}}
+ $$
+
+ #+LATEX: \vspace{0.1\textheight}
+
+ This is an example for an equation embedded in the text 
+ $cores_{extrapol} = cores_{intern2013} \cdot offl\% \cdot \frac{gf \cdot (volume_{user} + volume_{intern})}{volume_{intern}}$
+ The text continues after the formula.
+
+ #+LATEX: \vspace{0.1\textheight}
+
+ Here follows a numbered equation that also can be referenced like in
+ the following parentheses (eq \ref{eq_1}). Note that we have to rely
+ here on standard latex syntax, since org mode does not offer equations
+ as a native element that we can mark up with #+NAME tags, etc.
+ \begin{equation}
+   \label{eq_1}
+   cores_{extrapol} = cores_{intern2013} \cdot offl\% \cdot \frac{gf \cdot (volume_{user} + volume_{intern})}{volume_{intern}}
+ \end{equation}
+
+ # Units should be typeset differently from math symbols. This can be done using
+ # the =units.sty= package that can be loaded in a =#+LATEX_HEADER_EXTRA: \usepackage{units}=
+ # definition.
+
+ # $$
+ # \unit[20]{s} \cdot \unit[9.81]{m/s^2} = \unit[196.2]{m/s} 
+ # $$
+
+ from an [[http://stefaanlippens.net/textnormal][article by Stefaan Lippens]] on on using /textnormal/ for including
+ normal text correctly in a math environment.
+
+ \begin{eqnarray*}
+  \int_1^9 x dx & & \textrm{this is textrm}\\
+  \sum_1^9 y    & & \textsf{this is textsf}\\
+  \prod_1^9 z   & & \textnormal{this is textnormal}
+ \end{eqnarray*}
+
+ Only textnormal will guarantee that the text appears in the default font of
+ the document.
+
+ #+LaTeX: \pagebreak
+
+** Figures
+
+   I can reference the figure like this: Fig. [[fig_simplegraph1]].
+
+   Note
+   - there must be no empty line between the picture's link and the meta
+     definitions for name, caption, etc.
+   - The figure must have a caption.
+   - The OPTION =tex:t= must be set for references to work.
+
+   | Specifier | Permission                                                                      |
+   |-----------+---------------------------------------------------------------------------------|
+   | h         | Place the float here, i.e., approximately at the same point it occurs in the    |
+   |           | source text (however, not exactly at the spot)                                  |
+   | t         | Position at the top of the page.                                                |
+   | b         | Position at the bottom of the page.                                             |
+   | p         | Put on a special page for floats only.                                          |
+   | !         | Override internal parameters LaTeX uses for determining "good" float positions. |
+   | H         | Places the float at precisely the location in the LaTeX code. Requires the      |
+   |           | float package, e.g., \usepackage{float}. This is somewhat equivalent to h!.                                                                                   |
+
+   #+NAME: fig_simplegraph1
+   #+CAPTION: A simple graph
+   #+ATTR_LaTeX: :width 0.8\textwidth :float t :placement [H]
+   [[file:../beamer/fig/simplegraph1.png]]
+
+   #+NAME: fig_simplegraph1b
+   #+CAPTION: A simple graph at half the width
+   #+ATTR_LaTeX: :width 0.4\textwidth :float t :placement [H]
+   [[file:../beamer/fig/simplegraph1.png]]
+
+   #+NAME: fig_simplegraph1c
+   #+CAPTION: A simple graph rotated 270\textdegree
+   #+ATTR_LaTeX: :width 0.8\textwidth :float t :placement [H] :options angle=270
+   [[file:../beamer/fig/simplegraph1.png]]
+  
+   A pdf can be included the same way, e.g. by specifying
+   #+BEGIN_EXAMPLE
+   #+ATTR_LATEX: :options page=10 :width 10cm
+   [[file:myfig.pdf]]
+   #+END_EXAMPLE
+
+*** inclusion of SVG graphics
+
+    q.v. my plantuml related documentation.
+   
+** Tables
+*** nicer table formatting using booktab style
+
+    Some [[http://www.inf.ethz.ch/personal/markusp/teaching/guides/guide-tables.pdf][interesting tips]] for booktab style tables by M. Püschel.
+  
+   Whether table captions appear above or below the table can be configured using this
+   variable:
+   #+BEGIN_SRC emacs-lisp
+     (setq org-latex-table-caption-above nil)
+   #+END_SRC
+
+    #+NAME: tblDefault
+    #+CAPTION: default table
+    #+ATTR_LATEX: :placement [H]
+    | Column 1 | Column 2 | Column 3 | Column 4 |
+    |----------+----------+----------+----------|
+    |        1 |       10 |      100 |     1000 |
+    |        2 |       11 |      101 |     1001 |
+    |        3 |       12 |      102 |     1002 |
+    |        4 |       13 |      103 |     1003 |
+    |        5 |       14 |      104 |     1004 |
+    |----------+----------+----------+----------|
+    |       15 |       60 |      510 |     5010 |
+    #+TBLFM: @>$1..@$4=vsum(@I..II)
+
+    #+NAME: tblBooktabs
+    #+CAPTION: table using booktabs style
+    #+ATTR_LATEX: :placement [H] :booktabs t
+    | Column 1 | Column 2 | Column 3 | Column 4 |
+    |----------+----------+----------+----------|
+    |        1 |       10 |      100 |     1000 |
+    |        2 |       11 |      101 |     1001 |
+    |        3 |       12 |      102 |     1002 |
+    |        4 |       13 |      103 |     1003 |
+    |        5 |       14 |      104 |     1004 |
+    |----------+----------+----------+----------|
+    |       15 |       60 |      510 |     5010 |
+    #+TBLFM: @>$1..@$4=vsum(@I..II)
+
+  
+
+*** Math in tables
+
+    Use /math/ or /inline math/ together with /array/ environment.
+
+    Here we use the simple math mode
+    #+ATTR_LaTeX: :mode math :environment array
+    | Column 1 | Column 2 |
+    |----------+----------|
+    | \sin(x)  | \tan(x)  |
+
+    This uses the =inline-math= mode
+    #+ATTR_LaTeX: :mode inline-math :environment array
+    | Column 1 | Column 2 |
+    |----------+----------|
+    | \sin(x)  | \tan(x)  |
+
+
+*** Table font size
+
+    The font size is determined by the =:font= switch in the =#+ATTR_LATEX= line.
+    #+ATTR_LATEX: :placement [H]
+    | Column 1  | Column 2        |
+    |-----------+-----------------|
+    | Some text | Some other text |
+    | 10        | 20              |
+
+    Sidenote:
+    - When a caption is used, the latex export uses a =table=
+      environment.
+    - The previous captionless table generates a =tabular=
+      environment.
+
+    #+CAPTION: Table small size
+    #+ATTR_LATEX: :placement [H] :font \small
+    | Column 1  | Column 2        |
+    |-----------+-----------------|
+    | Some text | Some other text |
+    | 10        | 20              |
+
+    #+CAPTION: Table footnotesize
+    #+ATTR_LATEX: :placement [H] :font \footnotesize
+    | Column 1  | Column 2        |
+    |-----------+-----------------|
+    | Some text | Some other text |
+    | 10        | 20              |
+
+    #+CAPTION: Table tiny size
+    #+ATTR_LATEX: :placement [H] :font \tiny
+    | Column 1  | Column 2        |
+    |-----------+-----------------|
+    | Some text | Some other text |
+    | 10        | 20              |
+
+
+*** Sidewaystable
+
+    Using the sidewaystable together with a =:placement [H]= specifier
+    requires that one uses the =rotfloat= environment.
+
+    #+NAME: tblSideways
+    #+CAPTION: A sidewaystable
+    #+ATTR_LATEX: :font \footnotesize :float sidewaystable :placement [H]
+    | Column 1 | Column 2 | Column 3 | Column 4 | Column 5 | Column 6 |
+    |----------+----------+----------+----------+----------+----------|
+    |        1 |       10 |      100 |     1000 | example  | result   |
+    |        2 |       11 |      101 |     1001 | example  | result   |
+    |        3 |       12 |      102 |     1002 | example  | result   |
+    |        4 |       13 |      103 |     1003 | example  | result   |
+    |        5 |       14 |      104 |     1004 | example  | result   |
+    |        6 |       15 |      105 |     1005 | example  | result   |
+    |        7 |       16 |      106 |     1006 | example  | result   |
+   
+
+*** Table references
+
+    These are references to table [[tblDefault]] and table [[tblBooktabs]].
+   
+*** COMMENT DOES NOT WORK: Radio tables and skipping columns and rows
+
+    The reason why it does not work is that the feature is only
+    implemented for some modes. Org is not among them.
+    See Org info chapter: /A.6.2 A LaTeX example of radio tables/.
+   
+    The =:splice t= setting in the following ORGTBL definition
+    will result in only the table's body lines to be returned,
+    and not to wrap them into a tabular environment.
+
+    # NOTE: This example only works if the comment environment has been
+    # included.
+   
+ # BEGIN RECEIVE ORGTBL salesfigures
+ # END RECEIVE ORGTBL salesfigures
+
+**** COMMENT location of the src table
+
+    #+ORGTBL: SEND salesfigures orgtbl-to-latex :splice t :skip 2
+    | Month | Days | Nr sold | per day |
+    |-------+------+---------+---------|
+    | Jan   |   23 |      55 |     2.4 |
+    | Feb   |   21 |      16 |     0.8 |
+    | March |   22 |     278 |    12.6 |
+    #+TBLFM: $4=$3/$2;%.1f
+   
+* Text features
+** Text font size
+   #+LATEX:\Huge
+   Text Example
+   #+LATEX:\huge
+   Text Example
+   #+LATEX:\LARGE
+   Text Example
+   #+LATEX:\Large
+   Text Example
+   #+LATEX:\large
+   Text Example
+   #+LATEX:\normalsize (default)
+   Text Example
+   #+LATEX:\small
+   Text Example
+   #+LATEX:\footnotesize
+   Text Example
+   #+LATEX:\scriptsize
+   Text Example
+   #+LATEX:\tiny
+   Text Example
+   #+LATEX:\normalsize (default)
+** Footnotes and margin notes
+
+    This is a text with a \myindex{footnote} [fn:1]. The footnote will be displayed
+    on the bottom of the current page. One can also place all footnotes
+    in a separate chapter called /footnotes/ at the end of the org file[fn:2].
+
+    #+BEGIN_LaTeX
+      \newcommand{\mymarginpar}[1]{%
+	\marginpar[\raggedleft#1]{\raggedright#1}}   
+    #+END_LaTeX
+    \myindex{Margin notes} one can set by directly inlining the LaTeX command
+    #+LATEX:\marginpar{\textit{a default margin note}}
+    as demonstrated here. By default the margin notes are justified. This often
+    looks awkward. Using this [[http://tex.stackexchange.com/questions/32173/raggedouter-to-typeset-marginal-text-in-twoside-book][stackexchange answer]], I define a macro which yields:
+
+    I like the margin notes to be left aligned instead of being justified.
+    #+LATEX:\mymarginpar{\textit{a left aligned margin note that looks nicer}}
+
+** References
+   Here, we show the usage of links to the text sections:
+  
+   The References to figures are found in chapter [[Figures]], references
+   to tables are found in chapter [[Tables]], and references to equations
+   in chapter [[Equations]].
+** Footnotes
+
+   # No indentation is allowed for footnotes
+
+[fn:1] This is the footnote text
+[fn:2] this is a footnote from the end of the org document
+
+* Some miscellaneous information and LaTeX links
+  - Hyperlink formatting
     - This is described in the LaTeX [[http://mirror.unl.edu/ctan/macros/latex/contrib/hyperref/doc/manual.pdf][hyperref]] manual.
     - This is an example how to get links that are not framed by red
       rectangles, but just have a blue font color
@@ -81,294 +375,6 @@
       #+END_EXAMPLE
   - Building a LaTeX Document Class
     - http://tutex.tug.org/pracjourn/2005-4/hefferon/hefferon.pdf
-
-* Equations
-
-- Nice link for mathematical symbols [[https://en.wikipedia.org/wiki/List_of_mathematical_symbols_by_subject][on wikipedia]]:
-  
-This is an example for an equation
-
-$$
-  cores_{extrapol} = cores_{intern2013} \cdot offl\% \cdot \frac{gf \cdot (volume_{user} + volume_{intern})}{volume_{intern}}
-$$
-
-#+LATEX: \vspace{0.1\textheight}
-
-This is an example for an equation embedded in the text 
-$cores_{extrapol} = cores_{intern2013} \cdot offl\% \cdot \frac{gf \cdot (volume_{user} + volume_{intern})}{volume_{intern}}$
-The text continues after the formula.
-
-#+LATEX: \vspace{0.1\textheight}
-
-Here follows a numbered equation that also can be referenced like in
-the following parentheses (eq \ref{eq_1}). Note that we have to rely
-here on standard latex syntax, since org mode does not offer equations
-as a native element that we can mark up with #+NAME tags, etc.
-\begin{equation}
-  \label{eq_1}
-  cores_{extrapol} = cores_{intern2013} \cdot offl\% \cdot \frac{gf \cdot (volume_{user} + volume_{intern})}{volume_{intern}}
-\end{equation}
-
-# Units should be typeset differently from math symbols. This can be done using
-# the =units.sty= package that can be loaded in a =#+LATEX_HEADER_EXTRA: \usepackage{units}=
-# definition.
-
-# $$
-# \unit[20]{s} \cdot \unit[9.81]{m/s^2} = \unit[196.2]{m/s} 
-# $$
-
-from an [[http://stefaanlippens.net/textnormal][article by Stefaan Lippens]] on on using /textnormal/ for including
-normal text correctly in a math environment.
-
-\begin{eqnarray*}
- \int_1^9 x dx & & \textrm{this is textrm}\\
- \sum_1^9 y    & & \textsf{this is textsf}\\
- \prod_1^9 z   & & \textnormal{this is textnormal}
-\end{eqnarray*}
-
-Only textnormal will guarantee that the text appears in the default font of
-the document.
-
-#+LaTeX: \pagebreak
-
-* Figures
-
-  I can reference the figure like this: Fig. [[fig_simplegraph1]].
-
-  Note
-  - there must be no empty line between the picture's link and the meta
-    definitions for name, caption, etc.
-  - The figure must have a caption.
-  - The OPTION =tex:t= must be set for references to work.
-
-  | Specifier | Permission                                                                      |
-  |-----------+---------------------------------------------------------------------------------|
-  | h         | Place the float here, i.e., approximately at the same point it occurs in the    |
-  |           | source text (however, not exactly at the spot)                                  |
-  | t         | Position at the top of the page.                                                |
-  | b         | Position at the bottom of the page.                                             |
-  | p         | Put on a special page for floats only.                                          |
-  | !         | Override internal parameters LaTeX uses for determining "good" float positions. |
-  | H         | Places the float at precisely the location in the LaTeX code. Requires the      |
-  |           | float package, e.g., \usepackage{float}. This is somewhat equivalent to h!.                                                                                   |
-
-  #+NAME: fig_simplegraph1
-  #+CAPTION: A simple graph
-  #+ATTR_LaTeX: :width 0.8\textwidth :float t :placement [H]
-  [[file:../beamer/fig/simplegraph1.png]]
-
-  #+NAME: fig_simplegraph1b
-  #+CAPTION: A simple graph at half the width
-  #+ATTR_LaTeX: :width 0.4\textwidth :float t :placement [H]
-  [[file:../beamer/fig/simplegraph1.png]]
-
-  #+NAME: fig_simplegraph1c
-  #+CAPTION: A simple graph rotated 270\textdegree
-  #+ATTR_LaTeX: :width 0.8\textwidth :float t :placement [H] :options angle=270
-  [[file:../beamer/fig/simplegraph1.png]]
-  
-  A pdf can be included the same way, e.g. by specifying
-  #+BEGIN_EXAMPLE
-  #+ATTR_LATEX: :options page=10 :width 10cm
-  [[file:myfig.pdf]]
-  #+END_EXAMPLE
-
-** inclusion of SVG graphics
-
-   q.v. my plantuml related documentation.
-   
-* Footnotes and margin notes
-
-   This is a text with a \myindex{footnote} [fn:1]. The footnote will be displayed
-   on the bottom of the current page. One can also place all footnotes
-   in a separate chapter called /footnotes/ at the end of the org file[fn:2].
-
-   #+BEGIN_LaTeX
-     \newcommand{\mymarginpar}[1]{%
-       \marginpar[\raggedleft#1]{\raggedright#1}}   
-   #+END_LaTeX
-   \myindex{Margin notes} one can set by directly inlining the LaTeX command
-   #+LATEX:\marginpar{\textit{a default margin note}}
-   as demonstrated here. By default the margin notes are justified. This often
-   looks awkward. Using this [[http://tex.stackexchange.com/questions/32173/raggedouter-to-typeset-marginal-text-in-twoside-book][stackexchange answer]], I define a macro which yields:
-
-   I like the margin notes to be left aligned instead of being justified.
-   #+LATEX:\mymarginpar{\textit{a left aligned margin note that looks nicer}}
-   
-* Tables
-** nicer table formatting using booktab style
-
-   Some [[http://www.inf.ethz.ch/personal/markusp/teaching/guides/guide-tables.pdf][interesting tips]] for booktab style tables by M. Püschel.
-  
-  Whether table captions appear above or below the table can be configured using this
-  variable:
-  #+BEGIN_SRC emacs-lisp
-    (setq org-latex-table-caption-above nil)
-  #+END_SRC
-
-   #+NAME: tblDefault
-   #+CAPTION: default table
-   #+ATTR_LATEX: :placement [H]
-   | Column 1 | Column 2 | Column 3 | Column 4 |
-   |----------+----------+----------+----------|
-   |        1 |       10 |      100 |     1000 |
-   |        2 |       11 |      101 |     1001 |
-   |        3 |       12 |      102 |     1002 |
-   |        4 |       13 |      103 |     1003 |
-   |        5 |       14 |      104 |     1004 |
-   |----------+----------+----------+----------|
-   |       15 |       60 |      510 |     5010 |
-   #+TBLFM: @>$1..@$4=vsum(@I..II)
-
-   #+NAME: tblBooktabs
-   #+CAPTION: table using booktabs style
-   #+ATTR_LATEX: :placement [H] :booktabs t
-   | Column 1 | Column 2 | Column 3 | Column 4 |
-   |----------+----------+----------+----------|
-   |        1 |       10 |      100 |     1000 |
-   |        2 |       11 |      101 |     1001 |
-   |        3 |       12 |      102 |     1002 |
-   |        4 |       13 |      103 |     1003 |
-   |        5 |       14 |      104 |     1004 |
-   |----------+----------+----------+----------|
-   |       15 |       60 |      510 |     5010 |
-   #+TBLFM: @>$1..@$4=vsum(@I..II)
-
-  
-
-** Math in tables
-
-   Use /math/ or /inline math/ together with /array/ environment.
-
-   Here we use the simple math mode
-   #+ATTR_LaTeX: :mode math :environment array
-   | Column 1 | Column 2 |
-   |----------+----------|
-   | \sin(x)  | \tan(x)  |
-
-   This uses the =inline-math= mode
-   #+ATTR_LaTeX: :mode inline-math :environment array
-   | Column 1 | Column 2 |
-   |----------+----------|
-   | \sin(x)  | \tan(x)  |
-
-
-** Table font size
-
-   The font size is determined by the =:font= switch in the =#+ATTR_LATEX= line.
-   #+ATTR_LATEX: :placement [H]
-   | Column 1  | Column 2        |
-   |-----------+-----------------|
-   | Some text | Some other text |
-   | 10        | 20              |
-
-   Sidenote:
-   - When a caption is used, the latex export uses a =table=
-     environment.
-   - The previous captionless table generates a =tabular=
-     environment.
-
-   #+CAPTION: Table small size
-   #+ATTR_LATEX: :placement [H] :font \small
-   | Column 1  | Column 2        |
-   |-----------+-----------------|
-   | Some text | Some other text |
-   | 10        | 20              |
-
-   #+CAPTION: Table footnotesize
-   #+ATTR_LATEX: :placement [H] :font \footnotesize
-   | Column 1  | Column 2        |
-   |-----------+-----------------|
-   | Some text | Some other text |
-   | 10        | 20              |
-
-   #+CAPTION: Table tiny size
-   #+ATTR_LATEX: :placement [H] :font \tiny
-   | Column 1  | Column 2        |
-   |-----------+-----------------|
-   | Some text | Some other text |
-   | 10        | 20              |
-
-
-** Sidewaystable
-
-   Using the sidewaystable together with a =:placement [H]= specifier
-   requires that one uses the =rotfloat= environment.
-
-   #+NAME: tblSideways
-   #+CAPTION: A sidewaystable
-   #+ATTR_LATEX: :font \footnotesize :float sidewaystable :placement [H]
-   | Column 1 | Column 2 | Column 3 | Column 4 | Column 5 | Column 6 |
-   |----------+----------+----------+----------+----------+----------|
-   |        1 |       10 |      100 |     1000 | example  | result   |
-   |        2 |       11 |      101 |     1001 | example  | result   |
-   |        3 |       12 |      102 |     1002 | example  | result   |
-   |        4 |       13 |      103 |     1003 | example  | result   |
-   |        5 |       14 |      104 |     1004 | example  | result   |
-   |        6 |       15 |      105 |     1005 | example  | result   |
-   |        7 |       16 |      106 |     1006 | example  | result   |
-   
-
-** Table references
-
-   These are references to table [[tblDefault]] and table [[tblBooktabs]].
-   
-** COMMENT DOES NOT WORK: Radio tables and skipping columns and rows
-
-   The reason why it does not work is that the feature is only
-   implemented for some modes. Org is not among them.
-   See Org info chapter: /A.6.2 A LaTeX example of radio tables/.
-   
-   The =:splice t= setting in the following ORGTBL definition
-   will result in only the table's body lines to be returned,
-   and not to wrap them into a tabular environment.
-
-   # NOTE: This example only works if the comment environment has been
-   # included.
-   
-# BEGIN RECEIVE ORGTBL salesfigures
-# END RECEIVE ORGTBL salesfigures
-
-*** COMMENT location of the src table
-
-   #+ORGTBL: SEND salesfigures orgtbl-to-latex :splice t :skip 2
-   | Month | Days | Nr sold | per day |
-   |-------+------+---------+---------|
-   | Jan   |   23 |      55 |     2.4 |
-   | Feb   |   21 |      16 |     0.8 |
-   | March |   22 |     278 |    12.6 |
-   #+TBLFM: $4=$3/$2;%.1f
-
-
-* Text font size
-  #+LATEX:\Huge
-  Text Example
-  #+LATEX:\huge
-  Text Example
-  #+LATEX:\LARGE
-  Text Example
-  #+LATEX:\Large
-  Text Example
-  #+LATEX:\large
-  Text Example
-  #+LATEX:\normalsize (default)
-  Text Example
-  #+LATEX:\small
-  Text Example
-  #+LATEX:\footnotesize
-  Text Example
-  #+LATEX:\scriptsize
-  Text Example
-  #+LATEX:\tiny
-  Text Example
-  #+LATEX:\normalsize (default)
-
-* References
-  Here, we show the usage of links to the text sections:
-  
-  The References to figures are found in chapter [[Figures]], references
-  to tables are found in chapter [[Tables]], and references to equations
-  in chapter [[Equations]].
 
 * Index creation
 
@@ -393,17 +399,16 @@ the document.
     #+END_SRC
 
 
+  #+LaTeX: \pagebreak
+  #+TOC: tables
+
+  #+LaTeX: \pagebreak
   #+LATEX:\printindex
 
-* Footnotes
 
-  # No indentation is allowed for footnotes
-
-[fn:1] This is the footnote text
-[fn:2] this is a footnote from the end of the org document
 * COMMENT org babel settings
 
 Local variables:
-org-confirm-babel-evaluate: nil
-org-export-babel-evaluate: nil
+org-confirm-babel-evaluate: t
+org-export-babel-evaluate: t
 End:
