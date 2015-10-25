@@ -100,8 +100,10 @@ The text continues after the formula.
 
 #+LATEX: \vspace{0.1\textheight}
 
-Here follows a numbered equation that also can be referenced like in the following
-parentheses (eq \ref{eq_1}).
+Here follows a numbered equation that also can be referenced like in
+the following parentheses (eq \ref{eq_1}). Note that we have to rely
+here on standard latex syntax, since org mode does not offer equations
+as a native element that we can mark up with #+NAME tags, etc.
 \begin{equation}
   \label{eq_1}
   cores_{extrapol} = cores_{intern2013} \cdot offl\% \cdot \frac{gf \cdot (volume_{user} + volume_{intern})}{volume_{intern}}
@@ -131,11 +133,12 @@ the document.
 
 * Figures
 
-  I can reference the figure like this: Fig. \ref{fig_simplegraph1}.
+  I can reference the figure like this: Fig. [[fig_simplegraph1]].
 
   Note
   - there must be no empty line between the picture's link and the meta
     definitions for name, caption, etc.
+  - The figure must have a caption.
   - The OPTION =tex:t= must be set for references to work.
 
   | Specifier | Permission                                                                      |
@@ -305,6 +308,11 @@ the document.
    |        6 |       15 |      105 |     1005 | example  | result   |
    |        7 |       16 |      106 |     1006 | example  | result   |
    
+
+** Table references
+
+   These are references to table [[tblDefault]] and table [[tblBooktabs]].
+   
 ** COMMENT DOES NOT WORK: Radio tables and skipping columns and rows
 
    The reason why it does not work is that the feature is only
@@ -332,7 +340,6 @@ the document.
    #+TBLFM: $4=$3/$2;%.1f
 
 
-
 * Text font size
   #+LATEX:\Huge
   Text Example
@@ -355,6 +362,13 @@ the document.
   #+LATEX:\tiny
   Text Example
   #+LATEX:\normalsize (default)
+
+* References
+  Here, we show the usage of links to the text sections:
+  
+  The References to figures are found in chapter [[Figures]], references
+  to tables are found in chapter [[Tables]], and references to equations
+  in chapter [[Equations]].
 
 * Index creation
 
