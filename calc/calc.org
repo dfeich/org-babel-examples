@@ -1,5 +1,5 @@
 #+TITLE: calc examples
-#+DATE: <2013-08-09 Fri>
+# #+DATE: <2013-08-09 Fri>
 #+AUTHOR: Derek Feichtinger
 #+EMAIL: derek.feichtinger@psi.ch
 #+OPTIONS: ':nil *:t -:t ::t <:t H:3 \n:nil ^:t arch:headline
@@ -13,54 +13,87 @@
 #+LANGUAGE: en
 #+SELECT_TAGS: export
 
+* Version information
+  #+BEGIN_SRC emacs-lisp :results output :exports both
+    (princ (concat (format "Emacs version: %s\n" (emacs-version))
+                   (format "org version: %s\n" (org-version))))
+    
+  #+END_SRC
+
+  #+RESULTS:
+  : Emacs version: GNU Emacs 24.5.1 (x86_64-unknown-linux-gnu, GTK+ Version 3.10.8)
+  :  of 2015-05-04 on dflt1w
+  : org version: 8.3.2
+
 * General
+  - refer to the [[info:calc#Top][Calc info pages]]
   - Note that, unlike in usual computer notation, multiplication binds
     more strongly than division: `a*b/c*d' is equivalent to
     `(a*b)/(c*d)'
+   
+* babel calc
 
-* Functions for formulas
-  - [[info:calc#Formulas]]
-  - factorial: $6! => 720 $   also fact(6) can be used in writing
-  - power: $pow(2, 3) => 8 $   $2^3 => 8 $
-  - modulo: $mod(10, 3) => 1$  $10 % 3 => 1 $
-  - binomial coefficient: $choose(3, 2) => 3$
-  - random numbers: $random(10) => 7$
-  - binomial distribution: the result (`utpb(x,n,p)') is the
-    probability that an event will occur X or more times out of N
-    trials, if its probability of occurring in any given trial is P:
-    $utpb(2, 6, 1/6) => 0.263224451304$
-  - gaussian distribution with mean m and stdev s. Probability that a normal
-    distributed random variable will exceed x: uttn(x,m,s):
-    $utpn(0.2b, 0, 0.5) => 0.34457825839$
-    - http://www-zeuthen.desy.de/~kolanosk/smd_ss02/skripte/
+  Not too useful, yet. Embedded calc certainly is better for
+  inlining math in documents. Using Elisp to directly interacting with
+  calc also is more powerful.
 
-      $now(0) => <11:03:18pm Sun Aug 11, 2013>$
-      $unixtime(now(0)) => 1376262280$
+  #+BEGIN_SRC calc
+24
+3
+'/
+  #+END_SRC
+
+  #+RESULTS:
+  : 8
+
+
+  - solving an equation
+    #+BEGIN_SRC calc :exports both
+fsolve(x*2+x=4,x)
+#+END_SRC
+
+    #+RESULTS:
+    : x = 1.33333333333
+
+  
+  - solving a linear system of equations
+    #+BEGIN_SRC calc
+  fsolve([x + y = a, x - y = b],[x,y])
+    #+END_SRC
+
+    #+RESULTS:
+    : [x = a + (b - a) / 2, y = (a - b) / 2]
 
 * calc usage in tables
 ** Unit conversions
    - from http://article.gmane.org/gmane.emacs.orgmode/93489
 
-   Displaying all calc units
-   #+BEGIN_SRC emacs-lisp
+   Displaying all calc units in a buffer can be obtained by executing
+   #+BEGIN_SRC emacs-lisp :exports source
      (calc-view-units-table 1)
    #+END_SRC
 
+   Calc preserves units and variables in table operations.
+   
    | distance | time   | speed       |
    |----------+--------+-------------|
    | 3 km     | 2.5 hr | 1.2 km / hr |
    #+TBLFM:  @2$3=$1/$2
 
-   | km    |      ft |
-   |-------+---------|
-   | 2.5km | 8202.10 |
-   #+TBLFM: $2='(calc-eval (math-convert-units (calc-eval $1 'raw) (calc-eval "ft" 'raw))); %.2f
 
    | speed        | simplified speed |
    |--------------+------------------|
    | 40km / 2.5hr | 16. km / hr      |
    #+TBLFM:  @2$2=usimplify($1)
 
+   We can also decide to use calc via its elisp api.  To understand
+   the following lisp formula that involves calc internal functions
+   q.v.  the [[Calc from lisp]] section.
+   
+   | km    |      ft |
+   |-------+---------|
+   | 2.5km | 8202.10 |
+   #+TBLFM: $2='(calc-eval (math-convert-units (calc-eval $1 'raw) (calc-eval "ft" 'raw))); %.2f
    
    Defining a new calc function for unit conversion with defmath
    #+BEGIN_SRC emacs-lisp
@@ -94,47 +127,144 @@
    |------+------------|
    | km   | #ERROR     |
    #+TBLFM: @2$2='(calc-get-unit-definition $1)
-   
-* babel calc
+* Calc from lisp
+  - [[info:calc#Calling%20Calc%20from%20Your%20Programs][Emacs Info Manual: Calling Calc from your programs]]
+  - nice blog post on [[http://nullprogram.com/blog/2015/10/30/][RSA cryptography using emacs Calc]] by Chris
+    Wellons on his [[http://nullprogram.com/][nullprogram]] blog. Contains examples on =calc-eval=
+    usage.
 
-  Not too useful, currently. Embedded calc certainly is better for inlining
-  math in documents.
+** basic use of calc-eval
+   The variables in formulas are replaced by the additional arguments. Arguments can be given as string or number.
+   #+BEGIN_SRC emacs-lisp :results output
+     (print (calc-eval "2^$1 - 1" nil 128))
+     (print (calc-eval "$1 < $2" 'pred "4000" "5000"))
+     (print (calc-eval "nextprime($1)" nil "100000000000000000"))
 
-  #+BEGIN_SRC calc
-24
-3
-'/
-  #+END_SRC
+     ;; radix can be chosen by separating radix by # from number
+     (print (calc-eval "16#deadbeef"))
+     (print (calc-eval "2#1111"))
+   #+END_SRC
 
-  #+RESULTS:
-  : 8
+   #+RESULTS:
+   #+begin_example
+
+   "340282366920938463463374607431768211455"
+
+   t
+
+   "100000000000000003"
+
+   "3735928559"
+
+   "15"
+#+end_example
+
+   The second argument serves as a separator if the input string parses to a list of expressions. By default the list
+   is printed comma-separated.
+   #+BEGIN_SRC emacs-lisp :results output
+     (print (calc-eval "10+5,7*3,5/2"))
+     (print (calc-eval "10+5,7*3,5/2" ";"))
+     (print (calc-eval "10+5,7*3,5/2" "___"))
+   #+END_SRC
+
+   #+RESULTS:
+   : 
+   : "15, 21, 2.5"
+   : 
+   : "15;21;2.5"
+   : 
+   : "15___21___2.5"
+
+ 
+** Stack operations: push, pop and top
+
+   - =push= pushes the element onto the stack
+   - =pop= deletes as many elements from the stack as the preceding integer argument indicates
+     - =0 pop= is convenient for finding out the size of the stack
+   - =top= retrieves the value at the indicated position of the stack
+   #+BEGIN_SRC emacs-lisp :results output :exports both
+     (princ (format "Size of the stack: %s\n" (calc-eval 0 'pop)))
+     (calc-eval "10 ft" 'push)
+     (calc-eval "20 ft" 'push)
+     (calc-eval "30 ft" 'push)
+     (princ (format "After 3*push: Size of the stack: %s (top element: %s)\n"
+                    (calc-eval 0 'pop)
+                    (calc-eval 1 'top)))
+     (princ (format "element on second level of stack: %s\n" (calc-eval 2 'top)))
+     (calc-eval 2 'pop)
+     (princ (format "After 3*push: Size of the stack: %s (top element: %s)\n"
+                    (calc-eval 0 'pop)
+                    (calc-eval 1 'top)))
+     (calc-eval 1 'pop)
+   #+END_SRC
+
+   #+RESULTS:
+   : Size of the stack: 5
+   : After 3*push: Size of the stack: 8 (top element: 30 ft)
+   : element on second level of stack: 20 ft
+   : After 3*push: Size of the stack: 6 (top element: 10 ft)
+
+** executing functions on the stack
+   #+BEGIN_SRC emacs-lisp :results output :exports both
+     (calc-eval "10 ft" 'push)
+     (calc-base-units)
+     ;; retrieve the value from the stack as a string. Note that it still stays on the stack!
+     (print (calc-eval 1 'top))
+     ;; clean the value from the stack
+     (calc-eval 1 'pop)
+   #+END_SRC
+
+   #+RESULTS:
+   : 
+   : "3.048 m"
 
 
-  - solving an equation
-    #+BEGIN_SRC calc :exports both
-fsolve(x*2+x=4,x)
-#+END_SRC
+   It is also possible to execute Calc keyboard macros, i.e. the string is interpreted as
+   interactive keyboard strokes in calc mode.
+   #+BEGIN_SRC emacs-lisp :results output :exports both
+     (calc-eval "10 ft" 'push)
+     ;; calc keys for base unit conversion
+     (calc-eval "ub" 'macro)
+     (print (calc-eval 1 'top))
+     ;; pop one item from stack
+     (calc-eval "\C-d" 'macro)
+   #+END_SRC
 
-    #+RESULTS:
-    : x = 1.33333333333
-
+   #+RESULTS:
+   : 
+   : "3.048 m"
   
-  - solving a linear system of equations
-    #+BEGIN_SRC calc
-  fsolve([x + y = a, x - y = b],[x,y])
-    #+END_SRC
+** raw calc objects as input to functions
 
-    #+RESULTS:
-    : [x = a + (b - a) / 2, y = (a - b) / 2]
+   calc internal functions deal with /raw/ calc objects. These can also be obtained through =calc-eval= by
+   passing the =raw= as the second argument. 
+   #+BEGIN_SRC emacs-lisp
+     (calc-eval (math-convert-units (calc-eval "10 m" 'raw)
+                                    (calc-eval "ft" 'raw)))
+   #+END_SRC
 
-* calc from lisp
+   #+RESULTS:
+   : 32.8083989501 ft
 
-  calc-eval can be used for most interactions with calc. 'push puts the number
-  on the stack.
-  #+BEGIN_SRC emacs-lisp
-  (progn (calc-eval "10 ft" 'push) (calc-explain-units))
-  #+END_SRC
-  
+* A sample of functions that can be used in formulas
+  - [[info:calc#Formulas]]
+  - factorial: $6! => 720 $   also fact(6) can be used in writing
+  - power: $pow(2, 3) => 8 $   $2^3 => 8 $
+  - modulo: $mod(10, 3) => 1$  $10 % 3 => 1 $
+  - binomial coefficient: $choose(3, 2) => 3$
+  - random numbers: $random(10) => 7$
+  - binomial distribution: the result (`utpb(x,n,p)') is the
+    probability that an event will occur X or more times out of N
+    trials, if its probability of occurring in any given trial is P:
+    $utpb(2, 6, 1/6) => 0.263224451304$
+  - gaussian distribution with mean m and stdev s. Probability that a normal
+    distributed random variable will exceed x: uttn(x,m,s):
+    $utpn(0.2b, 0, 0.5) => 0.34457825839$
+    - http://www-zeuthen.desy.de/~kolanosk/smd_ss02/skripte/
+
+      $now(0) => <11:03:18pm Sun Aug 11, 2013>$
+      $unixtime(now(0)) => 1376262280$
+
 * COMMENT babel settings
 Local variables:
 org-confirm-babel-evaluate: nil
