@@ -33,16 +33,19 @@
 
   The examples also use the =ob-ipython= package from MELPA
 
-* Simple examples
+* Session setup
+  #+BEGIN_SRC ipython :session ip1 :results output :exports both
+    %matplotlib inline
+    import matplotlib.pyplot as plt
+    import numpy as np
 
-  #+BEGIN_SRC ipython :session ip1
-  %matplotlib inline
-  import matplotlib.pyplot as plt
-  import numpy as np
+    print "Finished imports"
 #+END_SRC
 
   #+RESULTS:
+  : Finished imports
 
+* Results as value and as output
 #+BEGIN_SRC ipython :session ip1 :results value :exports both
   def foo(x):
       return x + 9
@@ -53,7 +56,14 @@
 #+RESULTS:
 : [16, 17, 18, 19, 20, 21, 22]
 
+#+BEGIN_SRC ipython :session ip1 :results output
+print "this is an echo"
+#+END_SRC
 
+#+RESULTS:
+: this is an echo
+
+* Producing a graph
 #+BEGIN_SRC ipython :session ip1 :file ipython-babel_att/image.png :exports both
   plt.hist(np.random.randn(20000), bins=200)
 #+END_SRC
@@ -63,15 +73,19 @@
 
 
 
-#+BEGIN_SRC ipython :session ip1 :results output
-print "this is an echo"
-#+END_SRC
+* Opening another session
+  #+BEGIN_SRC ipython :session ip2 :results output
+    %matplotlib inline
+    import matplotlib.pyplot as plt
+    import numpy as np
 
-#+RESULTS:
-: this is an echo
+    print "Finished imports for session ip2"
+  #+END_SRC
 
-
-* Example for using ipython magic commands
+  #+RESULTS:
+  : Finished imports for session ip2
+  
+* Examples using ipython magic commands
 
 #+BEGIN_SRC ipython :session ip1 :results output
 %timeit 1+1
@@ -81,8 +95,88 @@ print "this is an echo"
 : The slowest run took 63.99 times longer than the fastest. This could mean that an intermediate result is being cached 
 : 100000000 loops, best of 3: 18.6 ns per loop
 
-  
-* Obsolete note
+#+BEGIN_SRC ipython :session ip1 :results output
+  %%timeit
+  lst = range(1,1000)
+  while len(lst) > 0:
+      lst.pop()
+#+END_SRC
+
+#+RESULTS:
+: The slowest run took 6.62 times longer than the fastest. This could mean that an intermediate result is being cached 
+: 10000 loops, best of 3: 125 µs per loop
+
+
+* Troubleshooting
+** Some tips
+  - =M-x ob-ipython-interrupt-kernel=: interrupt a busy kernel
+  - =M-x ob-ipython-kill-kernel=: kill the kernel process. A new one will be
+    restarted upon the next src block evaluation.
+
+** Race condition due to security cookie not yet available
+   I got an error message in ob-ipython-debug
+   #+BEGIN_EXAMPLE
+ HTTP/1.1 500 Internal Server Error
+ Date: Sun, 27 Dec 2015 13:35:32 GMT
+ Content-Length: 93
+ Content-Type: text/html; charset=UTF-8
+ Server: TornadoServer/4.2
+
+ <html><title>500: Internal Server Error</title><body>500: Internal Server Error</body></html>
+ #+END_EXAMPLE
+
+ Further investigation in the buffer *ob-ipython-ob-ipython-driver* associated with the
+ ipython driver process.
+
+   #+BEGIN_EXAMPLE
+ ERROR:tornado.application:Uncaught exception POST /execute/ip2 (127.0.0.1)
+ HTTPServerRequest(protocol='http', host='localhost:9988', method='POST', uri='/execute/ip2', version='HTTP/1.1', remote_ip='127.0.0.1', headers={'Content-Length': '111', 'Accept-Encoding': 'gzip', 'Extension': 'Security/Digest Security/SSL', 'Connection': 'keep-alive', 'Accept': '*/*', 'User-Agent': 'URL/Emacs', 'Host': 'localhost:9988', 'Mime-Version': '1.0'})
+ Traceback (most recent call last):
+   File "/opt/anaconda/python2.7/lib/python2.7/site-packages/tornado/web.py", line 1369, in _stack_context_handle_exception
+     raise_exc_info((type, value, traceback))
+   File "/opt/anaconda/python2.7/lib/python2.7/site-packages/tornado/web.py", line 1572, in wrapper
+     result = method(self, *args, **kwargs)
+   File "/home/dfeich/.emacs.d/elpa/ob-ipython-20151010.307/driver.py", line 75, in post
+     c = get_client(name)
+   File "/home/dfeich/.emacs.d/elpa/ob-ipython-20151010.307/driver.py", line 58, in get_client
+     clients[name] = create_client(name)
+   File "/home/dfeich/.emacs.d/elpa/ob-ipython-20151010.307/driver.py", line 46, in create_client
+     cf = find_connection_file('emacs-' + name)
+   File "/opt/anaconda/python2.7/lib/python2.7/site-packages/IPython/kernel/connect.py", line 224, in find_connection_file
+     raise IOError("Could not find %r in %r" % (filename, security_dir))
+ IOError: Could not find u'emacs-ip2' in u'/home/dfeich/.ipython/profile_default/security'
+ ERROR:tornado.access:500 POST /execute/ip2 (127.0.0.1) 9.24ms
+   #+END_EXAMPLE
+
+   The file exists. Possibly a race condition?
+   #+BEGIN_SRC sh :results output
+   ls -l /home/dfeich/.ipython/profile_default/security/emacs-ip2*
+   #+END_SRC
+
+   #+RESULTS:
+   : -rw-rw-r-- 1 dfeich dfeich 253 Dez 27 14:35 /home/dfeich/.ipython/profile_default/security/emacs-ip2.json
+
+** server fails to start due to port taken
+
+   This happens when shutting down and restarting emacs too fast. In the kernel buffer one
+   sees
+   #+BEGIN_EXAMPLE
+...
+/opt/anaconda/python2.7/lib/python2.7/site-packages/zmq/backend/cython/checkrc.pxd in zmq.backend.cython.checkrc._check_rc (zmq/backend/cython/socket.c:7055)()
+     23         else:
+     24             from zmq.error import ZMQError
+---> 25             raise ZMQError(errno)
+        global ZMQError = <class 'zmq.error.ZMQError'>
+        global errno = undefined
+     26     return 0
+
+ZMQError: Address already in use
+
+Process kernel-ip1 exited abnormally with code 1
+   
+   #+END_EXAMPLE
+
+* Older method for running ipython (mostly obsolete)
 
   This chapter described workarounds to execute ipython as the python
   shell using the standard ob-python babel implementation before I started
@@ -107,7 +201,7 @@ print "this is an echo"
 #+END_SRC
 
 
-* Babel environment setup and ipython setup
+* COMMENT Babel environment setup and ipython setup
 
 Before the advent of op-ipython I used a virtualenv with these settings:
 python-shell-virtualenv-path: "/home/dfeich/py-virtualenv/notebook"
