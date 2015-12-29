@@ -160,23 +160,35 @@ return fname # return filename to org-mode
    
 #+NAME: dframeToOrg
    #+BEGIN_SRC python :exports source
-    def dataFrameToOrgTbl(dframe, name=None, caption=None, attr=None, index=True):
-        if name:
-            print "#+NAME: %s" % name
+  def dataFrameToOrgTbl(dframe, name=None, caption=None, attr=None, index=True,
+                        date_format=None, hlines=None):
+      if name:
+          print "#+NAME: %s" % name
 
-        if caption:
-            print "#+CAPTION: %s" % caption
+      if caption:
+          print "#+CAPTION: %s" % caption
 
-        if attr:
-            print "#+ATTR_LATEX: %s" % attr
+      if attr:
+          print "#+ATTR_LATEX: %s" % attr
 
 
-        lines = '|' + dframe.to_csv(None, sep='|', line_terminator='|\n|', encoding='utf-8', index=index).rstrip("|").rstrip("\n")
+      lines = '|' + dframe.to_csv(None, sep='|', line_terminator='|\n|',
+                                  encoding='utf-8', index=index, date_format=date_format).rstrip("|").rstrip("\n")
 
-        for i,l in enumerate(lines.split('\n')):
-            if i == 1:
-                print "|-----"
-            print l   
+      hlines_tmp=[]
+      if hlines == None:
+          hlines_tmp.append(1) # per default add a hl after the 1st line
+      else:
+          for hl in hlines:
+              if hl < 0:
+                  hlines_tmp.append(len(lines.split('\n')) + hl)
+              else:
+                  hlines_tmp.append(hl)
+
+      for i,l in enumerate(lines.split('\n')):
+          if i in hlines_tmp:
+              print "|-----"
+          print l
    #+END_SRC
 
    In the following source block, I demonstrate how to use the =noweb=
@@ -200,26 +212,67 @@ return fname # return filename to org-mode
 
    #+RESULTS:
    :RESULTS:
-   |    | A     | B | C   |                D |                E |
-   |----+-------+---+-----+------------------+------------------|
-   |  0 | one   | A | foo |  -0.236396241307 |  -0.276568067645 |
-   |  1 | one   | B | foo |   -1.01951010991 |     1.7453786746 |
-   |  2 | two   | C | foo |   -1.29371941308 |    1.09264039165 |
-   |  3 | three | A | bar |   -1.04427788416 |   0.513056847005 |
-   |  4 | one   | B | bar |   0.572505261205 |  -0.115515573013 |
-   |  5 | one   | C | bar |  -0.198276698791 |   0.303982746716 |
-   |  6 | two   | A | foo |   -2.50621425568 |   0.332395607933 |
-   |  7 | three | B | foo |   0.201709578183 |  -0.856279014171 |
-   |  8 | one   | C | foo |   -2.03374293998 |  -0.622682697996 |
-   |  9 | one   | A | bar |  -0.268297986255 | 0.00646257542859 |
-   | 10 | two   | B | bar |    1.19869717505 |    0.48755007568 |
-   | 11 | three | C | bar | -0.0958952713139 |    1.04738590497 |
+   |    | A     | B | C   |               D |               E |
+   |----+-------+---+-----+-----------------+-----------------|
+   |  0 | one   | A | foo | -0.177492553046 | -0.374836967216 |
+   |  1 | one   | B | foo |  0.307372063379 |   1.30933334256 |
+   |  2 | two   | C | foo | -0.506459622617 |  -1.24683168285 |
+   |  3 | three | A | bar | -0.672410967263 |  -1.54583742192 |
+   |  4 | one   | B | bar |  0.148010312125 |   1.26706909082 |
+   |  5 | one   | C | bar |   0.96101584612 |  0.185088824718 |
+   |  6 | two   | A | foo |   -1.1184963973 | -0.688959136818 |
+   |  7 | three | B | foo |  0.302270097906 | -0.187694779632 |
+   |  8 | one   | C | foo |  -1.24775380532 | -0.372942271299 |
+   |  9 | one   | A | bar |  -1.39539099135 | 0.0619111727805 |
+   | 10 | two   | B | bar | -0.130769234691 |  -1.85543558128 |
+   | 11 | three | C | bar | -0.663429922864 |  0.474627019679 |
    :END:
 
 
    The noweb syntax is mostly used in literate programing, where
    we produce code files from the org file (the process is
    called /tangling/).
+
+*** data frame printing using Ipython.display   
+   As an alternative, the display function from Ipython is also able
+   to align a frame, but it does not provide the same quality as the
+   above solution.
+   
+   #+BEGIN_SRC python :results output raw drawer :noweb yes :exports both
+     import pandas as pd
+     import numpy as np
+     from IPython.display import display
+
+     # Here the block will be inserted
+     <<dframeToOrg>>
+     df = pd.DataFrame({'A' : ['one', 'one', 'two', 'three'] * 3,
+                      'B' : ['A', 'B', 'C'] * 4,
+                      'C' : ['foo', 'foo', 'foo', 'bar', 'bar', 'bar'] * 2,
+                      'D' : np.random.randn(12),
+                      'E' : np.random.randn(12)})
+
+     display(df)
+   #+END_SRC
+
+   #+RESULTS:
+   :RESULTS:
+	   A  B    C         D         E
+   0     one  A  foo  1.184277  0.989279
+   1     one  B  foo  1.151020  0.639264
+   2     two  C  foo -0.446286 -1.520620
+   3   three  A  bar -0.457811  1.765751
+   4     one  B  bar  0.293829 -1.321348
+   5     one  C  bar -1.431481 -1.290106
+   6     two  A  foo -0.189017 -0.725013
+   7   three  B  foo -1.198120  0.380463
+   8     one  C  foo -0.818436  0.710930
+   9     one  A  bar -0.967236 -1.017655
+   10    two  B  bar  0.520839 -0.453348
+   11  three  C  bar -1.631013 -1.132096
+   :END:
+
+
+
    
 *** an older and simpler dataFrame printing alternative:
    In order to get a nice org table, it is necessary to pass the
