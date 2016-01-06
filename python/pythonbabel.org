@@ -400,6 +400,90 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
   2013-07-10 06:00:00    180          180    20
 #+end_example
 
+* Sympy
+
+  I define a post-wrapping function for putting the results into the desired equation environment.
+  #+NAME: scrWrapEquation
+  #+BEGIN_SRC sh :results output :exports source :var=outp
+    cat <<EOF
+    \begin{equation}
+    $outp
+    \end{equation}
+    EOF
+  #+END_SRC
+
+  The correct preview of the resulting LaTeX fragment I get with the
+  /output drawer/ result options. I tested rendering with the
+  =:results latex= option, but the resulting LaTeX block is not
+  rendered by the =org-toggle-latex-fragment= command.
+  
+  #+BEGIN_SRC python :results output drawer :exports both :post scrWrapEquation(outp=*this*)
+    import sympy as sym
+
+    x = sym.Symbol('x')
+    k = sym.Symbol('k')
+
+    print sym.latex(sym.Integral(1/x, x))
+  #+END_SRC
+
+  #+RESULTS:
+  :RESULTS:
+  \begin{equation}
+  \int \frac{1}{x}\, dx
+  \end{equation}
+  :END:
+
+
+  For simple in-buffer consumation, one may also want to just use the ASCII output
+  #+BEGIN_SRC python :results output :exports both
+    import sympy as sym
+    import sys
+
+    x = sym.Symbol('x')
+    k = sym.Symbol('k')
+
+    print sym.pretty_print(sym.Integral(1/x, x))
+
+  #+END_SRC
+
+  #+RESULTS:
+  :   /    
+  :  |     
+  :  | 1   
+  :  | - dx
+  :  | x   
+  :  |     
+  : /      
+  : None
+
+  Or as an alternative, the unicode rendering.
+  
+  #+BEGIN_SRC python :results output drawer :exports both
+    import sympy as sym
+    import sys
+
+    import codecs
+    sys.stdout = codecs.getwriter('utf8')(sys.stdout)
+
+    x = sym.Symbol('x')
+    k = sym.Symbol('k')
+
+    from sympy.physics.vector import init_vprinting
+    init_vprinting()
+    print sym.pretty_print(sym.Integral(1/x, x), use_unicode=True)
+
+  #+END_SRC
+
+  #+RESULTS:
+  :RESULTS:
+  ⌠     
+  ⎮ 1   
+  ⎮ ─ dx
+  ⎮ x   
+  ⌡     
+  None
+  :END:
+
 * Unicode related problems in Org Babel
 
   The output terminal to which org babel writes output seems to be a dumb ASCII type
