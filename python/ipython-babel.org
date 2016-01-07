@@ -158,8 +158,8 @@ print "this is an echo"
 
 ** server fails to start due to port taken
 
-   This happens when shutting down and restarting emacs too fast. In the kernel buffer one
-   sees
+   This happens when shutting down and restarting emacs too fast. The
+   socket is still not freed. In the kernel buffer one sees
    #+BEGIN_EXAMPLE
 ...
 /opt/anaconda/python2.7/lib/python2.7/site-packages/zmq/backend/cython/checkrc.pxd in zmq.backend.cython.checkrc._check_rc (zmq/backend/cython/socket.c:7055)()

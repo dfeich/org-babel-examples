@@ -99,6 +99,9 @@ usage: java -jar ditaa.jar <inpfile> [outfile] [-A] [-d] [-E] [-e
 
   #+RESULTS:
   [[file:fig/ditaa-concept.png]]
+
+  The following graph contains all available default shapes. The available shapes can be
+  seen in the [[https://github.com/stathissideris/ditaa/blob/master/src/org/stathissideris/ascii2image/graphics/Diagram.java][source code]].
   
   #+BEGIN_SRC ditaa :file fig/ditaatest1.png :cmdline -s 0.8
 

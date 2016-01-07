@@ -16,7 +16,7 @@
 * using a table as input
 
   We first create a table from a lisp list of lists. Since my final result table
-  should contain three colums, I already insert a header row with the names for
+  should contain three columns, I already insert a header row with the names for
   the three columns.
   #+BEGIN_SRC emacs-lisp :results value :exports both
     (cons '(col1 col2 col3)

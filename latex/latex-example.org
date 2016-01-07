@@ -172,11 +172,13 @@
 
     Some [[http://www.inf.ethz.ch/personal/markusp/teaching/guides/guide-tables.pdf][interesting tips]] for booktab style tables by M. Püschel.
   
-   Whether table captions appear above or below the table can be configured using this
-   variable:
-   #+BEGIN_SRC emacs-lisp
-     (setq org-latex-table-caption-above nil)
-   #+END_SRC
+    Booktabs can be turned on by default for all tables by
+    setting this variable for the document or globally:
+    : org-latex-tables-booktabs: t
+
+    Whether table captions appear above or below the table can be configured using this
+    variable setting:
+    : org-latex-table-caption-above: nil
 
     #+NAME: tblDefault
     #+CAPTION: default table
@@ -207,7 +209,6 @@
     #+TBLFM: @>$1..@$4=vsum(@I..II)
 
   
-
 *** Math in tables
 
     Use /math/ or /inline math/ together with /array/ environment.

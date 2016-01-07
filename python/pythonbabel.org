@@ -1,12 +1,12 @@
 #+TITLE: python org-babel exporting
-#+DATE: <2013-07-10 Wed>
+# #+DATE: <2013-07-10 Wed>
 #+AUTHOR: Derek Feichtinger
 #+EMAIL: derek.feichtinger@psi.ch
 #+OPTIONS: ':nil *:t -:t ::t <:t H:3 \n:nil ^:t arch:headline
 #+OPTIONS: author:t c:nil creator:comment d:(not LOGBOOK) date:t e:t
 #+OPTIONS: email:nil f:t inline:t num:t p:nil pri:nil stat:t tags:t
 #+OPTIONS: tasks:t tex:t timestamp:t toc:t todo:t |:t
-#+CREATOR: Emacs 24.3.1 (Org mode 8.0.5)
+# #+CREATOR: Emacs 24.3.1 (Org mode 8.0.5)
 #+DESCRIPTION:
 #+EXCLUDE_TAGS: noexport
 #+KEYWORDS:
@@ -24,7 +24,14 @@
   #+RESULTS:
   : Emacs version: GNU Emacs 24.5.1 (x86_64-unknown-linux-gnu, GTK+ Version 3.10.8)
   :  of 2015-05-04 on dflt1w
-  : org version: 8.2.10
+  : org version: 8.3.2
+
+  #+BEGIN_SRC sh :results output :exports both
+  python -V 2>&1
+  #+END_SRC
+
+  #+RESULTS:
+  : Python 2.7.11 :: Continuum Analytics, Inc.
 
 * Links and Documentation
   - http://orgmode.org/worg/org-contrib/babel/languages/ob-doc-python.html
@@ -64,7 +71,7 @@ return np.array([x,y]).transpose()
   | 8 | 24 |
   | 9 | 27 |
 
-* Calling a python function in an org table
+* Calling a python function from inside an org table
 
   Here I define the function. It takes =epoch= as the variable, which
   is a unix time stamp. I want to have it converted to an Org type
@@ -82,12 +89,12 @@ return np.array([x,y]).transpose()
     #+RESULTS: epoch2day
     : [2010-01-05 Tue 07:11:05]
 
-  In the table we need to refer to the named source block by using
-  the a short lisp form involving =org-sbe=. If the table value that is
-  referred to in the function
-  is to be interpreted as a number, the reference uses
-  a single dollar sign, etc $1 (as here). If it should be interpreted
-  as a string, one puts an additional dollar sign in front, e.g. $$1.
+  In the table we need to refer to the named source block by using the
+  a short lisp form involving =org-sbe=. If the table value that is
+  referred to in the function is to be interpreted as a number, the
+  reference uses a single dollar sign, e.g. $1 (as here). If it should
+  be interpreted as a string, one puts an additional dollar sign in
+  front, e.g. $$1.
     
     
     |         epoch | day                       |
@@ -151,7 +158,7 @@ return fname # return filename to org-mode
 [[file:python-matplot-fig2.png]]
 
 * Pandas
-** printing a data frame as a table
+** printing a data frame as a table (and noweb block inclusion)
 
    I define a function in a named src block with name =dframeToOrg=.
    This will print out a nice table format that org will recognize.
@@ -199,7 +206,7 @@ return fname # return filename to org-mode
     import pandas as pd
     import numpy as np
 
-    # Here the block will be inserted
+    # Here the block with the dataFrameToorgTbl function will be inserted
     <<dframeToOrg>>
     df = pd.DataFrame({'A' : ['one', 'one', 'two', 'three'] * 3,
                      'B' : ['A', 'B', 'C'] * 4,
@@ -235,44 +242,42 @@ return fname # return filename to org-mode
 
 *** data frame printing using Ipython.display   
    As an alternative, the display function from Ipython is also able
-   to align a frame, but it does not provide the same quality as the
-   above solution.
+   to align a frame. I only managed to get =diplay_pretty= working
+   up to now, and its output is lacking table separators. So, it
+   only displays nicely in an example environment.
+
+   The display_latex and display_html functions produce no output.
    
-   #+BEGIN_SRC python :results output raw drawer :noweb yes :exports both
+   #+BEGIN_SRC python :results output verbatim :noweb yes :exports both
      import pandas as pd
      import numpy as np
-     from IPython.display import display
+     from IPython.display import display_pretty
 
-     # Here the block will be inserted
-     <<dframeToOrg>>
      df = pd.DataFrame({'A' : ['one', 'one', 'two', 'three'] * 3,
                       'B' : ['A', 'B', 'C'] * 4,
                       'C' : ['foo', 'foo', 'foo', 'bar', 'bar', 'bar'] * 2,
                       'D' : np.random.randn(12),
                       'E' : np.random.randn(12)})
 
-     display(df)
+     display_pretty(df)
    #+END_SRC
 
    #+RESULTS:
-   :RESULTS:
+   #+begin_example
 	   A  B    C         D         E
-   0     one  A  foo  1.184277  0.989279
-   1     one  B  foo  1.151020  0.639264
-   2     two  C  foo -0.446286 -1.520620
-   3   three  A  bar -0.457811  1.765751
-   4     one  B  bar  0.293829 -1.321348
-   5     one  C  bar -1.431481 -1.290106
-   6     two  A  foo -0.189017 -0.725013
-   7   three  B  foo -1.198120  0.380463
-   8     one  C  foo -0.818436  0.710930
-   9     one  A  bar -0.967236 -1.017655
-   10    two  B  bar  0.520839 -0.453348
-   11  three  C  bar -1.631013 -1.132096
-   :END:
-
-
-
+   0     one  A  foo  0.667950 -0.266868
+   1     one  B  foo  0.369191 -0.795070
+   2     two  C  foo -0.780600 -1.273259
+   3   three  A  bar  0.150728 -1.535735
+   4     one  B  bar  0.026353 -0.316189
+   5     one  C  bar  0.485256 -0.254337
+   6     two  A  foo  0.119993  0.698165
+   7   three  B  foo -1.014094 -0.055146
+   8     one  C  foo -0.302114 -0.414778
+   9     one  A  bar -0.508872  0.852937
+   10    two  B  bar  0.095404  1.048710
+   11  three  C  bar -1.303801 -0.491319
+#+end_example
    
 *** an older and simpler dataFrame printing alternative:
    In order to get a nice org table, it is necessary to pass the
@@ -412,10 +417,10 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
     EOF
   #+END_SRC
 
-  The correct preview of the resulting LaTeX fragment I get with the
-  /output drawer/ result options. I tested rendering with the
+  The correct preview of the resulting LaTeX fragment I only get with
+  the /output drawer/ results options. I tested rendering with the
   =:results latex= option, but the resulting LaTeX block is not
-  rendered by the =org-toggle-latex-fragment= command.
+  rendered by the =org-toggle-latex-fragment= command (=C-c C-x C-l=).
   
   #+BEGIN_SRC python :results output drawer :exports both :post scrWrapEquation(outp=*this*)
     import sympy as sym
@@ -433,8 +438,10 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
   \end{equation}
   :END:
 
+  The above LaTeX equation is also rendered nicely in the HTML export.
+  
 
-  For simple in-buffer consumation, one may also want to just use the ASCII output
+  For simple in-buffer consummation, one may also want to just use the ASCII output
   #+BEGIN_SRC python :results output :exports both
     import sympy as sym
     import sys
@@ -458,7 +465,7 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
 
   Or as an alternative, the unicode rendering.
   
-  #+BEGIN_SRC python :results output drawer :exports both
+  #+BEGIN_SRC python :results output :exports both
     import sympy as sym
     import sys
 
@@ -468,26 +475,22 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
     x = sym.Symbol('x')
     k = sym.Symbol('k')
 
-    from sympy.physics.vector import init_vprinting
-    init_vprinting()
     print sym.pretty_print(sym.Integral(1/x, x), use_unicode=True)
 
   #+END_SRC
 
   #+RESULTS:
-  :RESULTS:
-  ⌠     
-  ⎮ 1   
-  ⎮ ─ dx
-  ⎮ x   
-  ⌡     
-  None
-  :END:
+  : ⌠     
+  : ⎮ 1   
+  : ⎮ ─ dx
+  : ⎮ x   
+  : ⌡     
+  : None
 
 * Unicode related problems in Org Babel
 
-  The output terminal to which org babel writes output seems to be a dumb ASCII type
-  of terminal. If one wants to print non-ASCII characters, the characteristics of
+  The terminal to which org babel writes output seems to be a dumb ASCII type
+  terminal. If one wants to print non-ASCII characters, the characteristics of
   the output device must be defined using the =codecs= module.
   
   #+BEGIN_SRC python :results output :exports both
