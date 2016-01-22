@@ -366,16 +366,21 @@
 [fn:1] This is the footnote text
 [fn:2] this is a footnote from the end of the org document
 
-* Some miscellaneous information and LaTeX links
-  - Hyperlink formatting
-    - This is described in the LaTeX [[http://mirror.unl.edu/ctan/macros/latex/contrib/hyperref/doc/manual.pdf][hyperref]] manual.
-    - This is an example how to get links that are not framed by red
-      rectangles, but just have a blue font color
-      #+BEGIN_EXAMPLE
-      #+LaTeX_HEADER: \hypersetup{colorlinks=true, linkcolor=blue}
-      #+END_EXAMPLE
-  - Building a LaTeX Document Class
-    - http://tutex.tug.org/pracjourn/2005-4/hefferon/hefferon.pdf
+* Links
+** Org LaTeX exports
+   - Subfigures: [[http://article.gmane.org/gmane.emacs.orgmode/92821][gmane.emacs.orgmode/92821]]
+   
+** LaTeX links
+   - Hyperlink formatting
+     - This is described in the LaTeX [[http://mirror.unl.edu/ctan/macros/latex/contrib/hyperref/doc/manual.pdf][hyperref]] manual.
+     - This is an example how to get links that are not framed by red
+       rectangles, but just have a blue font color
+       #+BEGIN_EXAMPLE
+       #+LaTeX_HEADER: \hypersetup{colorlinks=true, linkcolor=blue}
+       #+END_EXAMPLE
+   - Building a LaTeX Document Class
+     - http://tutex.tug.org/pracjourn/2005-4/hefferon/hefferon.pdf
+
 
 * Index creation
 
@@ -398,6 +403,51 @@
                     cmd
                     cmd)))
     #+END_SRC
+
+* References
+
+  Some important org references that also display that citations directly following each
+  other will be combined cite:schulte2012multi cite:dominik2010org.
+  And another single reference cite:feichtinger1997direct.
+
+  *TODO:* The sorting does not yet seem to get correctly observed.
+
+  The =#+BIBLIOGRAPHY:= command inserts the reference list. It requires the
+  name of the bib-file (without .bib extension), the name of a style (e.g. plain)
+  and one can pass some options (look at the comments section of =ox-bibtex.el=)
+
+  | option | functionality                                |
+  |--------+----------------------------------------------|
+  | -d     | sort by date                                 |
+  | -a     | sort as BibTeX (usually by author) *default* |
+  | -u     | unsorted i.e. same order as in .bib file     |
+  | -r     | reverse the sort                             |
+  | -t     | limit to entries cited in document           |
+
+  See the bibtex2html man page for more.  Multiple options can be
+  combined like:
+
+  #+BEGIN_EXAMPLE
+  option:-d option:-r 
+  #+END_EXAMPLE
+
+  #  #+BIBLIOGRAPHY: publist plain option: -d
+  #+BIBLIOGRAPHY: publist acm option:-d
+
+  To get the citations correctly rendered, one needs to add a bibtex invocation
+  to the latex command chain:
+  #+BEGIN_SRC elisp :exports source
+    (setq org-latex-pdf-process
+          (let
+              ((cmd (concat "pdflatex -shell-escape -interaction nonstopmode"
+                            " --synctex=1"
+                            " -output-directory %o %f")))
+            (list cmd
+                  "cd %o; if test -r %b.idx; then makeindex %b.idx; fi"
+                  "cd %o; bibtex %b"
+                  cmd
+                  cmd)))
+  #+END_SRC
 
 
   #+LaTeX: \pagebreak
