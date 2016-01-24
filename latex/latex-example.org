@@ -353,7 +353,7 @@
     I like the margin notes to be left aligned instead of being justified.
     #+LATEX:\mymarginpar{\textit{a left aligned margin note that looks nicer}}
 
-** References
+** Figure, table, equation references
    Here, we show the usage of links to the text sections:
   
    The References to figures are found in chapter [[Figures]], references
@@ -410,12 +410,15 @@
   other will be combined cite:schulte2012multi cite:dominik2010org.
   And another single reference cite:feichtinger1997direct.
 
-  *TODO:* The sorting does not yet seem to get correctly observed.
+  The =#+BIBLIOGRAPHY:= command inserts the reference list at the
+  location where it is placed. It requires the name of the bib-file
+  (without .bib extension) and the name of a style (e.g. plain).
+  
+  For HTML exports one can also pass options to the =bibtex2html=
+  binary (look at the comments section of =ox-bibtex.el= and also the
+  bibtex2html man page).
 
-  The =#+BIBLIOGRAPHY:= command inserts the reference list. It requires the
-  name of the bib-file (without .bib extension), the name of a style (e.g. plain)
-  and one can pass some options (look at the comments section of =ox-bibtex.el=)
-
+  #+CAPTION: bibtex2html options
   | option | functionality                                |
   |--------+----------------------------------------------|
   | -d     | sort by date                                 |
@@ -424,18 +427,14 @@
   | -r     | reverse the sort                             |
   | -t     | limit to entries cited in document           |
 
-  See the bibtex2html man page for more.  Multiple options can be
-  combined like:
+ Multiple options can be combined as follows:
 
   #+BEGIN_EXAMPLE
   option:-d option:-r 
   #+END_EXAMPLE
 
-  #  #+BIBLIOGRAPHY: publist plain option: -d
-  #+BIBLIOGRAPHY: publist acm option:-d
-
-  To get the citations correctly rendered, one needs to add a bibtex invocation
-  to the latex command chain:
+  To get the citations correctly processed rendered, one needs to add
+  a bibtex invocation to the LaTeX command chain:
   #+BEGIN_SRC elisp :exports source
     (setq org-latex-pdf-process
           (let
@@ -448,6 +447,10 @@
                   cmd
                   cmd)))
   #+END_SRC
+
+
+  #  #+BIBLIOGRAPHY: publist plain option: -d
+  #+BIBLIOGRAPHY: publist acm option:-d
 
 
   #+LaTeX: \pagebreak
