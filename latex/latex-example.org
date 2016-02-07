@@ -449,6 +449,22 @@
   #+END_SRC
 
 
+  To just produce a bibliography of all items in the bib file, on can
+  use the following LaTeX snippet. The =\nocite{*}= command includes
+  items that have not been cited in the document; a star matches all
+  documents, so all get included (q.v. [[http://www.math.uiuc.edu/~hildebr/tex/bibliographies0.html][this link]]).
+  
+  #+BEGIN_EXAMPLE
+    ,#+BEGIN_LATEX
+      \documentstyle{amsart}
+      \begin{document}
+      \nocite{*}
+      \bibliographystyle{amsplain}
+      \bibliography{bib-filename}
+      \end{document}
+    ,#+END_LATEX
+  #+END_EXAMPLE
+
   #  #+BIBLIOGRAPHY: publist plain option: -d
   #+BIBLIOGRAPHY: publist acm option:-d
 
