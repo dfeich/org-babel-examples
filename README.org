@@ -25,23 +25,26 @@
   time I learn something new, I try to update the recipe collections.
 
 ** Contents
+
+   Note that you need to look at the examples in *raw* mode! For some of the
+   examples I provide example outputs.
    
    1. Babel examples vor various backends
       - [[./lisp/lisp-babel.org][Emacs lisp]]
-      - [[./calc/calc.org][Emacs calc]]
-      - [[./sqlite/sqlite-babel.org][SQLite]]
-      - [[./python/pythonbabel.org][python]]
+      - [[./python/pythonbabel.org][python]] ([[./python/pythonbabel.pdf][PDF]] output)
       - [[./python/ipython-babel.org][Ipython]]
       - [[./shell/shell-babel.org][shell]] (bash)
+      - [[./sqlite/sqlite-babel.org][SQLite]]
+      - [[./calc/calc.org][Emacs calc]]
       - [[./C/c-babel.org][C]]
-      - [[./graphviz/graphviz-babel.org][graphviz]]
+      - [[./graphviz/graphviz-babel.org][graphviz]] ([[./graphviz/graphviz-babel.pdf][PDF]] output)
       - [[./plantuml/plantuml-babel.org][plantuml]]
       - [[./ditaa/ditaa-babel.org][ditaa]]
       - [[./gnuplot/gnuplot-babel.org][gnuplot]]
    2. Export backend Examples
-      - [[./latex/latex-example.org][LaTeX]]
-      - [[./beamer/beamer-example.org][LaTeX Beamer]] for presentations
-      - [[./odt/odt-example.org][ODT]] for exporting to LibreOffice (and then also MS Word)
+      - [[./latex/latex-example.org][LaTeX]] ([[./latex/latex-example.pdf][PDF]] output)
+      - [[./beamer/beamer-example.org][LaTeX Beamer]] for presentations ([[./beamer/beamer-example.pdf][PDF]] output)
+      - [[./odt/odt-example.org][ODT]] for exporting to LibreOffice (and then also MS Word) ([[./odt/odt-example.odt][ODT]] export)
         - [[./odt/styles.org][org file to produce an example ODT styles file]]
       - [[./exporting-tips.org][some collected miscellaneous exporter tips]] (just beginning)
    3. general [[./tables/tables.org][Org table related]] examples
