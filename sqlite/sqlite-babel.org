@@ -1,5 +1,5 @@
 #+TITLE: sqlite-babel
-#+DATE: <2013-09-05 Thu>
+# #+DATE: <2013-09-05 Thu>
 #+AUTHOR: Derek Feichtinger
 #+EMAIL: derek.feichtinger@psi.ch
 #+OPTIONS: ':nil *:t -:t ::t <:t H:3 \n:nil ^:t arch:headline
@@ -21,9 +21,9 @@
   #+END_SRC
 
   #+RESULTS:
-  : Emacs version: GNU Emacs 24.3.1 (i686-pc-linux-gnu, GTK+ Version 3.4.2)
-  :  of 2013-08-22 on chindi02, modified by Debian
-  : org version: 8.0.7
+  : Emacs version: GNU Emacs 24.5.1 (x86_64-unknown-linux-gnu, GTK+ Version 3.10.8)
+  :  of 2015-05-04 on dflt1w
+  : org version: 8.3.3
 
 * using a table as input
 
@@ -48,7 +48,7 @@
   read in via the *.import* function.
 
   #+BEGIN_SRC sqlite :db example.sqlite :var tbl=table1
-  drop table if exists TableName;
+  drop table if exists t1;
   create table t1 (col1 INTEGER, col2 INTEGER, col3 INTEGER);
   .import "$tbl" t1
   select count(*) from t1;
@@ -57,6 +57,7 @@
   #+RESULTS:
   : 11
 
+* SQLite table UPDATEs, column names
   The *:colnames yes* option selects in the next block that the output
   table should contain a header row with the column names.
 
@@ -69,6 +70,38 @@ SELECT * FROM t1;
   | col1 | col2 | col3 |
   |------+------+------|
   |    5 |   25 |   50 |
+  |    6 |   30 |   60 |
+  |    7 |   35 |   70 |
+  |    8 |   40 |   80 |
+  |    9 |   45 |   90 |
+  |   10 |   50 |  100 |
+  |   11 |   55 |  110 |
+  |   12 |   60 |  120 |
+  |   13 |   65 |  130 |
+  |   14 |   70 |  140 |
+  |   15 |   75 |  150 |
+
+* SELECTs and using babel blocks as functions via CALL
+
+  #+NAME: my-func
+  #+BEGIN_SRC sqlite :db example.sqlite :var val=13 :colnames yes
+SELECT * FROM t1 WHERE col1>=$val;
+  #+END_SRC
+
+  #+RESULTS:
+  | col1 | col2 | col3 |
+  |------+------+------|
+  |   13 |   65 |  130 |
+  |   14 |   70 |  140 |
+  |   15 |   75 |  150 |
+
+  Now the filter can be called as a function using the org babel CALL syntax
+
+  #+CALL: my-func(val=6) :colnames yes
+
+  #+RESULTS:
+  | col1 | col2 | col3 |
+  |------+------+------|
   |    6 |   30 |   60 |
   |    7 |   35 |   70 |
   |    8 |   40 |   80 |

@@ -351,7 +351,43 @@
   | row1 |    2 | D    | CN   |    5 |
   | row7 |   14 | D    | CN   |   35 |
 
+  I also demonstrate here the SQLite approach where I use your
+  original requirement of filtering all the rows which contain the
+  string either in columns 3 or 4. A minor drawback of the sqlite
+  approach is that we have some boilerplate code to read in the table
+  and create a SQLite DB.
 
+
+  #+NAME: my-filter2
+  #+BEGIN_SRC sqlite :db table1.sqlite :var tbl=table1 val="USA" :colnames yes
+    drop table if exists table1;
+    create table table1 (col1 VARCHAR, col2 INTEGER, col3 VARCHAR,
+    col4 VARCHAR, col5 INTEGER);
+    .import "$tbl" table1
+    select * from table1 where col3='$val' or col4='$val';
+  #+END_SRC
+
+  #+RESULTS:
+  | col1 | col2 | col3 | col4 | col5 |
+  |------+------+------+------+------|
+  | row2 |    4 | USA  | PL   |   10 |
+  | row4 |    8 | JP   | USA  |   20 |
+  | row6 |   12 | USA  | JP   |   30 |
+  | row8 |   16 | PL   | USA  |   40 |
+
+
+  #+CALL: my-filter2(tbl=table1, val="CN") :colnames y
+
+  #+RESULTS:
+  | col1 | col2 | col3 | col4 | col5 |
+  |------+------+------+------+------|
+  | row1 |    2 | D    | CN   |    5 |
+  | row3 |    6 | CN   | D    |   15 |
+  | row7 |   14 | D    | CN   |   35 |
+  | row9 |   18 | CN   | D    |   45 |
+
+
+  
 * time calculations
 ** basic usage
    Time calculations can be done using the =T= modifier, which
