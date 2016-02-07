@@ -284,6 +284,74 @@
     | remote date   |           2011 |    2011 | (2014-01-02)      |
     #+TBLFM: @2$2=remote(remtable1,$ref_number)::@2$3=remote(remtable1,@2$3)::@2$4='(identity remote(remtable1,$ref_number))::@3$2=remote(remtable1,$ref_date)::@3$3=remote(remtable1,@4$3)::@3$4='(identity remote(remtable1,$ref_date))
 
+* filtering a table
+
+  I posted this in reply to [[http://emacs.stackexchange.com/questions/20129/how-can-i-filter-table-in-org-mode][this stackexchange question]].
+  
+  We produce an example table to work upon
+  #+NAME: table1
+  #+BEGIN_SRC elisp :results value :colnames y
+    (let ((countries '(CH D USA CN JP PL USA D PL CN CH)))
+      (cl-loop for country1 in countries
+               for country2 in (reverse countries)
+               with counter = 0
+               collect (list (format "row%d" counter)
+                             (* 2 counter)
+                             country1
+                             country2
+                             (* 5 counter)) into mylst
+                             count t into counter
+                             finally return (append
+                                             '((col1 col2 col3 col4 col5)
+                                               hline)
+                                             mylst)))
+  #+END_SRC
+
+  #+RESULTS: table1
+  | col1  | col2 | col3 | col4 | col5 |
+  |-------+------+------+------+------|
+  | row0  |    0 | CH   | CH   |    0 |
+  | row1  |    2 | D    | CN   |    5 |
+  | row2  |    4 | USA  | PL   |   10 |
+  | row3  |    6 | CN   | D    |   15 |
+  | row4  |    8 | JP   | USA  |   20 |
+  | row5  |   10 | PL   | PL   |   25 |
+  | row6  |   12 | USA  | JP   |   30 |
+  | row7  |   14 | D    | CN   |   35 |
+  | row8  |   16 | PL   | USA  |   40 |
+  | row9  |   18 | CN   | D    |   45 |
+  | row10 |   20 | CH   | CH   |   50 |
+
+  Now we define a filter function which produces a new
+  table with the required values. Notice that I am
+  using the *colnames* argument in the BEGIN line
+  in order to preserve the column headings.
+
+  #+NAME: my-filter
+  #+BEGIN_SRC elisp :var tbl=table1 val="USA" :colnames y
+    (loop for row in tbl
+          if (equal (symbol-name (nth 3 row)) val)
+          collect row into newtbl
+          finally return newtbl)
+  #+END_SRC
+
+  #+RESULTS: my-filter
+  | col1 | col2 | col3 | col4 | col5 |
+  |------+------+------+------+------|
+  | row4 |    8 | JP   | USA  |   20 |
+  | row8 |   16 | PL   | USA  |   40 |
+
+  I can also use this function with the org-mode CALL syntax
+
+  #+CALL: my-filter(tbl=table1, val="CN") :colnames y
+
+  #+RESULTS:
+  | col1 | col2 | col3 | col4 | col5 |
+  |------+------+------+------+------|
+  | row1 |    2 | D    | CN   |    5 |
+  | row7 |   14 | D    | CN   |   35 |
+
+
 * time calculations
 ** basic usage
    Time calculations can be done using the =T= modifier, which
