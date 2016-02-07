@@ -13,52 +13,93 @@
 #+LANGUAGE: en
 #+SELECT_TAGS: export
 
-* Dfeich's Org-babel example collection
+* Dfeich's Org-babel and org-exporter example collection
   
-This is my collection of example documents to demonstrate the usage of org-babel
-with different languages.
+  This is my collection of example documents to demonstrate the usage of org-babel
+  with different languages. I also try to show some exporter functionality in respect
+  to a few backends.
+   
+  I have used org and especially the org-babel functionality for a large
+  number of use cases. Please understand that I cannot include the full
+  documents here (many of them contain internal information), but every
+  time I learn something new, I try to update the recipe collections.
 
-I have used org and especially the org-babel functionality for a large
-number of use cases. Please understand that I cannot include the full
-documents here (many of them contain internal information), but every
-time I learn something new, I try to update these recipe collections.
+** Contents
+   
+   1. Babel examples vor various backends
+      - [[./lisp/lisp-babel.org][Emacs lisp]]
+      - [[./calc/calc.org][Emacs calc]]
+      - [[./sqlite/sqlite-babel.org][SQLite]]
+      - [[./python/pythonbabel.org][python]]
+      - [[./python/ipython-babel.org][Ipython]]
+      - [[./shell/shell-babel.org][shell]] (bash)
+      - [[./C/c-babel.org][C]]
+      - [[./graphviz/graphviz-babel.org][graphviz]]
+      - [[./plantuml/plantuml-babel.org][plantuml]]
+      - [[./ditaa/ditaa-babel.org][ditaa]]
+      - [[./gnuplot/gnuplot-babel.org][gnuplot]]
+   2. Export backend Examples
+      - [[./latex/latex-example.org][LaTeX]]
+      - [[./beamer/beamer-example.org][LaTeX Beamer]] for presentations
+      - [[./odt/odt-example.org][ODT]] for exporting to LibreOffice (and then also MS Word)
+        - [[./odt/styles.org][org file to produce an example ODT styles file]]
+      - [[./exporting-tips.org][some collected miscellaneous exporter tips]] (just beginning)
+   3. general [[./tables/tables.org][Org table related]] examples
+   
+** Motivation
 
-Use cases where I profited from using Org + Babel:
-- writing documentation for *programming projects* (e.g. for python)
-- for documenting *benchmarking* tests
-- documenting the *installation of servers*. E.g. the complete
-  installation of an OpenLDAP master and its slaves is an executable
-  document. By making smart use of tramp + ssh configuration (look up
-  the ControlMaster and ProxyCommand SSH options), the code is executed on
-  the servers a few hops away. The documentation I publish via my
-  *Twiki exporter* on our intranet.
-- creating *OpenDocument documents* from clean templates. This even helped in
-  getting a clear basis for a group of people trying to merge a number
-  of partial office documents.
-- *Planning a major (at least for us... 17 people) IT project* using org
-  tables and lisp code for more complex table functions. The cost
-  planning and general planning was all done in Org. The project's
-  gantt chart had to be done in MS Project due to our institution's
-  guidelines, but based on the MS Project csv export, I was able to
-  process the MS project data again directly in org. This made the
-  committing of changes into the evolving proposal a breeze!
-- use an org table as input to *seed a DB* with and then *run SQL queries* on it.
-  Great for DB debugging and documenting.
-- I produce most of my presentations really fast with *beamer*. Being able to copy
-  information from all my other org documents into the presentation makes this
-  very efficient.
-
-I again have to thank the authors and maintainers of org-mode and all
-the community for providing such a versatile and efficient tool. I
-hope that others can profit from the examples. Sometimes it took quite
-a bit of effort to understand how to do things, and I was glad to find
-references. But with Emacs there is also always the option to "Read
-the Source, Luke!"... and reading the source not only might solve your
-problem, but also it often leads to a deeper understanding of the
-concepts.
-
-I am glad for feedback and corrections... (e.g. if there is anybody with better
-knowledge of how to integrate calc)
-
-Have fun hacking away....
-Derek
+   Org-Mode is a fantastic piece of work that over the last years took over most
+   of my daily workflows. It's ability to be already useful on a beginner's level
+   (as outliner or simple agenda) that allows stepwise learning until you end
+   with an extremely versatile authoring and programming framework make it unique.
+   Add to it the community which constantly are improving it, and also managed
+   to write for this complex format a parsing library that turns an org document
+   into an abstract data structure for which exporters to other formats can be
+   easily produced.
+    
+   Just to show you where I profit from org, and naturally from the basic Emacs
+   funtionality, I'll list a number of use cases.
+    
+   - writing documentation for *programming projects* (e.g. for python)
+   - for documenting *benchmarking* tests
+   - documenting the *installation of servers*. E.g. the complete
+     installation of an OpenLDAP master and its slaves is an executable
+     babel document. By making smart use of tramp + ssh configuration (look up
+     the ControlMaster and ProxyCommand SSH options), the code is executed on
+     the servers a few hops away. The documentation I publish via my
+     *Twiki exporter* on our intranet.
+     - please also look up Howard Abram's interesting [[http://www.howardism.org/Technical/Emacs/literate-devops.html][literate devops]]
+       article where he goes similar ways.
+   - creating *OpenDocument documents* from clean templates. This even helped in
+     getting a clear basis for a group of people trying to merge a number
+     of partial office documents.
+   - *Planning a major (at least for us... 17 people) IT project* using org
+     tables and lisp code for more complex table functions. The cost
+     planning and general planning was all done in Org. The project's
+     gantt chart had to be done in MS Project due to our institution's
+     guidelines, but based on the MS Project csv export, I was able to
+     process the MS project data again directly in org. This made the
+     committing of changes into the evolving proposal a breeze!
+     - here I used everything from comples exporter functionality to
+       literate programming and tangling, as well as advanced org tables.
+   - *Budget planning* for our scientific computing group
+   - use an org table as input to *seed a DB* with and then *run SQL queries* on it.
+     Great for DB debugging and documenting.
+   - I produce most of my presentations really fast with *beamer*. Being able to copy
+     information from all my other org documents into the presentation makes this
+     very efficient.
+    
+   I again have to thank the authors and maintainers of org-mode and all
+   the community for providing such a versatile and efficient tool. I
+   hope that others can profit from these examples. Sometimes it took
+   quite a bit of effort to understand how to do things, and I was glad
+   to find references. But with Emacs there is also always the option to
+   "Read the Source, Luke!"... and reading the source not only might
+   solve your problem, but also it often leads to a deeper understanding
+   of the concepts.
+    
+   I am glad for feedback and corrections... (e.g. if there is anybody with better
+   knowledge of how to integrate calc)
+    
+   Have fun hacking away....
+   Derek
