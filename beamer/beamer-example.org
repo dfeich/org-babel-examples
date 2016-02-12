@@ -294,6 +294,29 @@ with its own headline, is displayed in a block:
     - <4-> But /q + 1/ is greater than /1/, thus divisible by some prime number
       not in the first /p/ numbers.\qedhere
 
+** numbered list over two pages (1)
+   1. one
+   2. two
+   3. three
+   4. four
+** numbered list over two pages (1)
+   Use the =[@N]= syntax to start a numbered list at a certain value.
+
+*** block A							    :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
+    5. [@5] five
+    6. six
+    7. seven
+*** block B							    :B_block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
+    8. [@8] eight
+    9. nine
+    10. ten
+
 * Animations by overlays
 ** Highlighting text
 
