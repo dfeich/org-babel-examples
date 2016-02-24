@@ -67,9 +67,9 @@
   #+END_SRC
 
   #+RESULTS:
-  : Emacs version: GNU Emacs 24.5.1 (x86_64-unknown-linux-gnu, GTK+ Version 3.10.8)
-  :  of 2015-05-04 on dflt1w
-  : org version: 8.2.10
+  : Emacs version: GNU Emacs 25.1.50.3 (x86_64-unknown-linux-gnu, GTK+ Version 3.10.8)
+  :  of 2016-02-13
+  : org version: 8.3.3
 
 * Major document elements
 ** Equations
@@ -280,7 +280,13 @@
     |        5 |       14 |      104 |     1004 | example  | result   |
     |        6 |       15 |      105 |     1005 | example  | result   |
     |        7 |       16 |      106 |     1006 | example  | result   |
-   
+
+    This text comes after the sidewaystable (we want to check whether the
+    placement modifier was observed).
+
+    Even though in the [[info:org#LaTeX%20specific%20attributes][info documentation it reads]]: "Note: :placement
+    is ignored for :float sideways tables.", the modifier =[H]= is
+    observed, as can be confirmed in the resulting PDF.
 
 *** Table references
 
