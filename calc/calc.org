@@ -249,6 +249,7 @@ fsolve(x*2+x=4,x)
 * A sample of functions that can be used in formulas
   - [[info:calc#Formulas]]
   - factorial: $6! => 720 $   also fact(6) can be used in writing
+  - find: $ find([5, 6, 7, 8], 6) => 2 $
   - power: $pow(2, 3) => 8 $   $2^3 => 8 $
   - modulo: $mod(10, 3) => 1$  $10 % 3 => 1 $
   - binomial coefficient: $choose(3, 2) => 3$

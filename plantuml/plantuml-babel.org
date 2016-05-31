@@ -387,7 +387,7 @@ stop
    #+RESULTS:
    [[file:fig/class1.png]]
 
-* TODO
+* TODO Open problems
   - example for scaling =scale 800*600=
 * COMMENT babel settings
 

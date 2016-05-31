@@ -536,7 +536,25 @@ the empty fields.
   | # |       |     1 |      2 |      3 |      1 |
   #+TBLFM: @3$3=remote(remtable2,@3$value)::@3$4=remote(remtable2,@3$value2)::@3$5=remote(remtable2,@3$value3a)::@3$6=remote(remtable2,@3$value_a4)
 
-  
+
+* Information on internals
+
+  Nicolas Goaziou [[http://article.gmane.org/gmane.emacs.orgmode/105130][wrote]] in a reply about the mechanism how formulas are evaluated:
+  #+BEGIN_QUOTE
+  Field formulas bind stronger than column formulas.
+
+  First, all cells with an associated field formula are marked as
+  read-only. Then column formulas are evaluated. Eventually, fields
+  formulas are evaluated.
+
+  This was introduced in Org 5.01, AFAICT. Before, the "read-only" part
+  would not happens, i.e, fields formulas would overwrite column formulas.
+
+  I think the idea behind this is that formulas are applied to the current
+  state of the table, not some intermediate one, with some formulas
+  applied and others not.
+  #+END_QUOTE
+
 * Bugs I found [1/2]
 ** DONE table names like p2_somename
    CLOSED: [2014-08-01 Fri 14:19]

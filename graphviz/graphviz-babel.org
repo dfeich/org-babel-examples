@@ -25,11 +25,20 @@
   :  of 2015-05-04 on dflt1w
   : org version: 8.2.10
 
+  #+BEGIN_SRC sh :results output
+  dot -V 2>&1
+  #+END_SRC
+
+  #+RESULTS:
+  : dot - graphviz version 2.36.0 (20140111.2315)
 
 * Links
+  - [[https://github.com/ellson/graphviz][graphviz git repository]]
   - [[http://www.graphviz.org/doc/info/colors.html][graphviz colors]]
   - [[http://www.graphviz.org/doc/info/attrs.html][Node, Edge and Graph Attributes]]
-  - [[http://4webmaster.de/wiki/Graphviz-Tutorial][excellent tutorial]]
+  - Tutorials
+    - [[http://www.graphviz.org/pdf/dotguide.pdf][Dot guidebook]]
+    - [[http://4webmaster.de/wiki/Graphviz-Tutorial][excellent tutorial by 4webmaster.de]] (German)
 
 * first test
   #+BEGIN_SRC dot :file fig/exmpl1.png :exports both
