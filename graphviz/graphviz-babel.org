@@ -112,21 +112,52 @@ digraph G {
    [[file:fig/color1.png]]
 
 
-** subcluster
-  #+BEGIN_SRC dot :file fig/clust3.png :exports both
-digraph G {
-rankdir=BT;
-subgraph cluster_c0 {a0 -> a1 -> a2 -> a3;}
-subgraph cluster_c1 {b0 -> b1 -> b2 -> b3;}
-x -> a0;
-x -> b0;
-a1 -> b3;
-b1 -> a3;
-}
-  #+END_SRC
+** subgraph, cluster
+
+   - a subgraph whith a name =cluster_xyz= will result in a frame around the nodes.
+   - note that if you define ={rank=same; A; B}= then this implicitely already defines a subgraph. A node cannot be part
+     of multiple subgraphs. So, you cannot force an element within a cluster and one outside of a cluster to the same
+     rank like this.
+
+   #+BEGIN_SRC dot :file fig/clust3.png :exports both
+     digraph G {
+     rankdir=BT;
+     subgraph cluster_c0 {label="A"
+             a0 -> a1 -> a2 -> a3;}
+     subgraph cluster_c1 {label="B"
+             b0 -> b1 -> b2 -> b3;}
+     x -> a0;
+     x -> b0;
+     a1 -> b3;
+     b1 -> a3;
+     }
+   #+END_SRC
 
   #+RESULTS:
   [[file:fig/clust3.png]]
+
+  To connect clusters with lines, use an edge between two nodes and
+  clip it to the cluster frames by using the =lhead= and =ltail=
+  directives. Using these attributes requires a =compound=true=
+  statement.
+  
+  #+BEGIN_SRC dot :file fig/clust3b.png :exports both
+    digraph G {
+    compound=true    
+    rankdir=BT
+    subgraph cluster_c0 {a0 -> a1 -> a2 -> a3}
+    subgraph cluster_c1 {b0 -> b1 -> b2 -> b3}
+    x -> a0
+    x -> b0
+    a1 -> b3
+    b1 -> a3
+    // constraint=false is needed to have b1 not be underneath the rank of a1
+    a1 -> b1 [ltail="cluster_c0", lhead="cluster_c1", constraint=false, color=red]
+    }
+   #+END_SRC
+
+  #+RESULTS:
+  [[file:fig/clust3b.png]]
 
   #+BEGIN_SRC dot :file fig/cluster2.png :exports both
 digraph G {
@@ -242,7 +273,36 @@ b1 -> a3;
   #+RESULTS:
   [[file:fig/flowchart3.png]]
 
+** shapes
+   q.v. http://www.graphviz.org/doc/info/shapes.html
 
+   The cylinder shape seems to have been added in 2016-02 for the development version. Not yet active in this version.
+   
+   #+BEGIN_SRC dot :file fig/shape1.png :exports both
+     digraph G {
+        cylinder[shape=cylinder]
+        circle[shape=circle]
+        ellipse[shape=ellipse]
+        folder[shape=folder]
+        box3d[shape=box3d]
+        component[shape=component]
+
+        cylinder -> circle[style=invisible, arrowhead=none]
+
+        plaintext[shape=plaintext]
+        octagon[shape=octagon]
+        cds[shape=cds]
+        note[shape=note]
+        {rank=same; circle; plaintext; octagon, cds, note}
+        point[shape=point]
+        }
+
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:fig/shape1.png]]
+
+   
 * Entity Relationship
 
   - from http://www.tonyballantyne.com/graphs.html
