@@ -30,7 +30,7 @@
   :  of 2015-05-04 on dflt1w
   : org version: 8.3.2
 
-* using a table as input
+* using a table as input for a src block
 
   We first create a table from a lisp *list of lists*. Each inner list
   will form a row in the resulting table. I already insert a header
@@ -93,88 +93,112 @@
   |   14 |   70 |  140 |
   |   15 |   75 |  150 |
 
-  
+
+
+  It is possible to specify a sub-range for the table that is handed over through =:var=. But currently
+  it does not work well with the =:colnames yes= option, as the following example shows.
+
+  #+BEGIN_SRC emacs-lisp -n :results value :var tbl=table1[4:8] :colnames yes :exports both
+    (let (result)
+      (dolist (row tbl result)
+        (setf (nth 2 row) (* 2 (nth 1 row)))
+        (setq result (cons row result)))
+      (reverse result))
+  #+END_SRC
+
+  #+RESULTS:
+  |  7 | 35 |     |
+  |----+----+-----|
+  |  8 | 40 |  80 |
+  |  9 | 45 |  90 |
+  | 10 | 50 | 100 |
+  | 11 | 55 | 110 |
+
+
 * calling source blocks as a function
-** simple call syntax
+** Chaining source block execution
+   I *can have another piece of code implicitly called* by using its
+   name as an input variable in another code block. So, I could
+   directly fill the third column of our initial example table without
+   ever having to print out that table table. We can just pass into the
+   next function a variable =tbl= and the name of the initial code
+   block =make-table1=.
+
+   #+BEGIN_SRC emacs-lisp  :results value :var tbl=make-table1 :colnames yes
+     (let (result)
+       (dolist (row tbl result)
+         (setf (nth 2 row) (* 2 (nth 1 row)))
+         (setq result (cons row result)))
+       (reverse result))
+   #+END_SRC
+
+   #+RESULTS:
+   | col1 | col2 | col3 |
+   |------+------+------|
+   |    5 |   25 |   50 |
+   |    6 |   30 |   60 |
+   |    7 |   35 |   70 |
+   |    8 |   40 |   80 |
+   |    9 |   45 |   90 |
+   |   10 |   50 |  100 |
+   |   11 |   55 |  110 |
+   |   12 |   60 |  120 |
+   |   13 |   65 |  130 |
+   |   14 |   70 |  140 |
+   |   15 |   75 |  150 |
+** simple call syntax using CALL
 
    We first define a function in a named code block called =mydouble=. The
    variable x will be passed in by defining a header argument =:var x=
 
    #+NAME: mydouble
-  #+header: :var x=2
-  #+BEGIN_SRC emacs-lisp :results silent :exports code
-  (* 2 x)
-  #+END_SRC
+   #+header: :var x=2
+   #+BEGIN_SRC emacs-lisp :results silent :exports code
+   (* 2 x)
+   #+END_SRC
 
-  Now we can call this babel function by using the code block's name
-  =mydouble= from any place in the document. For example:
-  #+CALL: mydouble(x=5)
+   Now we can call this babel function by using the code block's name
+   =mydouble= from any place in the document. For example:
+   #+CALL: mydouble(x=5)
 
-  #+RESULTS:
-  : 10
+   #+RESULTS:
+   : 10
 
 
-  Another example where we pass in two variables x and y.
-  #+NAME: mydivide
-  #+header: :var x=2 y=3
-  #+BEGIN_SRC emacs-lisp :results silent :exports code
-  (/ x y)
-  #+END_SRC
+   Another example where we pass in two variables x and y.
+   #+NAME: mydivide
+   #+header: :var x=2 y=3
+   #+BEGIN_SRC emacs-lisp :results silent :exports code
+   (/ x y)
+   #+END_SRC
 
-  Note that *you can/must pass additional header arguments* to the
-  call. The ones added at the end influence the final result
-  (e.g. putting it into a drawer), while the ones added in [] are
-  evaluated in the context of the original definition (e.g whether to
-  capture the output).
-  #+CALL: mydivide(12,3) :results value
+   Note that *you can/must pass additional header arguments* to the
+   call. The ones added at the end influence the final result
+   (e.g. putting it into a drawer), while the ones added in [] are
+   evaluated in the context of the original definition (e.g whether to
+   capture the output).
+   #+CALL: mydivide(12,3) :results value
 
-  #+RESULTS:
-  : 4
+   #+RESULTS:
+   : 4
 
-  Another alternative calling syntax
+   Another alternative calling syntax
 
-  #+CALL: mydivide(y=2,x=10)
+   #+CALL: mydivide(y=2,x=10)
 
-  #+RESULTS:
-  : 5
-
-  Note that I *can have another piece of code implicitly called* by
-  using its name as an input variable in a normal code block. So, I
-  could directly fill the third column of our initial example table
-  without ever having to print out that table table. We can just pass
-  into the next function a variable =tbl= and the name of the initial
-  code block =make-table1=.
-
-  #+BEGIN_SRC emacs-lisp  :results value :var tbl=make-table1 :colnames yes
-    (let (result)
-      (dolist (row tbl result)
-        (setf (nth 2 row) (* 2 (nth 1 row)))
-        (setq result (cons row result)))
-      (reverse result))  
-  #+END_SRC
-
-  #+RESULTS:
-  | col1 | col2 | col3 |
-  |------+------+------|
-  |    5 |   25 |   50 |
-  |    6 |   30 |   60 |
-  |    7 |   35 |   70 |
-  |    8 |   40 |   80 |
-  |    9 |   45 |   90 |
-  |   10 |   50 |  100 |
-  |   11 |   55 |  110 |
-  |   12 |   60 |  120 |
-  |   13 |   65 |  130 |
-  |   14 |   70 |  140 |
-  |   15 |   75 |  150 |
+   #+RESULTS:
+   : 5
 
   
 
 * Inline src calls
+
   This is the result of an inline src call in lisp:
+
   src_emacs-lisp[:var tbl=table1 :results raw]{(nth 0 (nth (- (length tbl) 1) tbl))} 15
 
   and this is another:
+
   src_emacs-lisp[:results raw]{(org-table-get-remote-range "table1" "@>$1" )} 15
 
 
