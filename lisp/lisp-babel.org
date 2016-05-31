@@ -218,12 +218,49 @@
   #+RESULTS:
   : hello world
 
-* Using a :post function for table formatting
+* Using a :post function for post-formatting and executing generated tables
 
   Often I produce multiple tables from a source block (e.g. printing
   several pandas data frames). These tables do not get aligned in the
   org document after the execution of the code block (even though they
-  will get aligned upon exporting the document)
+  will get aligned upon exporting the document). Also, I may want to have
+  table calculations using =#+TBLFM= lines executed, instead of manually
+  having to execute them in the resulting tables.
+
+  The following function can be used in a :post argument for getting
+  all tables in the output aligned and their TBLFM instructions executed, as shown further below
+  #+NAME: srcPostAlignTables
+  #+header: :var text="|5|22222|\n|0||\n|12|45|\n|---\n|||\n#+TBLFM:@>$1=vsum(@1..@-1)\n\n|1|22222|\n|0||\n|12|45|\n"
+  #+BEGIN_SRC emacs-lisp :results value :exports both
+    (with-temp-buffer
+      (erase-buffer)
+      (insert text)
+      (beginning-of-buffer)
+      (org-mode)
+      (while
+          (search-forward-regexp org-table-any-line-regexp nil t)
+        (org-table-align)
+        (org-table-recalculate 'iterate)
+        (goto-char (org-table-end)))
+      (buffer-string))
+  #+END_SRC
+
+  #+RESULTS: srcPostAlignTables
+  #+begin_example
+  |  5 | 22222 |
+  |  0 |       |
+  | 12 |    45 |
+  |----+-------|
+  | 17 |       |
+  #+TBLFM:@>$1=vsum(@1..@-1)
+
+  |  1 | 22222 |
+  |  0 |       |
+  | 12 |    45 |
+#+end_example
+
+
+  Example without using the =:post= function:
 
   #+BEGIN_SRC emacs-lisp :results output raw drawer :exports both
     (princ
@@ -233,6 +270,9 @@
       "|---\n"
       "|1|20|300|\n"
       "|200|30|4|\n"
+      "|---\n"
+      "||||\n"
+      "#+TBLFM: @>$1..@>$3=vsum(@I..@II)\n"
       "\n#+CAPTION: Test2\n"
       "|A|B|C|\n"
       "|---\n"
@@ -248,6 +288,9 @@
   |---
   |1|20|300|
   |200|30|4|
+  |---
+  ||||
+  #+TBLFM: @>$1..@>$3=vsum(@I..@II)
 
   #+CAPTION: Test2
   |A|B|C|
@@ -256,23 +299,7 @@
   |200|30|4|
   :END:
 
-  The following function can be used in a :post argument for getting
-  all tables in the output aligned, as shown further below
-    #+NAME: srcPostAlignTables
-    #+header: :var text="|1|22222|\n|0||\n|12|45|\n\n|1|22222|\n|0||\n|12|45|\n"
-    #+BEGIN_SRC emacs-lisp :results value :exports both
-      (with-temp-buffer
-        (erase-buffer)
-        (insert text)
-        (beginning-of-buffer)
-        (org-mode)
-        (while
-            (search-forward-regexp org-table-any-line-regexp nil t)
-          (org-table-align)
-          (goto-char (org-table-end)))
-        (buffer-string))
-    #+END_SRC
-
+  The same example with the =:post= function:
 
   #+BEGIN_SRC emacs-lisp :results output raw drawer :post srcPostAlignTables(*this*) :exports both
     (princ
@@ -282,6 +309,9 @@
       "|---\n"
       "|1|20|300|\n"
       "|200|30|4|\n"
+      "|---\n"
+      "||||\n"
+      "#+TBLFM: @>$1..@>$3=vsum(@I..@II)\n"
       "\n#+CAPTION: Test2\n"
       "|A|B|C|\n"
       "|---\n"
@@ -297,6 +327,9 @@
   |-----+----+-----|
   |   1 | 20 | 300 |
   | 200 | 30 |   4 |
+  |-----+----+-----|
+  | 201 | 50 | 304 |
+  #+TBLFM: @>$1..@>$3=vsum(@I..@II)
 
   #+CAPTION: Test2
   |   A |  B |   C |
