@@ -17,7 +17,12 @@
 # #+SETUPFILE: ~/.emacs.d/git-submod/org-html-themes.git/setup/theme-bigblow.setup
 
 
-
+* How to use this document
+  You should look at this document in its Org mode source form. The
+  PDF rendering is useful to see the results of some of the export
+  options, but the syntax of the source block is only seen in the
+  source text.
+  
 * Version information
   #+BEGIN_SRC emacs-lisp :results output :exports both
     (princ (concat (format "Emacs version: %s\n" (emacs-version))
@@ -31,88 +36,114 @@
   : org version: 8.3.2
 
 * using a table as input for a src block
+** simple example
+   We first create a table from a lisp *list of lists*. Each inner list
+   will form a row in the resulting table. I already insert a header
+   row with the names of three columns. A separator line can be obtained
+   by putting the =hline= symbol into the resulting list.
 
-  We first create a table from a lisp *list of lists*. Each inner list
-  will form a row in the resulting table. I already insert a header
-  row with the names of three columns. A separator line can be obtained
-  by putting the =hline= symbol into the resulting list.
+   #+NAME: make-table1
+   #+BEGIN_SRC emacs-lisp :results value :exports both
+     (cons '(col1 col2 col3)
+           (cons 'hline
+                 (loop for i from 5 to 15 collect `(,i ,(* i 5) ""))))
+   #+END_SRC
 
-  #+NAME: make-table1
-  #+BEGIN_SRC emacs-lisp :results value :exports both
-    (cons '(col1 col2 col3)
-          (cons 'hline
-                (loop for i from 5 to 15 collect `(,i ,(* i 5) ""))))
-  #+END_SRC
-
-  #+TBLNAME: table1
-  #+RESULTS: make-table1
-  | col1 | col2 | col3 |
-  |------+------+------|
-  |    5 |   25 |      |
-  |    6 |   30 |      |
-  |    7 |   35 |      |
-  |    8 |   40 |      |
-  |    9 |   45 |      |
-  |   10 |   50 |      |
-  |   11 |   55 |      |
-  |   12 |   60 |      |
-  |   13 |   65 |      |
-  |   14 |   70 |      |
-  |   15 |   75 |      |
-
-
-  We now can fill the third column by passing the table into the next
-  source block.  We force babel to treat the first row as table header
-  by using the *:colnames yes* header argument. This also causes the
-  result table to contain the headers (as long as the new table has the
-  same number of columns as the original table)
-
-  Here I also demonstrate the use of the *-n* option that will export
-  the code with line numbers.
-  
-  #+BEGIN_SRC emacs-lisp -n :results value :var tbl=table1 :colnames yes :exports both
-    (let (result)
-      (dolist (row tbl result)
-        (setf (nth 2 row) (* 2 (nth 1 row)))
-        (setq result (cons row result)))
-      (reverse result))
-  #+END_SRC
-
-  #+RESULTS:
-  | col1 | col2 | col3 |
-  |------+------+------|
-  |    5 |   25 |   50 |
-  |    6 |   30 |   60 |
-  |    7 |   35 |   70 |
-  |    8 |   40 |   80 |
-  |    9 |   45 |   90 |
-  |   10 |   50 |  100 |
-  |   11 |   55 |  110 |
-  |   12 |   60 |  120 |
-  |   13 |   65 |  130 |
-  |   14 |   70 |  140 |
-  |   15 |   75 |  150 |
+   #+TBLNAME: table1
+   #+RESULTS: make-table1
+   | col1 | col2 | col3 |
+   |------+------+------|
+   |    5 |   25 |      |
+   |    6 |   30 |      |
+   |    7 |   35 |      |
+   |    8 |   40 |      |
+   |    9 |   45 |      |
+   |   10 |   50 |      |
+   |   11 |   55 |      |
+   |   12 |   60 |      |
+   |   13 |   65 |      |
+   |   14 |   70 |      |
+   |   15 |   75 |      |
 
 
+   We now can fill the third column by passing the table into the next
+   source block.  We force babel to treat the first row as table header
+   by using the *:colnames yes* header argument. This also causes the
+   result table to contain the headers (as long as the new table has the
+   same number of columns as the original table)
 
-  It is possible to specify a sub-range for the table that is handed over through =:var=. But currently
-  it does not work well with the =:colnames yes= option, as the following example shows.
+   Here I also demonstrate the use of the *-n* option that will export
+   the code with line numbers.
 
-  #+BEGIN_SRC emacs-lisp -n :results value :var tbl=table1[4:8] :colnames yes :exports both
-    (let (result)
-      (dolist (row tbl result)
-        (setf (nth 2 row) (* 2 (nth 1 row)))
-        (setq result (cons row result)))
-      (reverse result))
-  #+END_SRC
+   #+BEGIN_SRC emacs-lisp -n :results value :var tbl=table1 :colnames yes :exports both
+     (let (result)
+       (dolist (row tbl result)
+         (setf (nth 2 row) (* 2 (nth 1 row)))
+         (setq result (cons row result)))
+       (reverse result))
+   #+END_SRC
 
-  #+RESULTS:
-  |  7 | 35 |     |
-  |----+----+-----|
-  |  8 | 40 |  80 |
-  |  9 | 45 |  90 |
-  | 10 | 50 | 100 |
-  | 11 | 55 | 110 |
+   #+RESULTS:
+   | col1 | col2 | col3 |
+   |------+------+------|
+   |    5 |   25 |   50 |
+   |    6 |   30 |   60 |
+   |    7 |   35 |   70 |
+   |    8 |   40 |   80 |
+   |    9 |   45 |   90 |
+   |   10 |   50 |  100 |
+   |   11 |   55 |  110 |
+   |   12 |   60 |  120 |
+   |   13 |   65 |  130 |
+   |   14 |   70 |  140 |
+   |   15 |   75 |  150 |
+
+** passing a sub-range
+   It is possible to specify a sub-range for the table that is handed over through =:var=. But currently
+   it does not work well with the =:colnames yes= option, as the following example shows.
+
+   #+BEGIN_SRC emacs-lisp -n :results value :var tbl=table1[4:8] :colnames yes :exports both
+     (let (result)
+       (dolist (row tbl result)
+         (setf (nth 2 row) (* 2 (nth 1 row)))
+         (setq result (cons row result)))
+       (reverse result))
+   #+END_SRC
+
+   #+RESULTS:
+   |  7 | 35 |     |
+   |----+----+-----|
+   |  8 | 40 |  80 |
+   |  9 | 45 |  90 |
+   | 10 | 50 | 100 |
+   | 11 | 55 | 110 |
+
+** Investigating how tables are passed to the src block
+
+   #+NAME: tableCheckConv
+   | col1 | col2 | col3        |
+   |------+------+-------------|
+   |   10 | str  | two strings |
+   | 20.5 | str2 | 2 strings   |
+
+   #+BEGIN_SRC emacs-lisp :results output :var tbl=tableCheckConv :colnames yes :exports both
+     (pp tbl)
+   #+END_SRC
+
+   #+RESULTS:
+   : ((10 "str" "two strings")
+   :  (20.5 "str2" "2 strings"))
+
+
+
+   Note that the =raw value= output of the source block does not yield
+   the same. It loses the string quotes of the single entries!
+   #+BEGIN_SRC emacs-lisp :results raw value :var tbl=tableCheckConv :colnames yes :exports both
+     tbl
+   #+END_SRC
+
+   #+RESULTS:
+   ((10 str two strings) (20 str2 2 strings))
 
 
 * calling source blocks as a function
@@ -146,6 +177,7 @@
    |   13 |   65 |  130 |
    |   14 |   70 |  140 |
    |   15 |   75 |  150 |
+
 ** simple call syntax using CALL
 
    We first define a function in a named code block called =mydouble=. The
@@ -176,7 +208,7 @@
    call. The ones added at the end influence the final result
    (e.g. putting it into a drawer), while the ones added in [] are
    evaluated in the context of the original definition (e.g whether to
-   capture the output).
+   capture the output or return a value).
    #+CALL: mydivide(12,3) :results value
 
    #+RESULTS:
@@ -188,8 +220,42 @@
 
    #+RESULTS:
    : 5
-
   
+** Naming an output table produced by a CALL
+
+   If the called function produces an output table that one wants to
+   use in subsequent function calls or in table formulas (using the
+   =remote= keyword) one can give the CALL a name utilizing the syntax
+   used for other org elements:
+  
+   #+NAME: new-make-table1
+   #+CALL: make-table1()
+
+   #+RESULTS: new-make-table1
+   |  5 | 25 |   |
+   |  6 | 30 |   |
+   |  7 | 35 |   |
+   |  8 | 40 |   |
+   |  9 | 45 |   |
+   | 10 | 50 |   |
+   | 11 | 55 |   |
+   | 12 | 60 |   |
+   | 13 | 65 |   |
+   | 14 | 70 |   |
+   | 15 | 75 |   |
+
+   #+RESULTS:
+   |  5 | 25 |   |
+   |  6 | 30 |   |
+   |  7 | 35 |   |
+   |  8 | 40 |   |
+   |  9 | 45 |   |
+   | 10 | 50 |   |
+   | 11 | 55 |   |
+   | 12 | 60 |   |
+   | 13 | 65 |   |
+   | 14 | 70 |   |
+   | 15 | 75 |   |
 
 * Inline src calls
 

@@ -291,7 +291,8 @@
   We produce an example table to work upon
   #+NAME: table1
   #+BEGIN_SRC elisp :results value :colnames y
-    (let ((countries '(CH D USA CN JP PL USA D PL CN CH)))
+    (let ((countries
+           (mapcar #'symbol-name '(CH D USA CN JP PL USA D PL CN CH))))
       (cl-loop for country1 in countries
                for country2 in (reverse countries)
                with counter = 0
@@ -330,7 +331,7 @@
   #+NAME: my-filter
   #+BEGIN_SRC elisp :var tbl=table1 val="USA" :colnames y
     (loop for row in tbl
-          if (equal (symbol-name (nth 3 row)) val)
+          if (equal (nth 3 row) val)
           collect row into newtbl
           finally return newtbl)
   #+END_SRC
@@ -341,9 +342,13 @@
   | row4 |    8 | JP   | USA  |   20 |
   | row8 |   16 | PL   | USA  |   40 |
 
+  Note that in the previous source block the input is actually coming from the re-evaluation
+  of the =table1= source block and not from the resulting table.
+
+  
   I can also use this function with the org-mode CALL syntax
 
-  #+CALL: my-filter(tbl=table1, val="CN") :colnames y
+  #+CALL: my-filter(tbl=table1, col=3, val="CN") :colnames y
 
   #+RESULTS:
   | col1 | col2 | col3 | col4 | col5 |
@@ -385,7 +390,6 @@
   | row3 |    6 | CN   | D    |   15 |
   | row7 |   14 | D    | CN   |   35 |
   | row9 |   18 | CN   | D    |   45 |
-
 
 * some other calc functions used in tables
 

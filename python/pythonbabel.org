@@ -407,7 +407,9 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
 
 * Sympy
 
-  I define a post-wrapping function for putting the results into the desired equation environment.
+  I define a post-wrapping function for putting the results into the desired equation environment for
+  LaTeX exporting.
+
   #+NAME: scrWrapEquation
   #+BEGIN_SRC sh :results output :exports source :var=outp
     cat <<EOF
