@@ -404,13 +404,6 @@
   | 200 | 30 |   4 |
   :END:
 
-  
-* Problems, Questions
-  - [ ] How can I produce an initial table by code that already has a
-    nicely separated (dashes) column name row? *:colnames yes* only produces
-    such a table heading if a table of the same dimension was read in by the
-    *:var* directive
-
 * COMMENT org babel settings
 
 Local variables:
