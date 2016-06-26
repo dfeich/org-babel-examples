@@ -36,6 +36,22 @@
 * Links and Documentation
   - http://orgmode.org/worg/org-contrib/babel/languages/ob-doc-python.html
 
+* Reading from an org table as input
+
+  #+NAME: tableA
+  | name  | tokns  |
+  |-------+--------|
+  | Peter |      4 |
+  | Paul  |      6 |
+  | Mary  |      8 |
+
+  #+BEGIN_SRC python :results output :var tbl=tableA
+  print tbl
+  #+END_SRC
+
+  #+RESULTS:
+  : [[u'Peter', 4], [u'Paul', 6], [u'Mary', 8]]
+
 * Generating tables as output
 
   Example 1:
@@ -490,69 +506,234 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
   : None
 
 * Unicode related problems in Org Babel
+** defining the src block coding system with a preamble
+   The coding system for the babel source block itself should be set
+   with a preamble like this (which actually python copied from the
+   Emacs way of doing things)
+   : :preamble "# -*- coding: utf-8 -*-"
+   You should not put the coding information as the first line in a
+   babel block, because you cannot be sure that it will end up
+   as the first line in the file that is executed. E.g. if you
+   define variables using =:var=, lines with these variable settings
+   will end up in front of the lines from the babel block. The
+   preamble is the safer option. This solution is mentioned on
+   [[http://orgmode.org/worg/org-contrib/babel/languages/ob-doc-python.html#orgheadline12][the Worg website]].
 
-  The terminal to which org babel writes output seems to be a dumb ASCII type
-  terminal. If one wants to print non-ASCII characters, the characteristics of
-  the output device must be defined using the =codecs= module.
+   Without the preamble the following src block would produce an error
+   : SyntaxError: Non-ASCII character '\xc3' in file <stdin> on line 1, but no encoding declared
   
-  #+BEGIN_SRC python :results output :exports both
-    # -*- coding: iso-8859-15 -*-
+   #+BEGIN_SRC python :results output :exports both :preamble "# -*- coding: utf-8 -*-"
+     a="äöü"
+     print a, 'len=', len(a)
 
-    # the above line is needed, so that python accepts the Umlauts
-    # in the following line
-    strg = u'Can we see Umlauts? äöü. And accents? éè.'
+   #+END_SRC  
 
+   #+RESULTS:
+   : äöü len= 6
+
+   As can be seen when looking at the strings length, there is more
+   going on then a naive look at input and output suggest. The passed
+   string is actually an utf-8 encoded bytestring with length 6 that
+   is correctly rendered upon output in Emacs.
+   
+** Stdout must be encoded as an ASCII stream
+   The stdout to which org babel writes expects an ASCII stream. If
+   one wants to print python unicode strings, the unicode strings must
+   get encoded using 'utf-8' encoding.
+
+   This is all a bit cumbersome but seems to be solved when only using python3.
+
+   #+BEGIN_SRC python :results output :exports both :preamble "# -*- coding: utf-8 -*-"
+     import sys
+     print 'default encoding is %s\n' % sys.getdefaultencoding()
+
+     strg = u'Can we see Umlauts? äöü. And accents? éè.'
+
+     try:
+         print strg
+     except:
+         print "Expected error printing unicode string to ascii stdout:\n", sys.exc_info()[0]
+
+     print '\nexplicit utf-8 encoding of the unicode string'
+     print strg.encode('utf-8')
+
+
+     import codecs
+     sys.stdout = codecs.getwriter('utf8')(sys.stdout)
+
+     print "\nSetting an encoder for all stdout output:\n", strg
+   #+END_SRC
+
+   #+RESULTS:
+   #+begin_example
+   default encoding is ascii
+
+   Expected error printing unicode string to ascii stdout:
+   <type 'exceptions.UnicodeEncodeError'>
+
+   explicit utf-8 encoding of the unicode string
+   Can we see Umlauts? äöü. And accents? éè.
+
+   Setting an encoder for all stdout output:
+   Can we see Umlauts? äöü. And accents? éè.
+   #+end_example
+
+   When the codec has been set using getwriter, it is no longer possible to
+   naively print the original bytestreams to stdout.
+   
+   #+BEGIN_SRC python :results output :exports both :preamble "# -*- coding: utf-8 -*-"
+     import sys
+
+     a = "äöü"
+     print a
+
+     import codecs
+     sys.stdout = codecs.getwriter('utf8')(sys.stdout)
+
+     print "After setting codec, I can print unicode strings:\n", a.decode('utf-8')
+
+     print "\nBut I can no longer naively print the original bytestring:"
+     try:
+         print a
+     except:
+         print "Expected error:\n", sys.exc_info()[0]
+         print sys.exc_info()[1]
+   #+END_SRC
+
+   #+RESULTS:
+   : äöü
+   : After setting codec, I can print unicode strings:
+   : äöü
+   : 
+   : But I can no longer naively print the original bytestring:
+   : Expected error:
+   : <type 'exceptions.UnicodeDecodeError'>
+   : 'ascii' codec can't decode byte 0xc3 in position 0: ordinal not in range(128)
+
+
+
+   Another possibility is to change the default encoding fromm ASCII
+   to utf-8 in sys, even though this is discouraged, since it requires
+   reloading sys.
+   #+BEGIN_SRC python :results output :exports both  :preamble "# -*- coding: utf-8 -*-"
+     import sys
+
+     strg = u'Can we see Umlauts? äöü. And accents? éè.'
+
+     print 'default encoding is now %s' % sys.getdefaultencoding()
+     try:
+         print strg
+     except:
+         print "Expected error:", sys.exc_info()[0]
+
+     print '\nexplicit encoding:\n', strg.encode('utf-8')
+
+     # THESE ARE THE RELEVANT LINES
+     reload(sys)  
+     sys.setdefaultencoding('utf8')
+
+     print '\ndefault encoding is now %s' % sys.getdefaultencoding()
+     print "Now it works:\n", strg
+
+   #+END_SRC
+
+   #+RESULTS:
+   : default encoding is now ascii
+   : Expected error: <type 'exceptions.UnicodeEncodeError'>
+   : 
+   : explicit encoding:
+   : Can we see Umlauts? äöü. And accents? éè.
+   : 
+   : default encoding is now utf8
+   : Now it works:
+   : Can we see Umlauts? äöü. And accents? éè.
+
+
+** passing in strings using the :var header argument (incl. tables)
+   #+BEGIN_SRC python :results output :var s="äöü"  :preamble "# -*- coding: utf-8 -*-"
+     import sys
+     print 'default encoding is %s' % sys.getdefaultencoding()
+
+     print "defined in header var: ", s, type(s), len(s)
+
+     b="äöü"
+     print "defined as byte string in src block: ", b, type(b), len (b)
+
+     c=u'äöü'
+     print 'defined as unicode in src block with explicit encoding: ',
+     print c.encode('utf-8'), type(c), len(c)
+
+     #+END_SRC
+
+   #+RESULTS:
+   : default encoding is now ascii
+   : defined in header var:  äöü <type 'str'> 6
+   : defined as byte string in src block:  äöü <type 'str'> 6
+   : defined as unicode in src block with explicit encoding:  äöü <type 'unicode'> 3
+
+
+  #+NAME: tableB
+  | name  | tokens |
+  |-------+--------|
+  | Peter |     14 |
+  | René  |     15 |
+  | Sämi  |     15 |
+  | Paul  |     16 |
+  | Mary  |     18 |
+
+  The strings in the table end up as utf-8 encoded bytestrings (type 'str'). The bytestrings
+  are correctly rendered when passed back to Emacs, but inside of the python code we
+  are dealing with the bytestrings. 
+
+  When they are explicitely converted to unicode strings with either
+  =item.decode('utf-8')= or =unicode(item, 'utf-8')= it is again necessary to
+  specify a codec that converts them to utf-8 encoded bytestrings that are expected
+  on stdout.
+
+  It is certainly cleaner to work with strings converted to unicode. E.g., as is shown below, the
+  length of a bytestring is often not equal to the length of characters in the string.
+  
+  #+BEGIN_SRC python :results output :var tbl=tableB  :preamble "# -*- coding: utf-8 -*-"
     import sys
 
-    try:
-        print strg
-    except:
-        print "Expected error:", sys.exc_info()[0]
+    for row in tbl:
+        print row[0], row[1]
+    print
+
+    print tbl
+    print
 
     import codecs
     sys.stdout = codecs.getwriter('utf8')(sys.stdout)
 
-    print "\nNow it works:\n", strg
-
+    for row in tbl:
+        for item in row:
+            if type(item) is str:
+                sys.stdout.write("len=%d ->  %s  len=%d  | " %
+                                 (len(item),
+                                  unicode(item,'utf-8'), len(unicode(item,'utf-8'))))
+            else:
+                sys.stdout.write("%d" % item)
+        sys.stdout.write("\n")
   #+END_SRC
 
   #+RESULTS:
-  : Expected error: <type 'exceptions.UnicodeEncodeError'>
-  : 
-  : Now it works:
-  : Can we see Umlauts? äöü. And accents? éè.
+  #+begin_example
+  Peter 14
+  René 15
+  Sämi 15
+  Paul 16
+  Mary 18
 
-  Another possibility is to change the default encoding, even
-  though this seems less clean, since it requires reloading sys.
-  #+BEGIN_SRC python :results output :exports both
-    # -*- coding: iso-8859-15 -*-
-    import sys
+  [['Peter', 14], ['Ren\xc3\xa9', 15], ['S\xc3\xa4mi', 15], ['Paul', 16], ['Mary', 18]]
 
-    strg = u'Can we see Umlauts? äöü. And accents? éè.'
-
-    print 'default encoding is now %s' % sys.getdefaultencoding()
-    try:
-        print strg
-    except:
-        print "Expected error:", sys.exc_info()[0]
-
-    # THESE ARE THE RELEVANT LINES
-    reload(sys)  
-    sys.setdefaultencoding('utf8')
-
-    print '\ndefault encoding is now %s' % sys.getdefaultencoding()
-    print "Now it works:\n", strg
-
-  #+END_SRC
-
-  #+RESULTS:
-  : default encoding is now ascii
-  : Expected error: <type 'exceptions.UnicodeEncodeError'>
-  : 
-  : default encoding is now utf8
-  : Now it works:
-  : Can we see Umlauts? äöü. And accents? éè.
-
+  len=5 ->  Peter  len=5  | 14
+  len=5 ->  René  len=4  | 15
+  len=5 ->  Sämi  len=4  | 15
+  len=4 ->  Paul  len=4  | 16
+  len=4 ->  Mary  len=4  | 18
+#+end_example
+  
   
 * COMMENT Environment setup and test
   #+BEGIN_SRC python :exports both :results value
