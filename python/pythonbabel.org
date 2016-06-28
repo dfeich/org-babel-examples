@@ -506,6 +506,105 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
   : None
 
 * Unicode related problems in Org Babel
+** some tests of stdout encoding for different use cases
+
+   Here, I am looking at the default encoding that is set on stdin and
+   stdout for a number of situations involving script execution in
+   a normal subprocess, in a shell, and to a pipe.
+
+   Running the commands in a shell environment
+
+   #+BEGIN_SRC python :session py1 :results output
+     import sys
+     print 'stdin encoding is ', sys.stdin.encoding, '| tty: ', sys.stdout.isatty()
+     print 'stdout encoding is ', sys.stdout.encoding,'| tty: ', sys.stdout.isatty()
+   #+END_SRC
+
+   #+RESULTS:
+   : 
+   : stdin encoding is  UTF-8 | tty:  True
+   : stdout encoding is  UTF-8 | tty:  True
+
+   Running them in a standard babel block
+
+   #+BEGIN_SRC python :results output :tangle /tmp/pyencode.py :preamble "# -*- coding: utf-8 -*-"
+     import sys
+     print 'stdin encoding is ', sys.stdin.encoding, '| tty: ', sys.stdout.isatty()
+     print 'stdout encoding is ', sys.stdout.encoding, '| tty: ', sys.stdout.isatty()
+   #+END_SRC
+
+   #+RESULTS:
+   : stdin encoding is  None | tty:  False
+   : stdout encoding is  None | tty:  False
+
+   I tangle the code and redo both experiments by invoking the resulting python
+   file.
+   #+BEGIN_SRC sh :results output
+     python /tmp/pyencode.py
+   #+END_SRC
+
+   #+RESULTS:
+   : stdin encoding is  None | tty:  False
+   : stdout encoding is  None | tty:  False
+
+   #+BEGIN_SRC sh :results output :session sh1
+     python /tmp/pyencode.py
+   #+END_SRC
+
+   #+RESULTS:
+   : stdin encoding is  UTF-8 | tty:  True
+   : stdout encoding is  UTF-8 | tty:  True
+
+   When piping into another command, the stdout encoding is set to None, even
+   though we are still in an interactive shell.
+   
+   #+BEGIN_SRC sh :results output :session sh1
+     python /tmp/pyencode.py | cat
+   #+END_SRC
+
+   #+RESULTS:
+   : stdin encoding is  UTF-8 | tty:  False
+   : stdout encoding is  None | tty:  False
+
+
+   Note: The stdout.encoding value tells what kind of encoded string
+   *is expected* on stdout, not what encoder is set when sending the
+   bytes towards stdout!
+   
+   Printing unicode to a stdout that has its encoding set to "None"
+   (=ASCII) leads to an error.
+   #+BEGIN_SRC python :results output :preamble "# -*- coding: utf-8 -*-" :tangle /tmp/pyencode4.py :shebang "# -*- coding: utf-8 -*-" 
+     import sys
+     try:
+         print u'äöü'
+     except:
+         print sys.exc_info()[0]
+   #+END_SRC
+
+   #+RESULTS:
+   : <type 'exceptions.UnicodeEncodeError'>
+
+   In an interactive shell session this works, because the stdout's encoding
+   is set to UTF-8.
+
+   #+BEGIN_SRC python :results output :session py1
+     print u'äöü'
+   #+END_SRC
+
+   #+RESULTS:
+   : äöü
+
+   But if we redirect to e.g. cat, then the stdout encoding of the
+   python script is set to 'None' as demonstrated above, and this leads to an
+   encoding error.
+
+   #+BEGIN_SRC sh :results output :session sh1
+     python /tmp/pyencode4.py | cat
+   #+END_SRC
+
+   #+RESULTS:
+   : 
+   : <type 'exceptions.UnicodeEncodeError'>
 ** defining the src block coding system with a preamble
    The coding system for the babel source block itself should be set
    with a preamble like this (which actually python copied from the
@@ -531,20 +630,22 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
    #+RESULTS:
    : äöü len= 6
 
-   As can be seen when looking at the strings length, there is more
-   going on then a naive look at input and output suggest. The passed
-   string is actually an utf-8 encoded bytestring with length 6 that
-   is correctly rendered upon output in Emacs.
+   As can be seen when looking at the string's length, there is more
+   going on then a naive look at input and output suggests. The
+   passed-in string is actually an utf-8 encoded bytestring with
+   length 6 that is correctly rendered upon output in Emacs.
    
-** Stdout must be encoded as an ASCII stream
+** Strings sent to stdout must be encoded to be correct ASCII
    The stdout to which org babel writes expects an ASCII stream. If
    one wants to print python unicode strings, the unicode strings must
-   get encoded using 'utf-8' encoding.
+   get encoded using 'utf-8' encoding, so that none of the bytes in the
+   string contain values > 127.
 
    This is all a bit cumbersome but seems to be solved when only using python3.
 
    #+BEGIN_SRC python :results output :exports both :preamble "# -*- coding: utf-8 -*-"
      import sys
+     print 'stdout encoding is ', sys.stdout.encoding
      print 'default encoding is %s\n' % sys.getdefaultencoding()
 
      strg = u'Can we see Umlauts? äöü. And accents? éè.'
@@ -566,6 +667,7 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
 
    #+RESULTS:
    #+begin_example
+   stdout encoding is  None
    default encoding is ascii
 
    Expected error printing unicode string to ascii stdout:
@@ -576,7 +678,7 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
 
    Setting an encoder for all stdout output:
    Can we see Umlauts? äöü. And accents? éè.
-   #+end_example
+#+end_example
 
    When the codec has been set using getwriter, it is no longer possible to
    naively print the original bytestreams to stdout.
@@ -648,7 +750,6 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
    : Now it works:
    : Can we see Umlauts? äöü. And accents? éè.
 
-
 ** passing in strings using the :var header argument (incl. tables)
    #+BEGIN_SRC python :results output :var s="äöü"  :preamble "# -*- coding: utf-8 -*-"
      import sys
@@ -671,20 +772,26 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
    : defined as byte string in src block:  äöü <type 'str'> 6
    : defined as unicode in src block with explicit encoding:  äöü <type 'unicode'> 3
 
+   
+   Let's look at passing a table into a babel block:
+   
+   #+NAME: tableB
+   | name  | tokens |
+   |-------+--------|
+   | Peter |     14 |
+   | René  |     15 |
+   | Sämi  |     15 |
+   | Paul  |     16 |
+   | Mary  |     18 |
 
-  #+NAME: tableB
-  | name  | tokens |
-  |-------+--------|
-  | Peter |     14 |
-  | René  |     15 |
-  | Sämi  |     15 |
-  | Paul  |     16 |
-  | Mary  |     18 |
+  The strings in the table end up as utf-8 encoded bytestrings (type
+  'str'). The bytestrings are correctly rendered when interpreted by
+  Emacs, but inside of the python code we are dealing with the
+  bytestrings.
 
-  The strings in the table end up as utf-8 encoded bytestrings (type 'str'). The bytestrings
-  are correctly rendered when passed back to Emacs, but inside of the python code we
-  are dealing with the bytestrings. 
-
+  Inside the following script, I convert the values to unicode.
+  To print unicode to the stdout (which here again by default
+  expects an ASCII string, because stdout.encoding is set to None)
   When they are explicitely converted to unicode strings with either
   =item.decode('utf-8')= or =unicode(item, 'utf-8')= it is again necessary to
   specify a codec that converts them to utf-8 encoded bytestrings that are expected
@@ -692,9 +799,14 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
 
   It is certainly cleaner to work with strings converted to unicode. E.g., as is shown below, the
   length of a bytestring is often not equal to the length of characters in the string.
+
+  I provide a simple function for the conversion.
   
   #+BEGIN_SRC python :results output :var tbl=tableB  :preamble "# -*- coding: utf-8 -*-"
     import sys
+
+    print 'stdout encoding is ', sys.stdout.encoding
+    print
 
     for row in tbl:
         print row[0], row[1]
@@ -709,16 +821,30 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
     for row in tbl:
         for item in row:
             if type(item) is str:
-                sys.stdout.write("len=%d ->  %s  len=%d  | " %
+                sys.stdout.write("str len=%d ->  %s  unicode len=%d  | " %
                                  (len(item),
                                   unicode(item,'utf-8'), len(unicode(item,'utf-8'))))
             else:
                 sys.stdout.write("%d" % item)
         sys.stdout.write("\n")
+
+    def orgtbl_to_unicode(tbl):
+        """convert all bytestring elements in a list to unicode strings"""
+        new=[]
+        for row in tbl:
+            new.append([i.decode('utf-8') if type(i) is str else i for i in row])
+        return new
+
+    print "\n", orgtbl_to_unicode(tbl), "\n"
+    for row in orgtbl_to_unicode(tbl):
+        print row[0], row[1]
+
   #+END_SRC
 
   #+RESULTS:
   #+begin_example
+  stdout encoding is  None
+
   Peter 14
   René 15
   Sämi 15
@@ -727,14 +853,23 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
 
   [['Peter', 14], ['Ren\xc3\xa9', 15], ['S\xc3\xa4mi', 15], ['Paul', 16], ['Mary', 18]]
 
-  len=5 ->  Peter  len=5  | 14
-  len=5 ->  René  len=4  | 15
-  len=5 ->  Sämi  len=4  | 15
-  len=4 ->  Paul  len=4  | 16
-  len=4 ->  Mary  len=4  | 18
+  str len=5 ->  Peter  unicode len=5  | 14
+  str len=5 ->  René  unicode len=4  | 15
+  str len=5 ->  Sämi  unicode len=4  | 15
+  str len=4 ->  Paul  unicode len=4  | 16
+  str len=4 ->  Mary  unicode len=4  | 18
+
+  [[u'Peter', 14], [u'Ren\xe9', 15], [u'S\xe4mi', 15], [u'Paul', 16], [u'Mary', 18]] 
+
+  Peter 14
+  René 15
+  Sämi 15
+  Paul 16
+  Mary 18
 #+end_example
-  
-  
+
+
+   
 * COMMENT Environment setup and test
   #+BEGIN_SRC python :exports both :results value
 import sys
@@ -761,5 +896,6 @@ options:
 Local Variables:
 org-confirm-babel-evaluate: nil
 org-export-babel-evaluate: nil
+org-babel-sh-command: "/bin/bash"
 End:
 
