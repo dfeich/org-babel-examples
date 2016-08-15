@@ -600,7 +600,7 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
 
    Running them in a standard babel block
 
-   #+BEGIN_SRC python :results output :tangle /tmp/pyencode.py :preamble "# -*- coding: utf-8 -*-"
+   #+BEGIN_SRC python :results output :tangle /tmp/pyencode.py :prologue "# -*- coding: utf-8 -*-"
      import sys
      print 'stdin encoding is ', sys.stdin.encoding, '| tty: ', sys.stdout.isatty()
      print 'stdout encoding is ', sys.stdout.encoding, '| tty: ', sys.stdout.isatty()
@@ -646,7 +646,7 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
    
    Printing unicode to a stdout that has its encoding set to "None"
    (=ASCII) leads to an error.
-   #+BEGIN_SRC python :results output :preamble "# -*- coding: utf-8 -*-" :tangle /tmp/pyencode4.py :shebang "# -*- coding: utf-8 -*-" 
+   #+BEGIN_SRC python :results output :prologue "# -*- coding: utf-8 -*-" :tangle /tmp/pyencode4.py :shebang "# -*- coding: utf-8 -*-" 
      import sys
      try:
          print u'äöü'
@@ -682,7 +682,7 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
    The coding system for the babel source block itself should be set
    with a preamble like this (which actually python copied from the
    Emacs way of doing things)
-   : :preamble "# -*- coding: utf-8 -*-"
+   : :prologue "# -*- coding: utf-8 -*-"
    You should not put the coding information as the first line in a
    babel block, because you cannot be sure that it will end up
    as the first line in the file that is executed. E.g. if you
@@ -694,7 +694,7 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
    Without the preamble the following src block would produce an error
    : SyntaxError: Non-ASCII character '\xc3' in file <stdin> on line 1, but no encoding declared
   
-   #+BEGIN_SRC python :results output :exports both :preamble "# -*- coding: utf-8 -*-"
+   #+BEGIN_SRC python :results output :exports both :prologue "# -*- coding: utf-8 -*-"
      a="äöü"
      print a, 'len=', len(a)
 
@@ -716,7 +716,7 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
 
    This is all a bit cumbersome but seems to be solved when only using python3.
 
-   #+BEGIN_SRC python :results output :exports both :preamble "# -*- coding: utf-8 -*-"
+   #+BEGIN_SRC python :results output :exports both :prologue "# -*- coding: utf-8 -*-"
      import sys
      print 'stdout encoding is ', sys.stdout.encoding
      print 'default encoding is %s\n' % sys.getdefaultencoding()
@@ -756,7 +756,7 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
    When the codec has been set using getwriter, it is no longer possible to
    naively print the original bytestreams to stdout.
    
-   #+BEGIN_SRC python :results output :exports both :preamble "# -*- coding: utf-8 -*-"
+   #+BEGIN_SRC python :results output :exports both :prologue "# -*- coding: utf-8 -*-"
      import sys
 
      a = "äöü"
@@ -790,7 +790,7 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
    Another possibility is to change the default encoding fromm ASCII
    to utf-8 in sys, even though this is discouraged, since it requires
    reloading sys.
-   #+BEGIN_SRC python :results output :exports both  :preamble "# -*- coding: utf-8 -*-"
+   #+BEGIN_SRC python :results output :exports both  :prologue "# -*- coding: utf-8 -*-"
      import sys
 
      strg = u'Can we see Umlauts? äöü. And accents? éè.'
@@ -825,7 +825,7 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
 
 ** passing in strings using the :var header argument (incl. tables)
 *** simple string arguments
-    #+BEGIN_SRC python :results output :var s="äöü"  :preamble "# -*- coding: utf-8 -*-"
+    #+BEGIN_SRC python :results output :var s="äöü"  :prologue "# -*- coding: utf-8 -*-"
       import sys
       print 'default encoding is %s' % sys.getdefaultencoding()
 
@@ -841,7 +841,7 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
       #+END_SRC
 
     #+RESULTS:
-    : default encoding is now ascii
+    : default encoding is ascii
     : defined in header var:  äöü <type 'str'> 6
     : defined as byte string in src block:  äöü <type 'str'> 6
     : defined as unicode in src block with explicit encoding:  äöü <type 'unicode'> 3
@@ -944,7 +944,7 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
 #+end_example
 
 
-   #+BEGIN_SRC python :results output :var tbl=tableB  :preamble "# -*- coding: utf-8 -*-" :colnames no :noweb yes
+   #+BEGIN_SRC python :results output :var tbl=tableB  :prologue "# -*- coding: utf-8 -*-" :colnames no :noweb yes
      import sys
      import pandas as pd
      from orgbabelhelper import *
@@ -1086,7 +1086,7 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
    |4|Paul|16|
    |5|Mary|18|
 
- #+end_example
+#+end_example
 
    
 * COMMENT Environment setup and test
