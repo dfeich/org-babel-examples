@@ -45,6 +45,9 @@
   | Paul  |      6 |
   | Mary  |      8 |
 
+
+  If no =:colnames= parameter is given, it is nil by default and the first line
+  above the header is interpreted as column name row that will be removed.
   #+BEGIN_SRC python :results output :var tbl=tableA
   print tbl
   #+END_SRC
@@ -52,6 +55,41 @@
   #+RESULTS:
   : [[u'Peter', 4], [u'Paul', 6], [u'Mary', 8]]
 
+  If one wants to retain the first row to be accessible by python, one
+  must explicitly pass =:colnames no=
+  #+BEGIN_SRC python :results output :var tbl=tableA :colnames no
+  print tbl
+  #+END_SRC
+
+  #+RESULTS:
+  : [['name', 'tokns'], ['Peter', 4], ['Paul', 6], ['Mary', 8]]
+  
+  Printing such a list of lists with =:results value= produces an org table.
+  #+BEGIN_SRC python :results value :var tbl=tableA
+  return tbl
+  #+END_SRC
+
+  #+RESULTS:
+  | Peter | 4 |
+  | Paul  | 6 |
+  | Mary  | 8 |
+
+  The column names from the first row of the original table can be
+  retained by giving the =:colnames yes= argument. This is handled
+  fully by the babel framework and python never sees the column
+  names.
+  #+BEGIN_SRC python :results value :var tbl=tableA :colnames yes
+  return tbl
+  #+END_SRC
+
+  #+RESULTS:
+  | name  | tokns |
+  |-------+-------|
+  | Peter |     4 |
+  | Paul  |     6 |
+  | Mary  |     8 |
+
+  
 * Generating tables as output
 
   Example 1:
@@ -182,24 +220,28 @@ return fname # return filename to org-mode
    line, and will put a horizontal line below it.
    
 #+NAME: dframeToOrg
-   #+BEGIN_SRC python :exports source
-  def dataFrameToOrgTbl(dframe, name=None, caption=None, attr=None, index=True,
-                        date_format=None, hlines=None):
-      if name:
-          print "#+NAME: %s" % name
+    #+BEGIN_SRC python :tangle orgbabelhelper.py :exports source
+  import datetime as dt
+  def dataframe_to_orgtable(dframe, name=None, caption=None, attr=None,
+                            index=True, date_format=None, hlines=None,
+                            encoding='ascii'):
+      """Returns a string containing the org table formatted data frame.
+      """
+      result=""
+      if attr:
+          result += "#+ATTR_LATEX: %s\n" % attr
 
       if caption:
-          print "#+CAPTION: %s" % caption
+          result += "#+CAPTION: %s\n" % caption
 
-      if attr:
-          print "#+ATTR_LATEX: %s" % attr
-
+      if name:
+          result += "#+NAME: %s\n" % name
 
       lines = '|' + dframe.to_csv(None, sep='|', line_terminator='|\n|',
-                                  encoding='utf-8', index=index, date_format=date_format).rstrip("|").rstrip("\n")
+                                  encoding=encoding, index=index, date_format=date_format).rstrip("|").rstrip("\n")
 
       hlines_tmp=[]
-      if hlines == None:
+      if hlines is None:
           hlines_tmp.append(1) # per default add a hl after the 1st line
       else:
           for hl in hlines:
@@ -210,8 +252,11 @@ return fname # return filename to org-mode
 
       for i,l in enumerate(lines.split('\n')):
           if i in hlines_tmp:
-              print "|-----"
-          print l
+              result +=  "|-----\n"
+          result += l
+          result += "\n"
+      return result
+
    #+END_SRC
 
    In the following source block, I demonstrate how to use the =noweb=
@@ -230,26 +275,28 @@ return fname # return filename to org-mode
                      'D' : np.random.randn(12),
                      'E' : np.random.randn(12)})
 
-    dataFrameToOrgTbl(df)
+    print dataframe_to_orgtable(df)
    #+END_SRC
 
    #+RESULTS:
    :RESULTS:
    |    | A     | B | C   |               D |               E |
    |----+-------+---+-----+-----------------+-----------------|
-   |  0 | one   | A | foo | -0.177492553046 | -0.374836967216 |
-   |  1 | one   | B | foo |  0.307372063379 |   1.30933334256 |
-   |  2 | two   | C | foo | -0.506459622617 |  -1.24683168285 |
-   |  3 | three | A | bar | -0.672410967263 |  -1.54583742192 |
-   |  4 | one   | B | bar |  0.148010312125 |   1.26706909082 |
-   |  5 | one   | C | bar |   0.96101584612 |  0.185088824718 |
-   |  6 | two   | A | foo |   -1.1184963973 | -0.688959136818 |
-   |  7 | three | B | foo |  0.302270097906 | -0.187694779632 |
-   |  8 | one   | C | foo |  -1.24775380532 | -0.372942271299 |
-   |  9 | one   | A | bar |  -1.39539099135 | 0.0619111727805 |
-   | 10 | two   | B | bar | -0.130769234691 |  -1.85543558128 |
-   | 11 | three | C | bar | -0.663429922864 |  0.474627019679 |
+   |  0 | one   | A | foo |  0.872240175214 |  -1.26398066625 |
+   |  1 | one   | B | foo |  0.136646800549 |   1.88453075108 |
+   |  2 | two   | C | foo | -0.910964312796 | -0.854016200892 |
+   |  3 | three | A | bar |  -1.50907891182 |   0.53869621734 |
+   |  4 | one   | B | bar |  0.306214005721 |   1.14299373134 |
+   |  5 | one   | C | bar |   1.64300512784 |   1.09119830819 |
+   |  6 | two   | A | foo |   1.02800078339 | -0.535545584301 |
+   |  7 | three | B | foo | -0.753293761747 |   2.57602543077 |
+   |  8 | one   | C | foo |  0.622858820185 |   1.42443847379 |
+   |  9 | one   | A | bar |  0.428105966677 | -0.295770935735 |
+   | 10 | two   | B | bar | -0.652006453975 |   2.78098534496 |
+   | 11 | three | C | bar | -0.103665330452 |   1.09577979596 |
+
    :END:
+
 
 
    The noweb syntax is mostly used in literate programing, where
@@ -313,11 +360,6 @@ return fname # return filename to org-mode
                      'E' : np.random.randn(12)})
 
     return(np.array(list(df.T.itertuples())).transpose()[1:])
-    #df.to_csv(sys.stdout, sep='|',line_terminator='|\n')
-    #return (df.to_string(col_space=5, justify='right',index=False))
-
-    # this is a good one
-    #print '|',(df.to_csv(None, sep='|', line_terminator='|\n|', encoding='utf-8'))
 
   #+END_SRC
 
@@ -420,6 +462,37 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
   2013-07-09 06:00:00    160          160    10
   2013-07-10 06:00:00    180          180    20
 #+end_example
+
+** Pie plot from table
+
+   Instead of the default percent labels in the pie sections, I use a lambda
+   function to put in the original values.
+
+   #+BEGIN_SRC python :results file :var tbl=tableA fname="pie-plot.png" :colnames no
+     import matplotlib
+     import matplotlib.pyplot as plt
+     import pandas as pd
+     import numpy as np
+     import seaborn
+
+     df = pd.DataFrame(tbl)
+     df.columns = df.iloc[0,:]
+     df = df.iloc[1:,:]
+     df.set_index('name', inplace=True)
+
+     dfsum = df['tokns'].sum()
+     df.plot(kind='pie',
+             y='tokns',
+             fontsize=20,
+             autopct=lambda v: int(np.round(v*dfsum/100, 0)),
+             figsize=(6,6))
+     plt.savefig(fname)
+     return fname
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:pie-plot.png]]
+
 
 * Sympy
 
@@ -751,123 +824,269 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
    : Can we see Umlauts? äöü. And accents? éè.
 
 ** passing in strings using the :var header argument (incl. tables)
-   #+BEGIN_SRC python :results output :var s="äöü"  :preamble "# -*- coding: utf-8 -*-"
+*** simple string arguments
+    #+BEGIN_SRC python :results output :var s="äöü"  :preamble "# -*- coding: utf-8 -*-"
+      import sys
+      print 'default encoding is %s' % sys.getdefaultencoding()
+
+      print "defined in header var: ", s, type(s), len(s)
+
+      b="äöü"
+      print "defined as byte string in src block: ", b, type(b), len (b)
+
+      c=u'äöü'
+      print 'defined as unicode in src block with explicit encoding: ',
+      print c.encode('utf-8'), type(c), len(c)
+
+      #+END_SRC
+
+    #+RESULTS:
+    : default encoding is now ascii
+    : defined in header var:  äöü <type 'str'> 6
+    : defined as byte string in src block:  äöü <type 'str'> 6
+    : defined as unicode in src block with explicit encoding:  äöü <type 'unicode'> 3
+
+
+*** passing in a table containing unicode strings
+    Let's look at passing a table into a babel block:
+   
+    #+NAME: tableB
+    | name  | tokens |
+    |-------+--------|
+    | Peter |     14 |
+    | René  |     15 |
+    | Sämi  |     15 |
+    | Paul  |     16 |
+    | Mary  |     18 |
+
+   The strings in the table end up as utf-8 encoded bytestrings (type
+   'str'). The bytestrings are correctly rendered when interpreted by
+   Emacs, but inside of the python code we are dealing with the
+   bytestrings.
+
+   Inside the following script, I convert the values to unicode.
+   To print unicode to the stdout (which here again by default
+   expects an ASCII string, because stdout.encoding is set to None)
+   When they are explicitely converted to unicode strings with either
+   =item.decode('utf-8')= or =unicode(item, 'utf-8')= it is again necessary to
+   specify a codec that converts them to utf-8 encoded bytestrings that are expected
+   on stdout.
+
+   It is certainly cleaner to work with strings converted to unicode. E.g., as is shown below, the
+   length of a bytestring is often not equal to the length of characters in the string.
+
+   I provide a simple function for the conversion.
+  
+   #+BEGIN_SRC python :results output :var tbl=tableB  :prologue "# -*- coding: utf-8 -*-"
      import sys
-     print 'default encoding is %s' % sys.getdefaultencoding()
 
-     print "defined in header var: ", s, type(s), len(s)
+     print 'stdout encoding is ', sys.stdout.encoding
+     print
 
-     b="äöü"
-     print "defined as byte string in src block: ", b, type(b), len (b)
+     for row in tbl:
+         print row[0], row[1]
+     print
 
-     c=u'äöü'
-     print 'defined as unicode in src block with explicit encoding: ',
-     print c.encode('utf-8'), type(c), len(c)
+     print tbl
+     print
 
-     #+END_SRC
+     import codecs
+     sys.stdout = codecs.getwriter('utf8')(sys.stdout)
+
+     for row in tbl:
+         for item in row:
+             if type(item) is str:
+                 sys.stdout.write("str len=%d ->  %s  unicode len=%d  | " %
+                                  (len(item),
+                                   unicode(item,'utf-8'), len(unicode(item,'utf-8'))))
+             else:
+                 sys.stdout.write("%d" % item)
+         sys.stdout.write("\n")
+
+     def orgtbl_to_unicode(tbl):
+         """convert all bytestring elements in a list to unicode strings"""
+         new=[]
+         for row in tbl:
+             new.append([i.decode('utf-8') if type(i) is str else i for i in row])
+         return new
+
+     print "\n", orgtbl_to_unicode(tbl), "\n"
+     for row in orgtbl_to_unicode(tbl):
+         print row[0], row[1]
+
+   #+END_SRC
 
    #+RESULTS:
-   : default encoding is now ascii
-   : defined in header var:  äöü <type 'str'> 6
-   : defined as byte string in src block:  äöü <type 'str'> 6
-   : defined as unicode in src block with explicit encoding:  äöü <type 'unicode'> 3
+   #+begin_example
+   stdout encoding is  None
 
-   
-   Let's look at passing a table into a babel block:
-   
-   #+NAME: tableB
-   | name  | tokens |
-   |-------+--------|
-   | Peter |     14 |
-   | René  |     15 |
-   | Sämi  |     15 |
-   | Paul  |     16 |
-   | Mary  |     18 |
+   Peter 14
+   René 15
+   Sämi 15
+   Paul 16
+   Mary 18
 
-  The strings in the table end up as utf-8 encoded bytestrings (type
-  'str'). The bytestrings are correctly rendered when interpreted by
-  Emacs, but inside of the python code we are dealing with the
-  bytestrings.
+   [['Peter', 14], ['Ren\xc3\xa9', 15], ['S\xc3\xa4mi', 15], ['Paul', 16], ['Mary', 18]]
 
-  Inside the following script, I convert the values to unicode.
-  To print unicode to the stdout (which here again by default
-  expects an ASCII string, because stdout.encoding is set to None)
-  When they are explicitely converted to unicode strings with either
-  =item.decode('utf-8')= or =unicode(item, 'utf-8')= it is again necessary to
-  specify a codec that converts them to utf-8 encoded bytestrings that are expected
-  on stdout.
+   str len=5 ->  Peter  unicode len=5  | 14
+   str len=5 ->  René  unicode len=4  | 15
+   str len=5 ->  Sämi  unicode len=4  | 15
+   str len=4 ->  Paul  unicode len=4  | 16
+   str len=4 ->  Mary  unicode len=4  | 18
 
-  It is certainly cleaner to work with strings converted to unicode. E.g., as is shown below, the
-  length of a bytestring is often not equal to the length of characters in the string.
+   [[u'Peter', 14], [u'Ren\xe9', 15], [u'S\xe4mi', 15], [u'Paul', 16], [u'Mary', 18]] 
 
-  I provide a simple function for the conversion.
-  
-  #+BEGIN_SRC python :results output :var tbl=tableB  :preamble "# -*- coding: utf-8 -*-"
-    import sys
-
-    print 'stdout encoding is ', sys.stdout.encoding
-    print
-
-    for row in tbl:
-        print row[0], row[1]
-    print
-
-    print tbl
-    print
-
-    import codecs
-    sys.stdout = codecs.getwriter('utf8')(sys.stdout)
-
-    for row in tbl:
-        for item in row:
-            if type(item) is str:
-                sys.stdout.write("str len=%d ->  %s  unicode len=%d  | " %
-                                 (len(item),
-                                  unicode(item,'utf-8'), len(unicode(item,'utf-8'))))
-            else:
-                sys.stdout.write("%d" % item)
-        sys.stdout.write("\n")
-
-    def orgtbl_to_unicode(tbl):
-        """convert all bytestring elements in a list to unicode strings"""
-        new=[]
-        for row in tbl:
-            new.append([i.decode('utf-8') if type(i) is str else i for i in row])
-        return new
-
-    print "\n", orgtbl_to_unicode(tbl), "\n"
-    for row in orgtbl_to_unicode(tbl):
-        print row[0], row[1]
-
-  #+END_SRC
-
-  #+RESULTS:
-  #+begin_example
-  stdout encoding is  None
-
-  Peter 14
-  René 15
-  Sämi 15
-  Paul 16
-  Mary 18
-
-  [['Peter', 14], ['Ren\xc3\xa9', 15], ['S\xc3\xa4mi', 15], ['Paul', 16], ['Mary', 18]]
-
-  str len=5 ->  Peter  unicode len=5  | 14
-  str len=5 ->  René  unicode len=4  | 15
-  str len=5 ->  Sämi  unicode len=4  | 15
-  str len=4 ->  Paul  unicode len=4  | 16
-  str len=4 ->  Mary  unicode len=4  | 18
-
-  [[u'Peter', 14], [u'Ren\xe9', 15], [u'S\xe4mi', 15], [u'Paul', 16], [u'Mary', 18]] 
-
-  Peter 14
-  René 15
-  Sämi 15
-  Paul 16
-  Mary 18
+   Peter 14
+   René 15
+   Sämi 15
+   Paul 16
+   Mary 18
 #+end_example
 
+
+   #+BEGIN_SRC python :results output :var tbl=tableB  :preamble "# -*- coding: utf-8 -*-" :colnames no :noweb yes
+     import sys
+     import pandas as pd
+     from orgbabelhelper import *
+
+     def orgtbl_to_unicode(tbl):
+         """convert all bytestring elements in a list to unicode strings"""
+         new=[]
+         for row in tbl:
+             new.append([i.decode('utf-8') if type(i) is str else i for i in row])
+         return new
+
+     print 'stdout encoding is ', sys.stdout.encoding
+     print
+
+     df = pd.DataFrame(tbl)
+     df.columns = df.iloc[0,:]
+     df = df.iloc[1:,:]
+
+     print 'printing the bytestring dataframe fields may render correct, but the len'
+     print 'of the fields proves that the character count is wrong:'
+     for n in df['name']:
+         print n, type(n), "len: %d" % len(n)
+     print
+
+     print df
+     print
+
+     print "We prepare a unicode encoded data frame"
+     df_unicode = pd.DataFrame(orgtbl_to_unicode(tbl))
+     df_unicode.columns = df_unicode.iloc[0,:]
+     df_unicode = df_unicode.iloc[1:,:]
+
+     print 'printing this directly seems to work due to pandas being smart'
+     print df_unicode
+
+
+     print 'printing the utf-8 encoded fields of the unicode frame:'
+     for n in df_unicode['name']:
+         print n.encode('utf-8'), type(n), "len: %d" % len(n)
+     print
+
+     print 'the data frame can be printed when converted to utf-8'
+     print dataframe_to_orgtable(df_unicode, encoding='utf-8')
+
+     #################################################
+
+     print "\n\n---other approach----\nwe configure a UTF-8 writer codec for stdout"
+     import codecs
+     sys.stdout = codecs.getwriter('utf8')(sys.stdout)
+
+     print "The writer expects unicode strings and will "
+     print "   convert everything written to stdout to utf8"
+
+     print "\nnaively printing the dataset containing the bytestrings does not work anymore:"
+     try:
+         print df
+     except:
+         print "Expected error:", sys.exc_info()[0]
+
+
+     print "\nfor some reason directly printing the unicode data frame also fails:"
+     try:
+         print df_unicode
+     except:
+         print "Expected error:", sys.exc_info()[0]
+
+     print "Our library dataframe_to_orgtable function produces a bytestring"
+     df_str = dataframe_to_orgtable(df_unicode, encoding='utf-8')
+     # the result is a utf-8 encoded byte string
+     #print type(df_str)
+
+     print "that can be printed with the defined utf-8 writer, if one again makes it unicode again"
+     print unicode(df_str,'utf-8')
+
+   #+END_SRC
+
+   #+RESULTS:
+   #+begin_example
+   stdout encoding is  None
+
+   printing the bytestring dataframe fields may render correct, but the len
+   of the fields proves that the character count is wrong:
+   Peter <type 'str'> len: 5
+   René <type 'str'> len: 5
+   Sämi <type 'str'> len: 5
+   Paul <type 'str'> len: 4
+   Mary <type 'str'> len: 4
+
+   0   name tokens
+   1  Peter     14
+   2   René     15
+   3   Sämi     15
+   4   Paul     16
+   5   Mary     18
+
+   We prepare a unicode encoded data frame
+   printing this directly seems to work due to pandas being smart
+   0   name tokens
+   1  Peter     14
+   2   René     15
+   3   Sämi     15
+   4   Paul     16
+   5   Mary     18
+   printing the utf-8 encoded fields of the unicode frame:
+   Peter <type 'unicode'> len: 5
+   René <type 'unicode'> len: 4
+   Sämi <type 'unicode'> len: 4
+   Paul <type 'unicode'> len: 4
+   Mary <type 'unicode'> len: 4
+
+   the data frame can be printed when converted to utf-8
+   ||name|tokens|
+   |-----
+   |1|Peter|14|
+   |2|René|15|
+   |3|Sämi|15|
+   |4|Paul|16|
+   |5|Mary|18|
+
+
+
+   ---other approach----
+   we configure a UTF-8 writer codec for stdout
+   The writer expects unicode strings and will 
+      convert everything written to stdout to utf8
+
+   naively printing the dataset containing the bytestrings does not work anymore:
+   Expected error: <type 'exceptions.UnicodeDecodeError'>
+
+   for some reason directly printing the unicode data frame also fails:
+   Expected error: <type 'exceptions.UnicodeDecodeError'>
+   Our library dataframe_to_orgtable function produces a bytestring
+   that can be printed with the defined utf-8 writer, if one again makes it unicode again
+   ||name|tokens|
+   |-----
+   |1|Peter|14|
+   |2|René|15|
+   |3|Sämi|15|
+   |4|Paul|16|
+   |5|Mary|18|
+
+ #+end_example
 
    
 * COMMENT Environment setup and test
@@ -894,6 +1113,7 @@ options:
 # org-babel-python-command: "/home/dfeich/py-virtualenv/notebook/bin/python"
 
 Local Variables:
+org-babel-after-execute-hook: (lambda () (org-display-inline-images nil t) (org-redisplay-inline-images))
 org-confirm-babel-evaluate: nil
 org-export-babel-evaluate: nil
 org-babel-sh-command: "/bin/bash"
