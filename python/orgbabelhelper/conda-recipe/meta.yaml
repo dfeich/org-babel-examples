@@ -1,0 +1,18 @@
+package:
+  name: orgbabelhelper
+  version: "1.0.1"
+
+source:
+  path: ../
+  
+requirements:
+  build:
+    - python
+    - setuptools
+    - pandas
+  run:
+    - python
+  
+about:
+  license: GPLv2
+  summary: 'python helper module for Emacs org mode babel'

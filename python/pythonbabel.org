@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #+TITLE: python org-babel exporting
 # #+DATE: <2013-07-10 Wed>
 #+AUTHOR: Derek Feichtinger
@@ -35,6 +36,130 @@
 
 * Links and Documentation
   - http://orgmode.org/worg/org-contrib/babel/languages/ob-doc-python.html
+
+* Python helper module orgbabelhelper.py
+  In order to work easier with python code blocks, I will define a
+  number of functions within this org file which get tangled into
+  a helper library.
+
+  The conda package can be downloaded from my channel at
+  https://anaconda.org/dfeich/orgbabelhelper
+
+** COMMENT Idea for filtering tangled code
+   In order to have completion while working on a source code block,
+   the completion mechanism needs to know about the imported
+   modules, so one would like to put them into the code block. But
+   if one tangles the blocks together, this results in library imports
+   being redundantly dispered throughout the resulting file.
+
+   I want to declare the needed modules within the block,
+   but filter them out when tangling (using
+   =org-babel-tangle-body-hook=) or exporting (using
+   =org-export-filter-src-block-functions=) based on tags placed around
+   the lines to be removed.
+
+   Here is an implementation:
+
+   #+BEGIN_SRC elisp
+     (defun dfeich/remove-lines-between-matches (startpat endpat)
+       (goto-char (point-min))
+       (let ((beg (if (search-forward-regexp startpat nil t)
+                      (progn (goto-char (match-beginning 0))
+                             (forward-line 0)
+                             (point))
+                    nil))
+             (end (if (search-forward-regexp endpat nil t)
+                      (progn (goto-char (match-beginning 0))
+                             (forward-line 1)
+                             (point))
+                    (match-beginning 0)
+                    nil)))
+         ;;(message "debug:   beg: %s  end: %s" beg end)
+         (if (and beg end)
+             (delete-region beg end)))
+       )
+
+     (defun dfeich/filter-tangled-src-block ()
+       (dfeich/remove-lines-between-matches ".*NOTANGLE-START.*" ".*NOTANGLE-END.*"))
+
+     (add-hook 'org-babel-tangle-body-hook 'dfeich/filter-tangled-src-block)
+   #+END_SRC
+
+   #+RESULTS:
+   | dfeich/filter-tangled-src-block |
+
+   A more advanced idea for python may be that import statements for
+   tangled blocks will be collected into a head section of the tangled
+   file (need to sort out doubles).
+
+** basic package setup
+
+   #+BEGIN_SRC python :tangle orgbabelhelper/orgbabelhelper/__init__.py
+     ######################################################################
+     # orgbabelhelper.py
+     #
+     # Author: Derek Feichtinger <derek.feichtinger@psi.ch>
+     #
+     ######################################################################
+     from orgbabelhelper import *
+
+   #+END_SRC
+
+
+   #+BEGIN_SRC python :tangle orgbabelhelper/setup.py
+     # we use the distribute framework that has a backward compatible invocation
+     # to the setuptools
+     from setuptools import setup
+
+     setup(
+         name = "orgbabelhelper",
+         version = "1.0.1",
+         description = "python helper module for Emacs org mode babel",
+         long_description = "python helper module for working with Emacs"
+         + " org babel source blocks",
+         author = "Derek Feichtinger",
+         author_email = "dfeich@gmail.com",
+         license = "GPL",
+         url = "https://github.com/dfeich/org-babel-examples/tree/master/python",
+         packages = ['orgbabelhelper'],
+
+         install_requires = ['pandas']
+     )
+   #+END_SRC
+   
+** module imports for orgbabelhelper.py
+
+   #+BEGIN_SRC python :tangle orgbabelhelper/orgbabelhelper/orgbabelhelper.py
+     ######################################################################
+     # orgbabelhelper.py
+     #
+     # Author: Derek Feichtinger <derek.feichtinger@psi.ch>
+     #
+     ######################################################################
+
+     """ This module provides a number of functions for passing informations between
+     the org document and python source code blocks."""
+
+     import pandas as pd
+     import datetime as dt
+
+   #+END_SRC
+
+** building the conda package
+
+   Building a conda package
+   #+BEGIN_SRC sh :results output
+     cd orgbabelhelper
+     conda build conda-recipe &> conda-build.out
+     if test $? -eq 0; then
+         echo "Build OK"
+     else
+         echo "Build FAILED. investigate conda-build.out"
+     fi
+   #+END_SRC
+
+   #+RESULTS:
+   : Build OK
 
 * Reading from an org table as input
 
@@ -88,7 +213,6 @@
   | Peter |     4 |
   | Paul  |     6 |
   | Mary  |     8 |
-
   
 * Generating tables as output
 
@@ -212,6 +336,65 @@ return fname # return filename to org-mode
 [[file:python-matplot-fig2.png]]
 
 * Pandas
+** Reading in a data frame with the column names
+   #+BEGIN_SRC python :tangle orgbabelhelper/orgbabelhelper/orgbabelhelper.py
+     # NOTANGLE-START
+     import pandas as pd
+     # NOTANGLE-END
+
+     def orgtable_to_dataframe(tbl, index=None):
+         """Read an org table into a data frame. Make sure you use ':colnames no'
+         in your src block headers. Else the first row containing the column names
+         will not be available to the python code."""
+         df = pd.DataFrame(tbl)
+         df.columns = df.iloc[0,:]
+         df = df.iloc[1:,:]
+         df.columns.name = ""
+
+         if index in df.columns:
+             df.set_index(index, inplace=True)
+         elif type(index) is int:
+             df.set_index(df.columns[index], inplace=True)
+
+         return df
+   #+END_SRC
+
+   #+RESULTS:
+   : None
+
+   Here, I am importing the orgbabelhelper package that is built from the tangled
+   code blocks.
+   
+   #+BEGIN_SRC python :results output :var tbl=tableA :colnames no
+     import orgbabelhelper as obh
+     print obh.orgtable_to_dataframe(tbl)
+     print
+     print obh.orgtable_to_dataframe(tbl,'name')
+     print
+     print obh.orgtable_to_dataframe(tbl,1)
+
+   #+END_SRC
+
+   #+RESULTS:
+   #+begin_example
+       name tokns
+   1  Peter     4
+   2   Paul     6
+   3   Mary     8
+
+	 tokns
+   name       
+   Peter     4
+   Paul      6
+   Mary      8
+
+	   name
+   tokns       
+   4      Peter
+   6       Paul
+   8       Mary
+#+end_example
+
 ** printing a data frame as a table (and noweb block inclusion)
 
    I define a function in a named src block with name =dframeToOrg=.
@@ -220,8 +403,11 @@ return fname # return filename to org-mode
    line, and will put a horizontal line below it.
    
 #+NAME: dframeToOrg
-    #+BEGIN_SRC python :tangle orgbabelhelper.py :exports source
+    #+BEGIN_SRC python :tangle orgbabelhelper/orgbabelhelper/orgbabelhelper.py :exports source
+  # NOTANGLE-START
   import datetime as dt
+  # NOTANGLE-END
+
   def dataframe_to_orgtable(dframe, name=None, caption=None, attr=None,
                             index=True, date_format=None, hlines=None,
                             encoding='ascii'):
@@ -263,6 +449,8 @@ return fname # return filename to org-mode
    syntax of including a named block within another, by referring to
    our DataFrame printing block by =<<dframeToOrg>>=
 
+   Naturally, I could also have used the =import orgbabelhelper as obh= as above.
+   
    #+BEGIN_SRC python :results output raw drawer :noweb yes :exports both
     import pandas as pd
     import numpy as np
@@ -424,6 +612,34 @@ insert language specific commenting to keep the code functional.
   #+RESULTS:
   [[file:python-matplot-fig3.png]]
 
+** Pie plot from table
+
+   Instead of the default percent labels in the pie sections, I use a lambda
+   function to put in the original values.
+   
+   #+BEGIN_SRC python :results file :var tbl=tableA fname="pie-plot.png" :colnames no
+     import matplotlib
+     import matplotlib.pyplot as plt
+     import pandas as pd
+     import numpy as np
+     import seaborn
+     import orgbabelhelper as obh
+
+     df = obh.orgtable_to_dataframe(tbl,'name')
+
+     dfsum = df['tokns'].sum()
+     df.plot(kind='pie',
+             y='tokns',
+             fontsize=20,
+             autopct=lambda v: int(np.round(v*dfsum/100, 0)),
+             figsize=(6,6))
+     plt.savefig(fname)
+     return fname
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:pie-plot.png]]
+
 ** time series resampling
 
   Let's say we are taking measurements twice a day, every 12h.
@@ -462,36 +678,6 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
   2013-07-09 06:00:00    160          160    10
   2013-07-10 06:00:00    180          180    20
 #+end_example
-
-** Pie plot from table
-
-   Instead of the default percent labels in the pie sections, I use a lambda
-   function to put in the original values.
-
-   #+BEGIN_SRC python :results file :var tbl=tableA fname="pie-plot.png" :colnames no
-     import matplotlib
-     import matplotlib.pyplot as plt
-     import pandas as pd
-     import numpy as np
-     import seaborn
-
-     df = pd.DataFrame(tbl)
-     df.columns = df.iloc[0,:]
-     df = df.iloc[1:,:]
-     df.set_index('name', inplace=True)
-
-     dfsum = df['tokns'].sum()
-     df.plot(kind='pie',
-             y='tokns',
-             fontsize=20,
-             autopct=lambda v: int(np.round(v*dfsum/100, 0)),
-             figsize=(6,6))
-     plt.savefig(fname)
-     return fname
-   #+END_SRC
-
-   #+RESULTS:
-   [[file:pie-plot.png]]
 
 
 * Sympy
@@ -678,9 +864,9 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
    #+RESULTS:
    : 
    : <type 'exceptions.UnicodeEncodeError'>
-** defining the src block coding system with a preamble
+** defining the src block coding system with a prologue
    The coding system for the babel source block itself should be set
-   with a preamble like this (which actually python copied from the
+   with a prologue like this (which actually python copied from the
    Emacs way of doing things)
    : :prologue "# -*- coding: utf-8 -*-"
    You should not put the coding information as the first line in a
@@ -823,7 +1009,7 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
    : Now it works:
    : Can we see Umlauts? äöü. And accents? éè.
 
-** passing in strings using the :var header argument (incl. tables)
+** passing data into the source block using the :var header argument
 *** simple string arguments
     #+BEGIN_SRC python :results output :var s="äöü"  :prologue "# -*- coding: utf-8 -*-"
       import sys
@@ -876,9 +1062,24 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
    length of a bytestring is often not equal to the length of characters in the string.
 
    I provide a simple function for the conversion.
-  
-   #+BEGIN_SRC python :results output :var tbl=tableB  :prologue "# -*- coding: utf-8 -*-"
+
+   #+NAME: src_orgtable_to_unicode
+   #+BEGIN_SRC python :tangle orgbabelhelper/orgbabelhelper/orgbabelhelper.py
+          def orgtable_to_unicode(tbl):
+              """convert all bytestring elements in a list to unicode strings"""
+              new=[]
+              for row in tbl:
+                  new.append([i.decode('utf-8') if type(i) is str else i for i in row])
+              return new
+
+   #+END_SRC
+
+   Using noweb syntax to read in the previous code block
+   
+   #+BEGIN_SRC python :results output :var tbl=tableB  :prologue "# -*- coding: utf-8 -*-" :noweb yes
      import sys
+
+     <<src_orgtable_to_unicode>>
 
      print 'stdout encoding is ', sys.stdout.encoding
      print
@@ -903,15 +1104,8 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
                  sys.stdout.write("%d" % item)
          sys.stdout.write("\n")
 
-     def orgtbl_to_unicode(tbl):
-         """convert all bytestring elements in a list to unicode strings"""
-         new=[]
-         for row in tbl:
-             new.append([i.decode('utf-8') if type(i) is str else i for i in row])
-         return new
-
-     print "\n", orgtbl_to_unicode(tbl), "\n"
-     for row in orgtbl_to_unicode(tbl):
+     print "\n", orgtable_to_unicode(tbl), "\n"
+     for row in orgtable_to_unicode(tbl):
          print row[0], row[1]
 
    #+END_SRC
@@ -944,24 +1138,16 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
 #+end_example
 
 
+*** passing in a table for a data frame in pandas
    #+BEGIN_SRC python :results output :var tbl=tableB  :prologue "# -*- coding: utf-8 -*-" :colnames no :noweb yes
      import sys
      import pandas as pd
-     from orgbabelhelper import *
-
-     def orgtbl_to_unicode(tbl):
-         """convert all bytestring elements in a list to unicode strings"""
-         new=[]
-         for row in tbl:
-             new.append([i.decode('utf-8') if type(i) is str else i for i in row])
-         return new
+     import orgbabelhelper as obh
 
      print 'stdout encoding is ', sys.stdout.encoding
      print
 
-     df = pd.DataFrame(tbl)
-     df.columns = df.iloc[0,:]
-     df = df.iloc[1:,:]
+     df = obh.orgtable_to_dataframe(tbl)
 
      print 'printing the bytestring dataframe fields may render correct, but the len'
      print 'of the fields proves that the character count is wrong:'
@@ -973,7 +1159,7 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
      print
 
      print "We prepare a unicode encoded data frame"
-     df_unicode = pd.DataFrame(orgtbl_to_unicode(tbl))
+     df_unicode = pd.DataFrame(obh.orgtable_to_unicode(tbl))
      df_unicode.columns = df_unicode.iloc[0,:]
      df_unicode = df_unicode.iloc[1:,:]
 
@@ -987,7 +1173,7 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
      print
 
      print 'the data frame can be printed when converted to utf-8'
-     print dataframe_to_orgtable(df_unicode, encoding='utf-8')
+     print obh.dataframe_to_orgtable(df_unicode, encoding='utf-8')
 
      #################################################
 
@@ -1012,7 +1198,7 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
          print "Expected error:", sys.exc_info()[0]
 
      print "Our library dataframe_to_orgtable function produces a bytestring"
-     df_str = dataframe_to_orgtable(df_unicode, encoding='utf-8')
+     df_str = obh.dataframe_to_orgtable(df_unicode, encoding='utf-8')
      # the result is a utf-8 encoded byte string
      #print type(df_str)
 
@@ -1033,7 +1219,7 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
    Paul <type 'str'> len: 4
    Mary <type 'str'> len: 4
 
-   0   name tokens
+       name tokens
    1  Peter     14
    2   René     15
    3   Sämi     15
@@ -1098,7 +1284,7 @@ return(sys.executable)
   #+END_SRC
 
   #+RESULTS:
-  : /home/dfeich/py-virtualenv/notebook/bin/python
+  : /opt/anaconda/python2.7/bin/python
 
 These definitions are necessary for having babel use the correct
 virtual environment
