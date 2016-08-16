@@ -94,6 +94,8 @@
 
 ** basic package setup
 
+   Package init file:
+   
    #+BEGIN_SRC python :tangle orgbabelhelper/orgbabelhelper/__init__.py
      ######################################################################
      # orgbabelhelper.py
@@ -105,6 +107,7 @@
 
    #+END_SRC
 
+   Setup.py file:
 
    #+BEGIN_SRC python :tangle orgbabelhelper/setup.py
      # we use the distribute framework that has a backward compatible invocation
@@ -113,7 +116,7 @@
 
      setup(
          name = "orgbabelhelper",
-         version = "1.0.1",
+         version = "1.0.2",
          description = "python helper module for Emacs org mode babel",
          long_description = "python helper module for working with Emacs"
          + " org babel source blocks",
@@ -142,6 +145,7 @@
 
      import pandas as pd
      import datetime as dt
+     import re
 
    #+END_SRC
 
@@ -679,7 +683,6 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
   2013-07-10 06:00:00    180          180    20
 #+end_example
 
-
 * Sympy
 
   I define a post-wrapping function for putting the results into the desired equation environment for
@@ -764,6 +767,51 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
   : ⌡     
   : None
 
+* Dates
+
+  #+NAME: src_orgdate_to_date
+  #+BEGIN_SRC python :tangle orgbabelhelper/orgbabelhelper/orgbabelhelper.py
+    # NOTANGLE-START
+    import re
+    import datetime as dt
+    # NOTANGLE-END
+
+    def orgdate_to_date(datestr):
+        "Returns a python datetime for the org date given in datestr"
+        if re.match(r'^ *$', datestr):
+            return ''
+
+        #m = re.match(r'^\[(\d+-\d+-\d+) +[a-zA-Z]{3}\]$', datestr)
+        m = re.match(r'^[\[<](\d+-\d+-\d+) +[a-zA-Z]{3}[\]>]$', datestr)
+        if not m:
+            raise ValueError("Input String is not a date: >%s<" % datestr)
+
+        return dt.datetime.strptime(m.group(1), '%Y-%m-%d').date()
+
+    def date_to_orgdate(date, active=False):
+        orgstr = date.strftime("%Y-%m-%d %a")
+        if active:
+            return "<%s>" % orgstr
+        return "[%s]" % orgstr
+
+  #+END_SRC
+
+  #+BEGIN_SRC python :results output :noweb yes
+    <<src_orgdate_to_date>>
+
+    print orgdate_to_date('[2016-08-16 Tue]')
+    print orgdate_to_date('<2016-08-17 Tue>')
+    print date_to_orgdate(dt.datetime(2016,8,18))
+    print date_to_orgdate(dt.datetime(2016,8,18), active=True)
+  #+END_SRC
+
+  #+RESULTS:
+  : 2016-08-16
+  : 2016-08-17
+  : [2016-08-18 Thu]
+  : <2016-08-18 Thu>
+
+  
 * Unicode related problems in Org Babel
 ** some tests of stdout encoding for different use cases
 

@@ -1,6 +1,6 @@
 package:
   name: orgbabelhelper
-  version: "1.0.1"
+  version: "1.0.2"
 
 source:
   path: ../
@@ -14,5 +14,6 @@ requirements:
     - python
   
 about:
+  home: https://github.com/dfeich/org-babel-examples/tree/master/python
   license: GPLv2
-  summary: 'python helper module for Emacs org mode babel'
+  summary: python helper module for Emacs org mode babel
