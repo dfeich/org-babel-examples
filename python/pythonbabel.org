@@ -116,7 +116,7 @@
 
      setup(
          name = "orgbabelhelper",
-         version = "1.0.2",
+         version = "1.0.3",
          description = "python helper module for Emacs org mode babel",
          long_description = "python helper module for working with Emacs"
          + " org babel source blocks",
@@ -151,7 +151,12 @@
 
 ** building the conda package
 
-   Building a conda package
+   1. update the version info in [[*basic package setup][setup.py]] above
+   2. update the version info in file:orgbabelhelper/conda-recipe/meta.yaml
+   3. tangle the files
+   4. execute the source block, below
+
+   Building the conda package
    #+BEGIN_SRC sh :results output
      cd orgbabelhelper
      conda build conda-recipe &> conda-build.out
@@ -164,6 +169,14 @@
 
    #+RESULTS:
    : Build OK
+
+   To install the newly built local package, use 
+   #+BEGIN_SRC sh :results output
+   conda install --use-local orgbabelhelper
+   #+END_SRC
+
+   Be aware that if you did not raise the version number, the command will not install the
+   newly built package, but it will fetch the previous one from your conda cache!
 
 * Reading from an org table as input
 
@@ -285,6 +298,61 @@ return np.array([x,y]).transpose()
     |        123456 | [1970-01-02 Fri 10:17:36] |
     |      99998754 | [1973-03-03 Sat 09:25:54] |
     #+TBLFM: $2='(org-sbe epoch2day (epoch $1))
+
+* Dates
+
+  #+NAME: src_orgdate_to_date
+  #+BEGIN_SRC python :tangle orgbabelhelper/orgbabelhelper/orgbabelhelper.py
+            # NOTANGLE-START
+            import re
+            import datetime as dt
+            # NOTANGLE-END
+
+            def orgdate_to_date(datestr):
+                """Returns a python datetime for the org date given in datestr.
+
+                Allows passing in an empty/whitespace string."""
+                if re.match(r'^ *$', datestr):
+                    return ''
+
+                #m = re.match(r'^\[(\d+-\d+-\d+) +[a-zA-Z]{3}\]$', datestr)
+                m = re.match(r'^[\[<](\d+-\d+-\d+) +[a-zA-Z]{3}[\]>]$', datestr)
+                if not m:
+                    raise ValueError("Input String is not a date: >%s<" % datestr)
+
+                return dt.datetime.strptime(m.group(1), '%Y-%m-%d').date()
+
+            def date_to_orgdate(date, active=False):
+                orgstr = date.strftime("%Y-%m-%d %a")
+                if active:
+                    return "<%s>" % orgstr
+                return "[%s]" % orgstr
+
+  #+END_SRC
+
+  
+  *Note:* I am using the noweb syntax and header argument to include
+  the code of the named block into this source block. The noweb syntax
+  is mostly used in literate programing, where we produce code files
+  from the org file (the process is called /tangling/), and this allows
+  us to specify the sequence of the tangled blocks in the final file.
+  But it also is a very nice way to write the first functional test of
+  a code block like here:
+
+  #+BEGIN_SRC python :results output :noweb yes
+    <<src_orgdate_to_date>>
+
+    print orgdate_to_date('[2016-08-16 Tue]')
+    print orgdate_to_date('<2016-08-17 Tue>')
+    print date_to_orgdate(dt.datetime(2016,8,18))
+    print date_to_orgdate(dt.datetime(2016,8,18), active=True)
+  #+END_SRC
+
+  #+RESULTS:
+  : 2016-08-16
+  : 2016-08-17
+  : [2016-08-18 Thu]
+  : <2016-08-18 Thu>
     
 * Matplotlib
 ** plotting of a simple graph
@@ -340,20 +408,53 @@ return fname # return filename to org-mode
 [[file:python-matplot-fig2.png]]
 
 * Pandas
-** Reading in a data frame with the column names
-   #+BEGIN_SRC python :tangle orgbabelhelper/orgbabelhelper/orgbabelhelper.py
+** Reading in a data frame from a table with the column names
+
+   #+NAME: src_orgtable_to_dataframe
+   #+BEGIN_SRC python :tangle orgbabelhelper/orgbabelhelper/orgbabelhelper.py :noweb yes
      # NOTANGLE-START
      import pandas as pd
+
+     <<src_orgdate_to_date>>
      # NOTANGLE-END
 
-     def orgtable_to_dataframe(tbl, index=None):
-         """Read an org table into a data frame. Make sure you use ':colnames no'
-         in your src block headers. Else the first row containing the column names
-         will not be available to the python code."""
+     def orgtable_to_dataframe(tbl, index=None, datecols=None):
+         """Read an org table into a data frame.
+
+         Parameters
+         ----------
+         tbl : org table passed in by src block header
+         index : name or index of column to use for index, optional
+         datecols : 'auto' or list of column names, optional. Try
+             to convert cells in these columns to python datetime objects. 
+
+         Returns
+         -------
+         Pandas data frame
+
+         Make sure you use ':colnames no' in your src block header. Else
+         the table's first row containing the column names will not be
+         available to the python code.
+
+         The datecols is used
+
+         """
          df = pd.DataFrame(tbl)
          df.columns = df.iloc[0,:]
          df = df.iloc[1:,:]
          df.columns.name = ""
+
+         if datecols is None:
+             datecols = []
+         elif datecols == "auto":
+             datecols = df.columns
+
+         for col in datecols:
+             try:
+                 df[col] = df[col].apply(orgdate_to_date)
+                 df[col] = pd.to_datetime(df[col])
+             except:
+                 pass
 
          if index in df.columns:
              df.set_index(index, inplace=True)
@@ -366,134 +467,171 @@ return fname # return filename to org-mode
    #+RESULTS:
    : None
 
-   Here, I am importing the orgbabelhelper package that is built from the tangled
-   code blocks.
+   We define a new test table:
    
-   #+BEGIN_SRC python :results output :var tbl=tableA :colnames no
-     import orgbabelhelper as obh
-     print obh.orgtable_to_dataframe(tbl)
+   #+NAME: tableC
+   | Date             | End              | Name  |
+   |------------------+------------------+-------|
+   | [2016-08-10 Wed] | [2016-08-17 Wed] | Peter |
+   | [2016-08-11 Thu] | [2016-08-18 Thu] | Paul  |
+   | [2016-08-12 Fri] | [2016-08-19 Fri] | Mary  |
+   
+   #+BEGIN_SRC python :results output :var tbl=tableC :colnames no :noweb yes
+     <<src_orgtable_to_dataframe>>
+
+     print orgtable_to_dataframe(tbl)
      print
-     print obh.orgtable_to_dataframe(tbl,'name')
+     print orgtable_to_dataframe(tbl, index='Name', datecols='auto')
      print
-     print obh.orgtable_to_dataframe(tbl,1)
+     print orgtable_to_dataframe(tbl,1, datecols=['End'])
 
    #+END_SRC
 
    #+RESULTS:
    #+begin_example
-       name tokns
-   1  Peter     4
-   2   Paul     6
-   3   Mary     8
+		  Date               End   Name
+   1  [2016-08-17 Wed]  [2016-08-10 Wed]  Peter
+   2  [2016-08-18 Thu]  [2016-08-11 Thu]   Paul
+   3  [2016-08-19 Fri]  [2016-08-12 Fri]   Mary
 
-	 tokns
-   name       
-   Peter     4
-   Paul      6
-   Mary      8
+	       Date        End
+   Name                       
+   Peter 2016-08-17 2016-08-10
+   Paul  2016-08-18 2016-08-11
+   Mary  2016-08-19 2016-08-12
 
-	   name
-   tokns       
-   4      Peter
-   6       Paul
-   8       Mary
+			   Date   Name
+   End                                
+   2016-08-10  [2016-08-17 Wed]  Peter
+   2016-08-11  [2016-08-18 Thu]   Paul
+   2016-08-12  [2016-08-19 Fri]   Mary
 #+end_example
 
-** printing a data frame as a table (and noweb block inclusion)
+** printing a data frame as a table
 
    I define a function in a named src block with name =dframeToOrg=.
-   This will print out a nice table format that org will recognize.
-   The function currently assumes that the first line is the title
-   line, and will put a horizontal line below it.
+   The following function will return a nicely formatted org table.
    
-#+NAME: dframeToOrg
-    #+BEGIN_SRC python :tangle orgbabelhelper/orgbabelhelper/orgbabelhelper.py :exports source
-  # NOTANGLE-START
-  import datetime as dt
-  # NOTANGLE-END
+   #+NAME: dframeToOrg
+   #+BEGIN_SRC python :tangle orgbabelhelper/orgbabelhelper/orgbabelhelper.py :exports source
+     # NOTANGLE-START
+     import datetime as dt
+     # NOTANGLE-END
 
-  def dataframe_to_orgtable(dframe, name=None, caption=None, attr=None,
-                            index=True, date_format=None, hlines=None,
-                            encoding='ascii'):
-      """Returns a string containing the org table formatted data frame.
-      """
-      result=""
-      if attr:
-          result += "#+ATTR_LATEX: %s\n" % attr
+     def dataframe_to_orgtable(dframe, name=None, caption=None, attr=None,
+                               index=True, date_format=None, hlines=None,
+                               encoding='ascii'):
+         """
+         Parameters
+         ----------
+         dframe : data frame
+         name : defines org table's name (#+NAME:), optional
+         caption defines org table's caption (#+CAPTION:): , optional
+         attr : defines org table's LaTeX attributes (#+ATTR_LATEX:), optional
+         index : write the row names, optional
+         date_format : Format string for datetime objects, optional
+         hlines : list  of numbers. Where to put horizontal lines, optional
+         encoding : Encoding for the resulting string, optional
 
-      if caption:
-          result += "#+CAPTION: %s\n" % caption
+         Returns
+         -------
+         Returns a string containing the data frame formatted as an org table.
+         """
+         result=""
+         if attr:
+             result += "#+ATTR_LATEX: %s\n" % attr
 
-      if name:
-          result += "#+NAME: %s\n" % name
+         if caption:
+             result += "#+CAPTION: %s\n" % caption
 
-      lines = '|' + dframe.to_csv(None, sep='|', line_terminator='|\n|',
-                                  encoding=encoding, index=index, date_format=date_format).rstrip("|").rstrip("\n")
+         if name:
+             result += "#+NAME: %s\n" % name
 
-      hlines_tmp=[]
-      if hlines is None:
-          hlines_tmp.append(1) # per default add a hl after the 1st line
-      else:
-          for hl in hlines:
-              if hl < 0:
-                  hlines_tmp.append(len(lines.split('\n')) + hl)
-              else:
-                  hlines_tmp.append(hl)
+         lines = '|' + dframe.to_csv(None, sep='|', line_terminator='|\n|',
+                                     encoding=encoding, index=index, date_format=date_format).rstrip("|").rstrip("\n")
 
-      for i,l in enumerate(lines.split('\n')):
-          if i in hlines_tmp:
-              result +=  "|-----\n"
-          result += l
-          result += "\n"
-      return result
+         hlines_tmp=[]
+         if hlines is None:
+             hlines_tmp.append(1) # per default add a hl after the 1st line
+         else:
+             for hl in hlines:
+                 if hl < 0:
+                     hlines_tmp.append(len(lines.split('\n')) + hl)
+                 else:
+                     hlines_tmp.append(hl)
+
+         for i,l in enumerate(lines.split('\n')):
+             if i in hlines_tmp:
+                 result +=  "|-----\n"
+             result += l
+             result += "\n"
+         return result
 
    #+END_SRC
 
-   In the following source block, I demonstrate how to use the =noweb=
-   syntax of including a named block within another, by referring to
-   our DataFrame printing block by =<<dframeToOrg>>=
-
-   Naturally, I could also have used the =import orgbabelhelper as obh= as above.
+   As before, I use the noweb syntax for including the previous 
+   source block in the following test source block.
    
    #+BEGIN_SRC python :results output raw drawer :noweb yes :exports both
-    import pandas as pd
-    import numpy as np
+     import pandas as pd
+     import numpy as np
+     from datetime import datetime
 
-    # Here the block with the dataFrameToorgTbl function will be inserted
-    <<dframeToOrg>>
-    df = pd.DataFrame({'A' : ['one', 'one', 'two', 'three'] * 3,
-                     'B' : ['A', 'B', 'C'] * 4,
-                     'C' : ['foo', 'foo', 'foo', 'bar', 'bar', 'bar'] * 2,
-                     'D' : np.random.randn(12),
-                     'E' : np.random.randn(12)})
+     <<dframeToOrg>>
 
-    print dataframe_to_orgtable(df)
+     df = pd.DataFrame({'A' : range(10, 22),
+                        'B' : ['A', 'B', 'C'] * 4,
+                        'C' : ['foo', 'foo', 'foo', 'bar', 'bar', 'bar'] * 2,
+                        'E' : [datetime(2016,8,1), datetime(2016,8,2), datetime(2016,8,3)] * 4,
+                        'F' : ['one', 'one', 'two', 'three'] * 3})
+
+     print dataframe_to_orgtable(df)
    #+END_SRC
 
    #+RESULTS:
    :RESULTS:
-   |    | A     | B | C   |               D |               E |
-   |----+-------+---+-----+-----------------+-----------------|
-   |  0 | one   | A | foo |  0.872240175214 |  -1.26398066625 |
-   |  1 | one   | B | foo |  0.136646800549 |   1.88453075108 |
-   |  2 | two   | C | foo | -0.910964312796 | -0.854016200892 |
-   |  3 | three | A | bar |  -1.50907891182 |   0.53869621734 |
-   |  4 | one   | B | bar |  0.306214005721 |   1.14299373134 |
-   |  5 | one   | C | bar |   1.64300512784 |   1.09119830819 |
-   |  6 | two   | A | foo |   1.02800078339 | -0.535545584301 |
-   |  7 | three | B | foo | -0.753293761747 |   2.57602543077 |
-   |  8 | one   | C | foo |  0.622858820185 |   1.42443847379 |
-   |  9 | one   | A | bar |  0.428105966677 | -0.295770935735 |
-   | 10 | two   | B | bar | -0.652006453975 |   2.78098534496 |
-   | 11 | three | C | bar | -0.103665330452 |   1.09577979596 |
+   |    |  A | B | C   |          E | F     |
+   |----+----+---+-----+------------+-------|
+   |  0 | 10 | A | foo | 2016-08-01 | one   |
+   |  1 | 11 | B | foo | 2016-08-02 | one   |
+   |  2 | 12 | C | foo | 2016-08-03 | two   |
+   |  3 | 13 | A | bar | 2016-08-01 | three |
+   |  4 | 14 | B | bar | 2016-08-02 | one   |
+   |  5 | 15 | C | bar | 2016-08-03 | one   |
+   |  6 | 16 | A | foo | 2016-08-01 | two   |
+   |  7 | 17 | B | foo | 2016-08-02 | three |
+   |  8 | 18 | C | foo | 2016-08-03 | one   |
+   |  9 | 19 | A | bar | 2016-08-01 | one   |
+   | 10 | 20 | B | bar | 2016-08-02 | two   |
+   | 11 | 21 | C | bar | 2016-08-03 | three |
 
    :END:
 
+   And a second test that demonstrates the handling of dates:
 
+   #+BEGIN_SRC python :results output raw drawer :var tbl=tableC :noweb yes :exports both :colnames no
+     import pandas as pd
+     import numpy as np
+     from datetime import datetime
 
-   The noweb syntax is mostly used in literate programing, where
-   we produce code files from the org file (the process is
-   called /tangling/).
+     <<dframeToOrg>>
+     <<src_orgtable_to_dataframe>>
+
+     df = orgtable_to_dataframe(tbl, datecols='auto', index='Name')
+
+     print dataframe_to_orgtable(df, date_format='%d. %b %Y')
+   #+END_SRC
+
+   #+RESULTS:
+   :RESULTS:
+   | Name  | Date         | End          |
+   |-------+--------------+--------------|
+   | Peter | 10. Aug 2016 | 17. Aug 2016 |
+   | Paul  | 11. Aug 2016 | 18. Aug 2016 |
+   | Mary  | 12. Aug 2016 | 19. Aug 2016 |
+
+   :END:
+
 
 *** data frame printing using Ipython.display   
    As an alternative, the display function from Ipython is also able
@@ -767,59 +905,15 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
   : ⌡     
   : None
 
-* Dates
-
-  #+NAME: src_orgdate_to_date
-  #+BEGIN_SRC python :tangle orgbabelhelper/orgbabelhelper/orgbabelhelper.py
-    # NOTANGLE-START
-    import re
-    import datetime as dt
-    # NOTANGLE-END
-
-    def orgdate_to_date(datestr):
-        "Returns a python datetime for the org date given in datestr"
-        if re.match(r'^ *$', datestr):
-            return ''
-
-        #m = re.match(r'^\[(\d+-\d+-\d+) +[a-zA-Z]{3}\]$', datestr)
-        m = re.match(r'^[\[<](\d+-\d+-\d+) +[a-zA-Z]{3}[\]>]$', datestr)
-        if not m:
-            raise ValueError("Input String is not a date: >%s<" % datestr)
-
-        return dt.datetime.strptime(m.group(1), '%Y-%m-%d').date()
-
-    def date_to_orgdate(date, active=False):
-        orgstr = date.strftime("%Y-%m-%d %a")
-        if active:
-            return "<%s>" % orgstr
-        return "[%s]" % orgstr
-
-  #+END_SRC
-
-  #+BEGIN_SRC python :results output :noweb yes
-    <<src_orgdate_to_date>>
-
-    print orgdate_to_date('[2016-08-16 Tue]')
-    print orgdate_to_date('<2016-08-17 Tue>')
-    print date_to_orgdate(dt.datetime(2016,8,18))
-    print date_to_orgdate(dt.datetime(2016,8,18), active=True)
-  #+END_SRC
-
-  #+RESULTS:
-  : 2016-08-16
-  : 2016-08-17
-  : [2016-08-18 Thu]
-  : <2016-08-18 Thu>
-
   
-* Unicode related problems in Org Babel
+* Unicode related problems with python in Org Babel
 ** some tests of stdout encoding for different use cases
 
    Here, I am looking at the default encoding that is set on stdin and
    stdout for a number of situations involving script execution in
    a normal subprocess, in a shell, and to a pipe.
 
-   Running the commands in a shell environment
+   Running the commands in a python shell (session) environment
 
    #+BEGIN_SRC python :session py1 :results output
      import sys
@@ -940,7 +1034,8 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
    As can be seen when looking at the string's length, there is more
    going on then a naive look at input and output suggests. The
    passed-in string is actually an utf-8 encoded bytestring with
-   length 6 that is correctly rendered upon output in Emacs.
+   length 6. Emacs just renders it correctly, because it expects UTF-8.
+   But for python, it is just a plain bytestring of length 6.
    
 ** Strings sent to stdout must be encoded to be correct ASCII
    The stdout to which org babel writes expects an ASCII stream. If
