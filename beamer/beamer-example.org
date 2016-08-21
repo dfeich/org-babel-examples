@@ -317,6 +317,47 @@ with its own headline, is displayed in a block:
     9. nine
     10. ten
 
+** long source code over two pages
+   :PROPERTIES:
+   :BEAMER_opt: allowframebreaks,label=
+   :END:
+
+   Use the =allowframebreaks= Beamer option.
+   #+BEGIN_SRC emacs-lisp
+     (use-package python
+       :config (progn
+                 ;; load my own python helper functions
+                 (load-file (concat dfeich/site-lisp "/my-pydoc-helper.el"))
+
+                 (defun dfeich/python-keydefs ()
+                   (define-key python-mode-map (kbd "<M-right>")
+                     'python-indent-shift-right)
+                   (define-key python-mode-map (kbd "<M-left>")
+                     'python-indent-shift-left))
+                 (add-hook 'python-mode-hook #'dfeich/python-keydefs)
+
+                 ;; show line numbers on the left for python
+                 (add-hook 'python-mode-hook 'linum-mode)
+
+                 (when (featurep 'flycheck)
+                   (add-hook 'python-mode-hook 'flycheck-mode))
+            
+                 (use-package jedi-core
+                   :ensure t
+                   :config (progn
+                             (autoload 'jedi:setup "jedi-core" nil t)
+                             (add-hook 'python-mode-hook 'jedi:setup)
+                             (setq jedi:complete-on-dot t)
+                             (setq jedi:server-args '("--log" "/tmp/jedi.log"
+                                                      "--log-level" "INFO"))
+                             (when (featurep 'company)
+                               (defun dfeich/python-mode-hook ()
+                                 (add-to-list 'company-backends 'company-jedi)
+                                 )
+                               (add-hook 'python-mode-hook 'dfeich/python-mode-hook))))))
+   #+END_SRC
+
+
 * Animations by overlays
 ** Highlighting text
 
