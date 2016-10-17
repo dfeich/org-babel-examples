@@ -29,7 +29,7 @@
    Note that you need to look at the examples in *raw* mode! For some of the
    examples I provide example outputs.
    
-   1. Babel examples vor various backends
+   1. Babel examples for various backends
       - [[./lisp/lisp-babel.org][Emacs lisp]]
       - [[./python/pythonbabel.org][python]] ([[./python/pythonbabel.pdf][PDF]] output)
       - [[./python/ipython-babel.org][Ipython]]

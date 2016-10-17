@@ -393,7 +393,16 @@
 
 * some other calc functions used in tables
 
-** conditions
+** conditions using if
+
+   | number | class | even |
+   |--------+-------+------|
+   |      1 | A     | odd  |
+   |      2 | A     | even |
+   |      3 | B     | odd  |
+   |      4 | B     | even |
+   #+TBLFM: @2$2..@>$2=if($1<3,A,B)::@2$3..@>$3=if(deven($1), even, odd)
+
 ** locate position of element in a column: find
 
 Note that we use the qualifier =;E= in order to have the vector retain
