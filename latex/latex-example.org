@@ -26,10 +26,17 @@
 # #+OPTIONS: texht:t
 #+LATEX_CLASS: article
 #+LATEX_CLASS_OPTIONS: [koma,a4paper]
+
+# show hyperlinks in blue font
 #+LATEX_HEADER: \hypersetup{colorlinks=true, linkcolor=blue}
 
 # LATEX_HEADER_EXTRA lines will not be loaded when previewing LaTeX snippets
+
+# package to typeset units in equations
 #+LATEX_HEADER_EXTRA: \usepackage{units}
+
+# package that allows to put longer text parts as comments that are
+# not put into the PDF document
 #+LATEX_HEADER_EXTRA: \usepackage{comment}
 
 # Needed for rotating floats, e.g. for placing the sidewaystable
@@ -75,9 +82,9 @@
   #+END_SRC
 
   #+RESULTS:
-  : Emacs version: GNU Emacs 25.1.50.3 (x86_64-unknown-linux-gnu, GTK+ Version 3.10.8)
-  :  of 2016-02-13
-  : org version: 8.3.3
+  : Emacs version: GNU Emacs 25.1.1 (x86_64-unknown-linux-gnu, GTK+ Version 3.18.9)
+  :  of 2016-09-10
+  : org version: 8.3.6
 
 * Major document elements
 ** Equations
@@ -146,9 +153,9 @@
    | t         | Position at the top of the page.                                                |
    | b         | Position at the bottom of the page.                                             |
    | p         | Put on a special page for floats only.                                          |
-   | !         | Override internal parameters LaTeX uses for determining "good" float positions. |
+   | \!        | Override internal parameters LaTeX uses for determining "good" float positions. |
    | H         | Places the float at precisely the location in the LaTeX code. Requires the      |
-   |           | float package, e.g., \usepackage{float}. This is somewhat equivalent to h!.                                                                                   |
+   |           | float package, e.g., \usepackage{float}. This is somewhat equivalent to h!.     |
 
    #+NAME: fig_simplegraph1
    #+CAPTION: A simple graph
@@ -173,12 +180,12 @@
 
 *** inclusion of SVG graphics
 
-    q.v. my plantuml related documentation.
+    q.v. my [[file:~/Dropbox/org/examples/plantuml/plantuml-babel.org::*simple%20test%20with%20SVG%20graphic][my plantuml example documentation]].
    
 ** Tables
 *** nicer table formatting using booktab style
 
-    Some [[http://www.inf.ethz.ch/personal/markusp/teaching/guides/guide-tables.pdf][interesting tips]] for booktab style tables by M. Püschel.
+    Some [[http://www.inf.ethz.ch/personal/markusp/teaching/guides/guide-tables.pdf][interesting tips]] for \myindex{booktab style tables} by M. Püschel.
   
     Booktabs can be turned on by default for all tables by
     setting this variable for the document or globally:
@@ -296,7 +303,13 @@
     is ignored for :float sideways tables.", the modifier =[H]= is
     observed, as can be confirmed in the resulting PDF.
 
-*** Table over multiple pages with long text adapted to cell width
+*** Table over multiple pages with long text wrapped to cell width
+    Use the \myindex{tabularx} environment and make sure that you have loaded the \myindex{ltablex}
+    package.
+
+    # #+NAME: tblLongTabularx
+    # #+CAPTION: A multi-page table with automatic text wrapping
+    # #+ATTR_LATEX: :environment tabularx :width \linewidth :align lX :placement [H]
     #+ATTR_LATEX: :environment tabularx :width \linewidth :align lX
     | 100 | Some extremely long sentence which surely needs a linebreak if I add some additional words like these        |
     | 101 | Some other extremely long sentence which surely needs a linebreak  if I add some additional words like these |
@@ -329,10 +342,6 @@
     | 100 | Some extremely long sentence which surely needs a linebreak  if I add some additional words like these       |
     | 101 | Some other extremely long sentence which surely needs a linebreak  if I add some additional words like these |
     | 102 | bla bla                                                                                                      |
-
-*** Table references
-
-    These are references to table [[tblDefault]] and table [[tblBooktabs]].
    
 *** COMMENT DOES NOT WORK: Radio tables and skipping columns and rows
 
@@ -401,27 +410,37 @@
     I like the margin notes to be left aligned instead of being justified.
     #+LATEX:\mymarginpar{\textit{a left aligned margin note that looks nicer}}
 
-** Figure, table, equation references
-   Here, we show the usage of links to the text sections:
-  
-   The References to figures are found in chapter [[Figures]], references
-   to tables are found in chapter [[Tables]], and references to equations
-   in chapter [[Equations]].
-** Footnotes
+** References to sections, figures, tables, equations
 
-   # No indentation is allowed for footnotes
+   Here, we show the usage of links to the text sections:
+   Examples for References to figures are also found in chapter
+   [[Figures]], to tables in chapter [[Tables]], and to equations in chapter
+   [[Equations]].
+
+   Other references
+   - Figures can be referenced like this: Fig. [[fig_simplegraph1]].
+   - These are references to table [[tblDefault]] and table [[tblBooktabs]].
+   - And an example of an equation reference: eq \ref{eq_1}. This reference
+     requires latex syntax and a latex label as target. All the other
+     links work based on org link syntax can use the name given to
+     the elements via a leading =#+NAME:= line.
+   
+
+** Text Footnotes
+
+   Examples for \myindex{footnotes}.
+
+   # IMPORTANT NOTE: No indentation is allowed for footnotes
 
 [fn:1] This is the footnote text
 [fn:2] this is a footnote from the end of the org document
 
-* Links
-** Org LaTeX exports
-   - Subfigures: [[http://article.gmane.org/gmane.emacs.orgmode/92821][gmane.emacs.orgmode/92821]]
-   
-** LaTeX links
+* some interesting links
+   - Org LaTeX exports
+     - Subfigures in an org document for exporting to LaTeX: [[http://article.gmane.org/gmane.emacs.orgmode/92821][gmane.emacs.orgmode/92821]]
    - Hyperlink formatting
-     - This is described in the LaTeX [[http://mirror.unl.edu/ctan/macros/latex/contrib/hyperref/doc/manual.pdf][hyperref]] manual.
-     - This is an example how to get links that are not framed by red
+     - described in the LaTeX [[http://mirror.unl.edu/ctan/macros/latex/contrib/hyperref/doc/manual.pdf][hyperref]] manual.
+     - This is an example of how to get links that are not framed by red
        rectangles, but just have a blue font color
        #+BEGIN_EXAMPLE
        #+LaTeX_HEADER: \hypersetup{colorlinks=true, linkcolor=blue}
@@ -483,7 +502,7 @@
 
   To get the citations correctly processed rendered, one needs to add
   a bibtex invocation to the LaTeX command chain:
-  #+BEGIN_SRC elisp :exports source
+  #+BEGIN_SRC elisp :exports code
     (setq org-latex-pdf-process
           (let
               ((cmd (concat "pdflatex -shell-escape -interaction nonstopmode"

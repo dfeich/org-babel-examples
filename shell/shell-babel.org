@@ -23,7 +23,7 @@
           (loop for i from 5 to 15 collect `(,i ,(* i 5))))
   #+END_SRC
 
-  #+TBLNAME: table1
+  #+NAME: table1
   #+RESULTS:
   | col1 | col2 | col3 |
   |    5 |   25 |      |
@@ -41,7 +41,7 @@
   sidenote: the -n flag results in line numbers for the exported source code.
 
   #+NAME: src-table2
-  #+BEGIN_SRC sh :results value :exports both :var tbl=table1 :colnames yes -n
+  #+BEGIN_SRC sh -n :results value :exports both :var tbl=table1 :colnames yes
     while read a b rest; do
         echo $a $b $((b*2))
     done < <(echo "$tbl")
@@ -102,11 +102,15 @@
    /etc
    :END:
 
+* TODO noweb example
+  Redefine noweb markers, since =<<= and =>>= are valid shell code redirectors.
 
 * COMMENT babel settings
   
   Local Variables:
   org-babel-sh-command: "/bin/bash"
+  org-babel-noweb-wrap-start: "{{{"
+  org-babel-noweb-wrap-end: "}}}"
   org-confirm-babel-evaluate: nil
   org-export-babel-evaluate: nil
   End:

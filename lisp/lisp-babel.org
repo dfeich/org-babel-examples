@@ -49,7 +49,7 @@
                  (loop for i from 5 to 15 collect `(,i ,(* i 5) ""))))
    #+END_SRC
 
-   #+TBLNAME: table1
+   #+NAME: table1
    #+RESULTS: make-table1
    | col1 | col2 | col3 |
    |------+------+------|
@@ -300,6 +300,7 @@
   #+BEGIN_SRC emacs-lisp :results value :exports both
     (with-temp-buffer
       (erase-buffer)
+      (cl-assert text nil "PostAlignTables received nil instead of text ")
       (insert text)
       (beginning-of-buffer)
       (org-mode)

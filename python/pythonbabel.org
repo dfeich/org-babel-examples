@@ -375,7 +375,7 @@ return 'python-matplot-fig.png' # return filename to org-mode
 
 The table is passed to python as a list
 
-#+TBLNAME: table1
+#+NAME: table1
 | x |  y |
 |---+----|
 | 1 |  1 |
@@ -435,8 +435,6 @@ return fname # return filename to org-mode
          Make sure you use ':colnames no' in your src block header. Else
          the table's first row containing the column names will not be
          available to the python code.
-
-         The datecols is used
 
          """
          df = pd.DataFrame(tbl)
@@ -513,7 +511,7 @@ return fname # return filename to org-mode
    The following function will return a nicely formatted org table.
    
    #+NAME: dframeToOrg
-   #+BEGIN_SRC python :tangle orgbabelhelper/orgbabelhelper/orgbabelhelper.py :exports source
+   #+BEGIN_SRC python :tangle orgbabelhelper/orgbabelhelper/orgbabelhelper.py :exports code
      # NOTANGLE-START
      import datetime as dt
      # NOTANGLE-END
@@ -708,7 +706,7 @@ return fname # return filename to org-mode
   | three | C | bar | -0.00648778760846 | 0.0199194965102 |
 
 ** plotting a data frame (and placing a code reference)
-#+TBLNAME: table2
+#+NAME: table2
 | x |  y |
 |---+----|
 | 1 |  1 |
@@ -827,7 +825,7 @@ return pd.concat([tdf,newdf], join='inner',axis=1)
   LaTeX exporting.
 
   #+NAME: scrWrapEquation
-  #+BEGIN_SRC sh :results output :exports source :var=outp
+  #+BEGIN_SRC sh :results output :exports code :var outp="expample output"
     cat <<EOF
     \begin{equation}
     $outp
