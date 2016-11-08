@@ -64,9 +64,9 @@
 #+LATEX_HEADER_EXTRA: \makeindex
 
 # I define a useful macro for marking index words
-#+BEGIN_LaTeX
+#+BEGIN_EXPORT LaTeX
 \DeclareRobustCommand{\myindex}[1]{#1\index{#1}}
-#+END_LaTeX
+#+END_EXPORT
 
 # For export to ODT
 # #+OPTIONS: LaTeX:t
@@ -398,10 +398,10 @@
     on the bottom of the current page. One can also place all footnotes
     in a separate chapter called /footnotes/ at the end of the org file[fn:2].
 
-    #+BEGIN_LaTeX
+    #+BEGIN_EXPORT LaTeX
       \newcommand{\mymarginpar}[1]{%
 	\marginpar[\raggedleft#1]{\raggedright#1}}   
-    #+END_LaTeX
+    #+END_EXPORT
     \myindex{Margin notes} one can set by directly inlining the LaTeX command
     #+LATEX:\marginpar{\textit{a default margin note}}
     as demonstrated here. By default the margin notes are justified. This often

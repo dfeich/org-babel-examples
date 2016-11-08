@@ -290,7 +290,7 @@
   
   We produce an example table to work upon
   #+NAME: table1
-  #+BEGIN_SRC elisp :results value :colnames y
+  #+BEGIN_SRC elisp :results value :colnames yes
     (let ((countries
            (mapcar #'symbol-name '(CH D USA CN JP PL USA D PL CN CH))))
       (cl-loop for country1 in countries
@@ -329,7 +329,7 @@
   in order to preserve the column headings.
 
   #+NAME: my-filter
-  #+BEGIN_SRC elisp :var tbl=table1 val="USA" :colnames y
+  #+BEGIN_SRC elisp :var tbl=table1 val="USA" :colnames yes
     (loop for row in tbl
           if (equal (nth 3 row) val)
           collect row into newtbl
@@ -348,7 +348,7 @@
   
   I can also use this function with the org-mode CALL syntax
 
-  #+CALL: my-filter(tbl=table1, col=3, val="CN") :colnames y
+  #+CALL: my-filter(tbl=table1, col=3, val="CN") :colnames yes
 
   #+RESULTS:
   | col1 | col2 | col3 | col4 | col5 |
@@ -381,7 +381,7 @@
   | row8 |   16 | PL   | USA  |   40 |
 
 
-  #+CALL: my-filter2(tbl=table1, val="CN") :colnames y
+  #+CALL: my-filter2(tbl=table1, val="CN") :colnames yes
 
   #+RESULTS:
   | col1 | col2 | col3 | col4 | col5 |
@@ -496,7 +496,7 @@ the empty fields.
 
 
   We define a mapping table. Note that we have two mappings for the string "two".
-  #+TBLNAME: tblhash
+  #+NAME: tblhash
   | one   |   1 |
   | two   |   2 |
   | three |   3 |

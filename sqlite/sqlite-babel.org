@@ -29,7 +29,7 @@
 
    Note: Do not use colons in the table fields, since they are used as field delimiters in the table import
 
-  #+TBLNAME: table1
+  #+NAME: table1
   | col1 | col2 | col3 |
   |------+------+------|
   |    5 |   25 |      |

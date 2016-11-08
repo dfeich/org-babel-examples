@@ -570,7 +570,7 @@ return fname # return filename to org-mode
    As before, I use the noweb syntax for including the previous 
    source block in the following test source block.
    
-   #+BEGIN_SRC python :results output raw drawer :noweb yes :exports both
+   #+BEGIN_SRC python :results output drawer :noweb yes :exports both
      import pandas as pd
      import numpy as np
      from datetime import datetime
@@ -607,7 +607,7 @@ return fname # return filename to org-mode
 
    And a second test that demonstrates the handling of dates:
 
-   #+BEGIN_SRC python :results output raw drawer :var tbl=tableC :noweb yes :exports both :colnames no
+   #+BEGIN_SRC python :results output drawer :var tbl=tableC :noweb yes :exports both :colnames no
      import pandas as pd
      import numpy as np
      from datetime import datetime

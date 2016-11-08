@@ -329,7 +329,7 @@
 
   Example without using the =:post= function:
 
-  #+BEGIN_SRC emacs-lisp :results output raw drawer :exports both
+  #+BEGIN_SRC emacs-lisp :results output drawer :exports both
     (princ
      (concat
       "#+CAPTION: Test1\n"
@@ -368,7 +368,7 @@
 
   The same example with the =:post= function:
 
-  #+BEGIN_SRC emacs-lisp :results output raw drawer :post srcPostAlignTables(*this*) :exports both
+  #+BEGIN_SRC emacs-lisp :results output drawer :post srcPostAlignTables(*this*) :exports both
     (princ
      (concat
       "#+CAPTION: Test1\n"

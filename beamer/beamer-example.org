@@ -99,7 +99,7 @@
    # this is the only good way of making section title slides
    # I have found up to now.
 
-   #+begin_beamer
+   #+BEGIN_EXPORT beamer
    \vspace{0.3\textheight}
    \begin{center}
      \begin{minipage}[h]{.75\textwidth}
@@ -107,7 +107,7 @@
        {\Huge Introduction}
      \end{minipage}
    \end{center}
-   #+end_beamer
+   #+END_EXPORT
 ** Instructions
    Look at the *Org source* file to learn about available options. I also
    added many comments explaining the usage, there.

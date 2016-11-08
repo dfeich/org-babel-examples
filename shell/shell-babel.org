@@ -91,7 +91,7 @@
    to authenticate each time) and to jump through multiple hops.
   
 
-   #+BEGIN_SRC sh :results raw drawer :dir /ssh:root@dftest2.psi.ch:/etc :exports both
+   #+BEGIN_SRC sh :results output drawer :dir /ssh:root@dftest2.psi.ch:/etc :exports both
    hostname
    pwd
    #+END_SRC
