@@ -74,6 +74,52 @@
 #+RESULTS:
 [[file:file.png]]
 
+* stackoverflow
+
+  A method for getting an =#+INCLUDE= of a result SVG file instead of
+  having it appear as a standard org link. This was my answer to the
+  stack exchange problem: [[http://emacs.stackexchange.com/questions/29871/how-to-embed-svg-output-of-org-mode-src-block-as-inline-svg-in-html-export][How to embed svg output of org-mode src
+  block as inline svg in html export?]]
+
+  First I define a filter function in this source block
+  #+NAME: postFileToInclude
+  #+HEADER: :var text="[[file:someplot.svg]]"
+  #+BEGIN_SRC elisp :results value raw drawer
+    (with-temp-buffer
+      (erase-buffer)
+      (cl-assert text nil "PostAlignTables received nil instead of text ")
+      (insert text)
+      (beginning-of-buffer)
+      (if (re-search-forward org-any-link-re nil t)
+  	(progn (let ((fname (match-string 2)))
+  		 (replace-match
+  		  (format "#+INCLUDE: \"%s\" export html" fname))
+  		 ))
+        (error "PostFileToInclude: Was not able to find link in output"))
+      (buffer-string)
+      )
+    ;; #+INCLUDE: "example-plot.svg" export html
+  #+END_SRC
+
+  #+RESULTS: postFileToInclude
+  :RESULTS:
+  #+INCLUDE: "file:someplot.svg" export html
+  :END:
+  
+
+  And here we use the filter function in the =:post= option.
+  
+   #+BEGIN_SRC gnuplot :file example-plot.svg :exports code :post postFileToInclude :results raw drawer
+     plot sin(x)
+   #+END_SRC  
+
+   #+RESULTS:
+   :RESULTS:
+   #+INCLUDE: "file:someplot.svg" export html
+   :END:
+
+   Naturally, one could make the filter much more intelligent, e.g. only doing it for SVG files, etc.
+
 * COMMENT Environment setup and test
 
 Local Variables:
