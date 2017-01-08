@@ -25,7 +25,7 @@
 
 # #+OPTIONS: texht:t
 #+LATEX_CLASS: article
-#+LATEX_CLASS_OPTIONS: [koma,a4paper]
+#+LATEX_CLASS_OPTIONS: [a4paper]
 
 # show hyperlinks in blue font
 #+LATEX_HEADER: \hypersetup{colorlinks=true, linkcolor=blue}
@@ -86,6 +86,10 @@
   :  of 2016-09-10
   : org version: 8.3.6
 
+* Debugging
+  Org removes some of the intermediate files if the variable =org-latex-remove-logfiles=
+  is set to true. So, for debugging, it makes sense to set it to nil.
+  
 * Major document elements
 ** Equations
 
@@ -183,6 +187,10 @@
     q.v. my [[file:~/Dropbox/org/examples/plantuml/plantuml-babel.org::*simple%20test%20with%20SVG%20graphic][my plantuml example documentation]].
    
 ** Tables
+
+   - Documentation
+     - Very nice overview: https://en.wikibooks.org/wiki/LaTeX/Tables
+
 *** nicer table formatting using booktab style
 
     Some [[http://www.inf.ethz.ch/personal/markusp/teaching/guides/guide-tables.pdf][interesting tips]] for \myindex{booktab style tables} by M. Püschel.
@@ -307,9 +315,13 @@
     Use the \myindex{tabularx} environment and make sure that you have loaded the \myindex{ltablex}
     package.
 
-    # #+NAME: tblLongTabularx
+    Note: If I set a caption either with the =#+CAPTION:= markup or the =:caption=
+    header argument, the table will no longer correctly wrap to the next page, but
+    it will overflow over the page.
+    
     # #+CAPTION: A multi-page table with automatic text wrapping
-    # #+ATTR_LATEX: :environment tabularx :width \linewidth :align lX :placement [H]
+
+    #+NAME: tblLongTabularx
     #+ATTR_LATEX: :environment tabularx :width \linewidth :align lX
     | 100 | Some extremely long sentence which surely needs a linebreak if I add some additional words like these        |
     | 101 | Some other extremely long sentence which surely needs a linebreak  if I add some additional words like these |
@@ -342,6 +354,21 @@
     | 100 | Some extremely long sentence which surely needs a linebreak  if I add some additional words like these       |
     | 101 | Some other extremely long sentence which surely needs a linebreak  if I add some additional words like these |
     | 102 | bla bla                                                                                                      |
+    | 100 | Some extremely long sentence which surely needs a linebreak if I add some additional words like these        |
+    |  98 | Some other extremely long sentence which surely needs a linebreak  if I add some additional words like these |
+    |  96 | bla bla                                                                                                      |
+    |  94 | repetition ahead                                                                                             |
+    |  92 | Some extremely long sentence which surely needs a linebreak  if I add some additional words like these       |
+    |  90 | Some other extremely long sentence which surely needs a linebreak  if I add some additional words like these |
+    |  88 | bla bla                                                                                                      |
+    |  86 | repetition ahead                                                                                             |
+    |  84 | Some extremely long sentence which surely needs a linebreak  if I add some additional words like these       |
+    |  82 | Some other extremely long sentence which surely needs a linebreak  if I add some additional words like these |
+    |  80 | bla bla                                                                                                      |
+    |  78 | repetition ahead                                                                                             |
+    |  76 | Some extremely long sentence which surely needs a linebreak if I add some additional words like these        |
+    |  74 | Some other extremely long sentence which surely needs a linebreak  if I add some additional words like these |
+    |  72 | bla bla                                                                                                      |
    
 *** COMMENT DOES NOT WORK: Radio tables and skipping columns and rows
 
@@ -548,4 +575,5 @@
 Local variables:
 org-confirm-babel-evaluate: t
 org-export-babel-evaluate: t
+org-latex-remove-logfiles: nil
 End:
