@@ -1,0 +1,216 @@
+#+TITLE: c-babel
+#+DATE: <2014-10-20 Mon>
+#+AUTHOR: Derek
+#+EMAIL: derek.feichtinger@psi.ch
+#+OPTIONS: ':nil *:t -:t ::t <:t H:3 \n:nil ^:t arch:headline
+#+OPTIONS: author:t c:nil creator:comment d:(not "LOGBOOK") date:t
+#+OPTIONS: e:t email:nil f:t inline:t num:t p:nil pri:nil stat:t
+#+OPTIONS: tags:t tasks:t tex:t timestamp:t toc:t todo:t |:t
+#+CREATOR: Emacs 24.3.1 (Org mode 8.2.8)
+#+DESCRIPTION:
+#+EXCLUDE_TAGS: noexport
+#+KEYWORDS:
+#+LANGUAGE: en
+#+SELECT_TAGS: export
+
+* Links
+  - http://orgmode.org/worg/org-contrib/babel/languages/ob-doc-C.html
+    
+* Compiler version
+  #+BEGIN_SRC sh :results verbatim
+  gcc --version
+  #+END_SRC
+
+  #+RESULTS:
+  : gcc (Ubuntu 4.8.2-19ubuntu1) 4.8.2
+  : Copyright (C) 2013 Free Software Foundation, Inc.
+  : This is free software; see the source for copying conditions.  There is NO
+  : warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+  : 
+
+* test
+
+  Both C and C++ get activated by adding =C= to the =org-babel-load-languages=.
+
+  If there is no main function present, babel will wrap one around the code. It also
+  will add some of the standard include files needed to compile the code.
+  #+BEGIN_SRC C 
+  printf("Hello World");
+  #+END_SRC
+
+  #+RESULTS:
+  : Hello World
+
+  The equivalent example with explicitely writing the include and the main function.
+
+  #+BEGIN_SRC C 
+    #include "stdlib.h"
+    int main(int argc,char **argv) {
+      printf("Hello World");
+      exit(0);
+    }
+  #+END_SRC
+
+  #+RESULTS:
+  : Hello World
+
+* Passing variables by header arguments
+** passing simple types
+   #+NAME: src_printvars  
+   #+header: :var mystring="Sunday" :var myint=145 :var mydouble=3.14
+   #+BEGIN_SRC C :results output
+     printf ("mystring %s\n", mystring);
+     printf ("myint    %d\n", myint);
+     printf ("mydouble %g\n", mydouble);
+   #+END_SRC
+
+   #+RESULTS: src_printvars
+   : mystring Sunday
+   : myint    145
+   : mydouble 3.14
+
+
+   Using CALL to call the source block as a function
+   #+CALL: src_printvars("Monday", 20, 1.5)
+
+   #+RESULTS:
+   : mystring Monday
+   : myint    20
+   : mydouble 1.5
+
+
+   An example with C++ and including a header file using the =:includes= header argument. Note
+   that one can look at the resulting code before compilation by using =org-babel-expand-src-block=
+   (by default assigned to =C-c C-v v=)
+   #+BEGIN_SRC C++ :includes <iostream>
+     std::cout << "Hello World!\n";
+   #+END_SRC
+
+   #+RESULTS:
+   : Hello World!
+
+
+** passing a table
+   
+   #+NAME: somedata
+   | nb    | sqr | noise |
+   |-------+-----+-------|
+   | zero  |   0 |  0.23 |
+   | one   |   1 |  1.31 |
+   | two   |   4 |  4.61 |
+   | three |   9 |  9.05 |
+   | four  |  16 | 16.55 |
+
+
+   The following code only works if the =string.h= header is included via the header. Even
+   though the src block does not require a function from that library by itself, the boiler
+   plate code inserted by babel to parse the table uses =strncmp=. The boiler plate code
+   gets inserted before the source block, so includes defined within the source block
+   are read in too late. But the includes defined through the header arguments are inserted
+   before the boiler plate.
+
+   This I consider a bug which I should report to the developers.
+
+   #+name: c-table
+   #+header: :exports results
+   #+begin_src C++ :results output :var somedata=somedata :includes "<string.h> <stdio.h> <stdlib.h>"
+     int main()
+      {
+        for(int j=0; j<somedata_cols; j++) { printf("%s  ", somedata_header[j]); };
+        printf("\n");
+        for (int i=0; i<somedata_rows; i++) {
+          printf ("%2d %7s ", i, somedata_h(i,"nb"));
+          for (int j=1; j<somedata_cols; j++) {
+            const char* cell = somedata[i][j];
+            printf ("%5s %5g ", cell, 1000*atof(cell));
+          }
+          printf("\n");
+        }
+        return 0;
+      }
+   #+end_src
+
+   #+RESULTS: c-table
+   : nb  sqr  noise  
+   :  0    zero     0     0  0.23   230 
+   :  1     one     1  1000  1.31  1310 
+   :  2     two     4  4000  4.61  4610 
+   :  3   three     9  9000  9.05  9050 
+   :  4    four    16 16000 16.55 16550
+
+* noweb syntax
+
+  First we define named code blocks
+  #+NAME: srcMyfunc
+  #+BEGIN_SRC C 
+    void myfunc() {
+      printf("print from function\n");
+    }
+  #+END_SRC  
+
+
+  #+NAME: srcMain
+  #+BEGIN_SRC C
+    int main(int argc,char **argv) {
+      printf("Hello World\n");
+      myfunc();
+      exit(0);
+    }
+  #+END_SRC
+
+  Now we define a block which includes the other code blocks (needs
+  the :noweb yes option). We could tangle this block, but we can also
+  execute it directly.
+
+  #+BEGIN_SRC C :results output :noweb yes
+    #include "stdlib.h"
+    #include "stdio.h"
+
+    <<srcMyfunc>>
+    <<srcMain>>
+
+    #+END_SRC
+
+  #+RESULTS:
+  : Hello World
+  : print from function
+
+
+  
+* C++11 examples
+  Passing multiple =includes= requires defining them within a list.
+  ERROR: Why can I not use the =:results output= syntax? 
+
+  #+BEGIN_SRC C++ :results output :flags -std=c++11 :includes '(<vector> <complex> <iostream>)
+  std::vector<std::complex<double>> v{{0,0}, {1,0}, {0,1}};
+  for (auto &iter: v) {
+    std::cout << iter << ' ';
+   }
+  #+END_SRC
+
+  #+RESULTS:
+  : (0,0) (1,0) (0,1)
+
+
+
+An example with lambda functions
+
+#+BEGIN_SRC C++ :flags -std=c++11 :includes '(<algorithm> <functional> <iostream>)
+  using namespace std;
+
+  float vf0[5] = {1.2, 3.4, 5.1, 8.4, 9.9};
+  function<void(float&)> out = [](float &f) {cout << f << ' '; };
+  // function<void(float&)> mult = [&fac](float &f) {f* = fac; };
+
+  for_each(vf0, vf0+5, out);
+  cout << " (vf0)\n";
+#+END_SRC
+
+#+RESULTS:
+: 1.2 3.4 5.1 8.4 9.9  (vf0)
+
+
+Local Variables:
+org-confirm-babel-evaluate: nil
+org-export-babel-evaluate: nil
+End:
