@@ -106,3 +106,37 @@
     
    Have fun hacking away....
    Derek
+** Changes
+*** Org 9.1
+
+    In org-9.1 the variable =org-export-babel-evaluate= will become obsolete. I used
+    this variable with a setting to =nil= for preventing code blocks from being
+    (re)evaluated during export. I mostly evaluate code blocks interactively, e.g.
+    when documenting the state of a system or measurements during a code optimization.
+
+    Evaluation upon export is mostly appropriate for certain kinds of forms.
+
+    The variable is replaced by =org-export-use-babel=, but the behavior has changed.
+    If this variable is set to =nil= then all of the code block header arguments are
+    ignored, including the =:exports= argument that determines whether to only export
+    the source code, the results, or both. The code block will always export both
+    when =org-export-use-babel= is set to =nil=.
+
+    The solution for retaining the old functionality is to use the header argument
+    =:eval never-export= that will prevent code blocks from being evaluated at
+    export time. The default can be set system and file wide
+
+    - sytem-wide
+      - =org-babel-default-header-args= (for all languages)
+      - =org-babel-default-header-args:<lang>=   (language specific)
+    - File wide using PROPERTY
+      - =#+PROPERTY: header-args :eval never-export=
+    - Org heading wide using a local property setting      
+      : * sample header
+      :   :PROPERTIES:
+      :   :header-args:    :eval never-export
+      :   :END:
+
+    You can also look at the discussion in [[http://lists.gnu.org/archive/html/emacs-orgmode/2017-02/msg00443.html][this org-mode mailing list
+    thread]].
+

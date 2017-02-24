@@ -13,6 +13,10 @@
 #+LANGUAGE: en
 #+SELECT_TAGS: export
 
+# By default I do not want that source code blocks are evaluated on export. Usually
+# I want to evaluate them interactively and retain the original results.
+#+PROPERTY: header-args :eval never-export
+
 # #+SETUPFILE: ~/.emacs.d/git-submod/org-html-themes.git/setup/theme-readtheorg.setup
 # #+SETUPFILE: ~/.emacs.d/git-submod/org-html-themes.git/setup/theme-bigblow.setup
 
@@ -409,5 +413,4 @@
 
 Local variables:
 org-confirm-babel-evaluate: nil
-org-export-babel-evaluate: nil
 End:

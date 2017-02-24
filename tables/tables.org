@@ -13,6 +13,10 @@
 #+LANGUAGE: en
 #+SELECT_TAGS: export
 
+# By default I do not want that source code blocks are evaluated on export. Usually
+# I want to evaluate them interactively and retain the original results.
+#+PROPERTY: header-args :eval never-export
+
 * tables using lisp formulas
 ** basic usage
    the fields are read as strings, except if the modifiers =N= for
@@ -611,5 +615,4 @@ the empty fields.
 * COMMENT Org Babel settings
 Local variables:
 org-confirm-babel-evaluate: nil
-org-export-babel-evaluate: nil
 End:

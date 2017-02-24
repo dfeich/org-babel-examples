@@ -13,6 +13,9 @@
 #+LANGUAGE: en
 #+SELECT_TAGS: export
 
+# By default I do not want that source code blocks are evaluated on export. Usually
+# I want to evaluate them interactively and retain the original results.
+#+PROPERTY: header-args :eval never-export
 
 * Documentation and links
 
@@ -204,5 +207,4 @@ Local Variables:
 org-babel-after-execute-hook: (lambda () (org-display-inline-images nil t) (org-redisplay-inline-images))
 org-latex-listings: nil
 org-confirm-babel-evaluate: nil
-org-export-babel-evaluate: nil
 End:

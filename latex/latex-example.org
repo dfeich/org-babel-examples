@@ -4,7 +4,7 @@
 #+MACRO: NEWLINE @@latex:\\@@ @@html:<br>@@
 
 #+TITLE: Org-mode Latex Export {{{NEWLINE}}} Example
-# #+DATE: <2015-07-25 Sat>
+
 #+AUTHOR: Derek Feichtinger
 #+EMAIL: derek.feichtinger@psi.ch
 #+OPTIONS: ':nil *:t -:t ::t <:t H:3 \n:nil ^:t arch:headline
@@ -16,12 +16,16 @@
 # default if that is not set. The string is put at the end of the
 # document.
 #+OPTIONS: creator:t
-# #+CREATOR: Emacs 24.3.1 (Org mode 8.2.5h)
+
 #+DESCRIPTION:
 #+EXCLUDE_TAGS: noexport
 #+KEYWORDS:
 #+LANGUAGE: en
 #+SELECT_TAGS: export
+
+# By default I do not want that source code blocks are evaluated on export. Usually
+# I want to evaluate them interactively and retain the original results.
+#+PROPERTY: header-args :eval never-export
 
 # #+OPTIONS: texht:t
 #+LATEX_CLASS: article
@@ -75,7 +79,7 @@
 
 
 * Version information
-  #+BEGIN_SRC emacs-lisp :results output :exports results
+  #+BEGIN_SRC emacs-lisp :results output :exports results :eval query-export
     (princ (concat (format "Emacs version: %s\n" (emacs-version))
                    (format "org version: %s\n" (org-version))))
     
@@ -159,7 +163,7 @@
    | p         | Put on a special page for floats only.                                          |
    | \!        | Override internal parameters LaTeX uses for determining "good" float positions. |
    | H         | Places the float at precisely the location in the LaTeX code. Requires the      |
-   |           | float package, e.g., \usepackage{float}. This is somewhat equivalent to h!.     |
+   |           | float package, e.g., \textbackslash{}usepackage{float}. This is somewhat equivalent to h!. |
 
    #+NAME: fig_simplegraph1
    #+CAPTION: A simple graph
@@ -396,6 +400,39 @@
     | March |   22 |     278 |    12.6 |
     #+TBLFM: $4=$3/$2;%.1f
    
+** Source code
+
+   In order to get nice source code formatting and markup, one needs to add the *minted* package. I add here
+   the relevant excerpt from my emacs initialization file (listing [[listing-minted-config]]), which also serves as a first lisp code example
+
+   #+NAME: listing-minted-config
+   #+CAPTION: emacs init.el snippet for including code markup by minted
+   #+BEGIN_SRC emacs-lisp :exports code
+     (eval-after-load "ox-latex"
+       '(progn 
+          ;; we want source code blocks to be syntax colored when exporting
+          ;; via latex.  We configure latex minted which uses python
+          ;; pygments
+          (add-to-list 'org-latex-packages-alist '("" "minted"))
+          (setq org-latex-listings 'minted)
+          ;; define mappings of src-code-language to lexer that minted shall use
+          ;;(add-to-list 'org-latex-listings-langs '(ipython "Python"))
+          (add-to-list 'org-latex-minted-langs '(ipython "python"))))
+   #+END_SRC
+
+   
+   I also add listing [[listing-example-c]] as an example for C code markup:
+
+   #+NAME: listing-example-c
+   #+CAPTION: C code markup example 
+   #+BEGIN_SRC C :exports code
+     #include "stdlib.h"
+     int main(int argc,char **argv) {
+       printf("Hello World");
+       exit(0);
+     }
+   #+END_SRC
+   
 * Text features
 ** Text font size
    #+LATEX:\Huge
@@ -487,7 +524,7 @@
   - to render the document, a call to the =makeindex= binary needs to
     be added in the build command. I use the following definition in
     my =init.el=.
-    #+BEGIN_SRC emacs-lisp
+    #+BEGIN_SRC emacs-lisp :exports code
       (setq org-latex-pdf-process
             (let
                 ((cmd (concat "pdflatex -shell-escape -interaction nonstopmode"
@@ -564,8 +601,15 @@
 
 
   #+LaTeX: \pagebreak
+* Indexes and tables of contents  
   #+TOC: tables
 
+#  #+LaTeX: \pagebreak
+  #+TOC: listings
+
+# the list of figures requires a pure LaTeX command  
+  #+LATEX: \listoffigures
+  
   #+LaTeX: \pagebreak
   #+LATEX:\printindex
 
@@ -574,6 +618,5 @@
 
 Local variables:
 org-confirm-babel-evaluate: t
-org-export-babel-evaluate: t
 org-latex-remove-logfiles: nil
 End:
