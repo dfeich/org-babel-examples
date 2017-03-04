@@ -17,74 +17,424 @@
 # I want to evaluate them interactively and retain the original results.
 #+PROPERTY: header-args :eval never-export
 
-* tables using lisp formulas
-** basic usage
-   the fields are read as strings, except if the modifiers =N= for
-   numeric or =L= for using literal values are given.
+* Basic table example
 
-   Tip: try using the table debugger (C-c {) if something goes wrong.
+  Having used Org mode for a few years now, I notice that most of my tables
+  look like the following
 
-   |   | Row | c2 | c3  | Add | Add2 |
-   | ! |     | c2 | c3  |     |      |
-   | # | A   |  1 | 2   |   3 |    3 |
-   | # | B   |  4 | 7   |  11 |   11 |
-   | # | C   |  4 | str |   4 |    4 |
-   #+TBLFM: $5='(+ (string-to-number $3) (string-to-number $c3))::$6='(+ $c2 $c3);N
+  | Name  | number | cost per item |      sum | incl VAT |
+  |-------+--------+---------------+----------+----------|
+  | name1 |      3 |       1500.00 |  4500.00 |  4860.00 |
+  | name2 |      9 |       4000.00 | 36000.00 | 38880.00 |
+  | name3 |      4 |       2800.00 | 11200.00 | 12096.00 |
+  |-------+--------+---------------+----------+----------|
+  | Total |        |               | 51700.00 | 55836.00 |
+  #+TBLFM: @>$4..@>$>=vsum(@I..@II);%.2f::@2$4..@4$4=$2*$3;%.2f::@2$5..@4$5=$4*1.08;%.2f
+
+  Note:
+  - =vsum= is the most frequent calc function used in my tables.
+  - The syntax =@I..@II= for defining the vertical range between the horizontal rulers is extremely
+    useful. One does not need to count the exact row number. Regrettably this syntax can only be
+    used on the right side of an equation (So this is forbidden: @I$2..@II$2=5).
+  - The use of =>= to indicate the last row or column is useful, since one does not need to use
+    explicit row and column numbers.
+  - The number format is controlled by the =%.2f= specifiers at the end of the formulas. The
+    syntax is similar to the one used in C format specifiers, e.g. %f for float.
+
+  Moving rows and columns in a table  
+  - When inserting rows or deleting rows always try to use =M-up= /
+    =M-down= (org-table-move-row). It will adapt the formulas.
+  - When moving columns around, always do it with =M-right= and =M-left=. It will
+    adapt the formulas to match the changed structure.
 
 
-   For the next example, this lisp function must be defined (do =C-x
-   C-e= with the cursor at the end of the expression)
-   #+BEGIN_SRC emacs-lisp :exports code
-     (defun my-colsum-if (keylist vallist keymatch)
-     "sum values in vallist if the corresponding key matches the keymatch argument"
-       (cl-loop for key in keylist
-		for val in vallist
-		when (equal key keymatch)
-		sum (string-to-number val)))
+  The same table using named columns, an advanced table feature. The column
+  names get defined in the row containing =!= in the first column.
+
+  |   | Name  | number | cost per item |      sum | incl VAT |
+  | ! | name  |    num |       peritem |      sum |          |
+  |---+-------+--------+---------------+----------+----------|
+  |   | name1 |      3 |       1500.00 |    4500. |  4860.00 |
+  |   | name2 |      9 |       4000.00 |   36000. | 38880.00 |
+  |   | name3 |      4 |       2800.00 |   11200. | 12096.00 |
+  |---+-------+--------+---------------+----------+----------|
+  |   | Total |        |               | 51700.00 | 55836.00 |
+  #+TBLFM: @>$5..@>$>=vsum(@I..@II);%.2f::@3$5..@5$5=$num * $peritem::@3$6..@5$6=$sum*1.08;%.2f
+  
+* Table formulas
+** using lisp functions in table formulas
+*** basic usage
+    Referenced fields in a lisp formula are read as strings, except if the modifiers =;N= for
+    numeric or =;L= for using literal values are given at the end of the formula.
+
+    Tip: try using the table debugger (C-c {) if something goes wrong.
+
+    |   | Row | c2 | c3  | Add | Add2 |
+    | ! |     | c2 | c3  |     |      |
+    |---+-----+----+-----+-----+------|
+    | # | A   |  1 | 2   |   3 |    3 |
+    | # | B   |  4 | 7   |  11 |   11 |
+    | # | C   |  4 | str |   4 |    4 |
+    #+TBLFM: $5='(+ (string-to-number $3) (string-to-number $c3))::$6='(+ $c2 $c3);N
+
+
+    For the next example, this lisp function must be defined in the present emacs session (do =C-x
+    C-e= with the cursor at the end of the expression or use =C-c C-c= on the source block.)
+    #+BEGIN_SRC emacs-lisp :exports code
+      (defun my-colsum-if (keylist vallist keymatch)
+      "sum values in vallist if the corresponding key matches the keymatch argument"
+	(cl-loop for key in keylist
+		 for val in vallist
+		 when (equal key keymatch)
+		 sum (string-to-number val)))
+    #+END_SRC
+
+    The values in the following table are random generated. In the lower section of the table we use
+    the above function to only add values with the class matching the specification.
+  
+    |   | Class      |       value |
+    | ! | class      |       value |
+    |---+------------+-------------|
+    | # | A          |           3 |
+    | # | B          |           8 |
+    | # | C          |           2 |
+    | # | A          |           3 |
+    | # | B          |           5 |
+    | # | C          |           9 |
+    |---+------------+-------------|
+    | # | all values | 3 8 2 3 5 9 |
+    | # | sum        |          30 |
+    | # | sum if A   |           6 |
+    | # | sum if B   |          13 |
+    #+TBLFM: $3='(random 10)::@9$3='(mapconcat 'identity (list @I..@II) " ")::@10$3='(apply '+ (list @I..II));N::@11$3='(my-colsum-if (list @I$class..@II$class) (list @I..II) "A")::@12$3='(my-colsum-if (list @I$class..@II$class) (list @I..II) "B")
+
+*** reading input fields as literal lisp values
+    Using the =;L= modifier, one can have the references be interpreted as literal
+    lisp values. In this example I am using this feature for displaying the lisp
+    types of various arguments in the first column.
+
+    | expression                | lisp type |
+    |---------------------------+-----------|
+    | 'mapconcat                | symbol    |
+    | #'mapconcat               | symbol    |
+    | "text"                    | string    |
+    | (concat "hello" " world") | string    |
+    | 1                         | integer   |
+    | (+ 3 4)                   | integer   |
+    | ?a                        | integer   |
+    | 1.0                       | float     |
+    | '(1 2 3)                  | cons      |
+    | [1 2 3 4]                 | vector    |
+    | nil                       | symbol    |
+    #+TBLFM: @2$2..@>$2='(type-of $1);L
+** Using src block functions in table formulas
+*** calling a source block from a lisp formula with =org-sbe=
+
+   The *org-sbe* macro (warning: it was called *sbe* in earlier org
+   versions) allows calling the previously defined src blocks from
+   within table formulas and feeding them then named arguments.
+
+   I first define two example source block functions [[mydouble]] and [[mydivide]].
+
+   #+NAME: mydouble
+   #+header: :var x=2
+   #+BEGIN_SRC emacs-lisp :results silent
+   (* 2 x)
    #+END_SRC
 
-   The values in the following table are random generated. In the lower section of the table we use
-   the above function to only add values with the class matching the specification.
+   #+NAME: mydivide
+   #+header: :var x=2 y=2
+   #+BEGIN_SRC emacs-lisp :results silent
+   (/ x y)
+   #+END_SRC
+
   
-   |   | Class      |       value |
-   | ! | class      |       value |
-   |---+------------+-------------|
-   | # | A          |           3 |
-   | # | B          |           8 |
-   | # | C          |           2 |
-   | # | A          |           3 |
-   | # | B          |           5 |
-   | # | C          |           9 |
-   |---+------------+-------------|
-   | # | all values | 3 8 2 3 5 9 |
-   | # | sum        |          30 |
-   | # | sum if A   |           6 |
-   | # | sum if B   |          13 |
-   #+TBLFM: $3='(random 10)::@9$3='(mapconcat 'identity (list @I..@II) " ")::@10$3='(apply '+ (list @I..II));N::@11$3='(my-colsum-if (list @I$class..@II$class) (list @I..II) "A")::@12$3='(my-colsum-if (list @I$class..@II$class) (list @I..II) "B")
+   |   |    A | calc double | lisp double | lisp divide |
+   | ! | colA |        colB |        colC |        colD |
+   |---+------+-------------+-------------+-------------|
+   | # |    1 |           2 |           2 |           2 |
+   | # |    3 |           6 |           6 |           2 |
+   | # |    9 |          18 |          18 |           2 |
+   #+TBLFM: $3=$colA*2::$4='(org-sbe mydouble (x $colA))::$5='(org-sbe mydivide (x $colB) (y $colA))
 
-** reading input fields as literal lisp values
-   Using the =L= modifier, one can have the references be interpreted as literal
-   lisp values.
+*** specifying whether referred to fields are to be read as numbers or strings
+    *If the field references should be read as strings*, one needs to
+    add an additional dollar sign, e.q. =$$1, $$colname=, a single
+    dollar sign =$1= reads the field value as a number.  Here is an
+    example reading in date strings, and using calc functions for doing
+    some time arithmetic.
+   
+    #+name: addmonths
+    #+BEGIN_SRC emacs-lisp :results silent :var argdate="2014-03-01" argmonths="10"
+      (let ((calc-date-format
+	     '(YYYY "-" MM "-" DD)))
+	(math-format-date (calcFunc-bsub (calcFunc-incmonth (math-parse-date argdate) (string-to-number argmonths)) 1))
+	)
+    #+END_SRC
 
-   | candidate                 | type    |
-   |---------------------------+---------|
-   | 'mapconcat                | symbol  |
-   | "text"                    | string  |
-   | 1                         | integer |
-   | 1.0                       | float   |
-   | '(1 2 3)                  | cons    |
-   | [1 2 3 4]                 | vector  |
-   | (+ 3 4)                   | integer |
-   | nil                       | symbol  |
-   | (concat "hello" " world") | string  |
-   |                           | #ERROR  |
-   #+TBLFM: @2$2..@>$2='(type-of $1);L
+    |   | WP     |                     | WP duration |   WP start |     WP end |
+    |   | number | subject             |      months |       date |       date |
+    | ! | wpid   | wpname              |    wpmonths |      sdate |      edate |
+    |---+--------+---------------------+-------------+------------+------------|
+    | # | WP0    | Project Management  |          24 | 2015-01-01 | 2016-12-31 |
+    | # | WP1    | IT Infrastructure   |          24 | 2015-01-01 | 2016-12-31 |
+    | # | WP2    | IdM Mngm + Rem Acc  |          12 | 2015-01-01 | 2015-12-31 |
+    | # | WP3    | Data Catalog        |           9 | 2015-01-01 | 2015-09-30 |
+    | # | WP4    | provide existing SW |          24 | 2015-01-01 | 2016-12-31 |
+    | # | WP5    | SW development      |          24 | 2015-01-01 | 2016-12-31 |
+    |---+--------+---------------------+-------------+------------+------------|
+    | # |        | TOTAL               |             |            |            |
+    #+TBLFM: @4$6..@9$6='(org-sbe addmonths (argdate $$sdate) (argmonths $$wpmonths))
 
-* referencing table fields from lisp
 
-  The lisp function to use for retrieving table values is =org-table-get-remote-range=. Note that
-  the retrieval from tables using advanced naming can be problematic. Here an example for multiple
-  cases.
+    A function which sums up the values in a column of table tbl if col1
+    matches match1 and col2 matches match2
+
+    #+NAME: calc_add_if_match2
+    #+HEADER: :var tbl="tbl_grp" col1="group" col2="use" vcol="value" match1="C" match2="1"
+    #+BEGIN_SRC emacs-lisp :exports code 
+       ;; add vcol column values if col1 matches match1 and col2 matchtes match2
+       (let ((c1list (org-table-get-remote-range tbl (format "@I$%s..@>$%s" col1 col1)))
+             (c2list (org-table-get-remote-range tbl (format "@I$%s..@>$%s" col2 col2)))
+             (vallist (org-table-get-remote-range tbl (format "@I$%s..@>$%s" vcol vcol))))
+       	 (cl-loop for c1tst in c1list
+                  for c2tst in c2list
+                  for val in vallist
+                  when (and (equal c1tst match1) (equal c2tst match2))
+                  sum (string-to-number val))
+       	 )
+    #+END_SRC
+
+    #+RESULTS: calc_add_if_match2
+    : 5
+
+    #+NAME: tbl_grp
+    |   | name    | group | use | value |
+    | ! | name    | group | use | value |
+    |---+---------+-------+-----+-------|
+    |   | john    | B     |   1 |     1 |
+    |   | beth    | B     |   0 |     3 |
+    |   | mike    | C     |   1 |     5 |
+    |   | leslie  | A     |   0 |     7 |
+    |   | barbara | A     |   1 |     4 |
+    |   | ken     | C     |   0 |     2 |
+    |   | thomas  | A     |   1 |     8 |
+
+    To demonstrate the above code, we use it to fill the sum column in
+    the table below. We sum up all values in the above table where the
+    =group= matches the given target group column, and where the =use=
+    column matches "1".
+
+    |   | target group | sum |
+    | ! | grp          |     |
+    |---+--------------+-----|
+    | # | A            |  12 |
+    | # | B            |   1 |
+    | # | C            |   5 |
+    #+TBLFM: $3='(org-sbe calc_add_if_match2 (tbl $"tbl_grp") (col1 $"group") (col2 $"use") (vcol $"value") (match1 $$grp) (match2 $"1") )
+  
+*** an analytic look at the involved lisp functions
+
+**** org-sbe
+
+     #+BEGIN_EXAMPLE
+ #+TBLFM: @I$6..@II$6='(org-sbe addmonths (argdate $$sdate) (argmonths $$wpmonths))
+     #+END_EXAMPLE
+
+     The double dollar ends up in passing this kind of code line where
+     the resulting string arguments are headed by a dollar sign:
+
+     #+BEGIN_SRC emacs-lisp
+     (org-sbe addmonths (argdate $"2015-01-01") (argmonths $"24"))
+     #+END_SRC
+
+	#+RESULTS:
+	: 2016-12-30
+
+**** org-table-get-remote-range
+     There seems to be a bug in the org-table-get-remote-range
+     function. When I reference the remote range by a field name
+     (defined in a special row marked by "^" in the first column), the
+     result is a string that contains the field value wrapped in
+     parentheses:
+
+     #+BEGIN_SRC emacs-lisp :results output
+       (pp (org-no-properties (org-table-get-remote-range "remtable1" "$ref_number"))) (princ "\n")
+       (pp (org-no-properties (org-table-get-remote-range "remtable1" "@2$3"))) (princ "\n")
+       (pp (org-no-properties (org-table-get-remote-range "remtable1" "$ref_date"))) (princ "\n")
+       (pp (org-no-properties (org-table-get-remote-range "remtable1" "@4$3"))) (princ "\n")
+     #+END_SRC
+
+     #+RESULTS:
+     : "(24)"
+     : "24"
+     : "(2014-01-02)"
+     : "2014-01-02"
+
+    
+     Exploring the usage of =remote= inside of a table.
+     - The date is read as an equation ("-" is minus) and I get the
+       result of a substraction
+    
+     Table for remote table test
+     #+NAME: remtable1
+     #+CAPTION: global model parameters
+     |   | Entry    | Value      |
+     |---+----------+------------|
+     |   | a number | 24         |
+     | ^ |          | ref_number |
+     |   | a date   | 2014-01-02 |
+     | ^ |          | ref_date   |
+
+
+     Here we try different ways of referencing the fields of the table above using the =remote= keyword:
+
+     | Entry         | field name ref | num ref | lisp + field name |
+     |---------------+----------------+---------+-------------------|
+     | remote number |             24 |      24 | (24)              |
+     | remote date   |           2011 |    2011 | (2014-01-02)      |
+     #+TBLFM: @2$2=remote(remtable1,$ref_number)::@2$3=remote(remtable1,@2$3)::@2$4='(identity remote(remtable1,$ref_number))::@3$2=remote(remtable1,$ref_date)::@3$3=remote(remtable1,@4$3)::@3$4='(identity remote(remtable1,$ref_date))
+** some other calc functions used in table formulas
+*** conditions using if
+
+    | number | class | even |
+    |--------+-------+------|
+    |      1 | A     | odd  |
+    |      2 | A     | even |
+    |      3 | B     | odd  |
+    |      4 | B     | even |
+    #+TBLFM: @2$2..@>$2=if($1<3,A,B)::@2$3..@>$3=if(deven($1), even, odd)
+
+*** locate position of element in a column: find
+
+ Note that we use the qualifier =;E= in order to have the vector retain
+ the empty fields.
+
+ | Pos | AA | BB | CC | DD | EE | FF | GG | HH | II | JJ | KK | LL | MM |
+ |-----+----+----+----+----+----+----+----+----+----+----+----+----+----|
+ |   1 |    |    |    |    |  1 |    |    |  1 |    |    |    |  1 |    |
+ |   2 |    |    |    |  1 |    |    |    |    |    |    |    |    |    |
+ |   3 |    |    |    |    |    |    |    |    |    |    |    |    |    |
+ |   4 |    |    |    |    |    |  1 |    |    |    |    |    |    |    |
+ |   5 |    |    |    |    |    |    |  1 |    |    |    |    |    |    |
+ |   6 |  8 |    |    |    |    |    |    |    |    |  1 |    |    |    |
+ |   7 |    |    |    |    |    |    |    |    |    |    |    |    |    |
+ |   8 |    |    |    |    |    |    |    |    |    |    |    |    |    |
+ |   9 |    |    |    |    |    |    |    |    |  1 |    |    |    |    |
+ |  10 |    |    |  1 |    |    |    |    |  2 |    |    |  1 |    |    |
+ |  11 |  1 |    |    |    |    |    |    |    |    |    |    |    |    |
+ |  12 |    |    |    |    |    |    |    |    |    |    |    |    |  1 |
+ |  13 |    |    |    |    |    |    |    |  1 |    |    |    |  1 |    |
+ |  14 |    |  1 |    |    |    |    |    |    |    |    |    |    |    |
+ |  15 |  5 |    |    |    |    |    |    |    |    |    |    |    |    |
+ |  16 |    |    |    |  1 |    |    |    |    |    |    |    |    |    |
+ |  17 |    |    |    |    |    |    |    |    |  1 |    |    |    |    |
+ |  18 |    |    |    |    |    |    |  1 |    |    |    |    |    |    |
+ |  19 |    |    |    |    |    |    |    |    |    |    |    |    |    |
+ |-----+----+----+----+----+----+----+----+----+----+----+----+----+----|
+ |     | 11 | 14 | 10 |  2 |  1 |  4 |  5 |  1 |  9 |  6 | 10 |  1 | 12 |
+ #+TBLFM:  @>$<<..@>$> = find(@I..@II, 1); E
+** time calculations
+*** basic usage
+    Time calculations can be done using the =T= modifier, which
+    will expect input in HH:MM[:SS] format and deliver output
+    in HH:MM[:SS] format.
+
+    For the last column I use the =t= modifier, which delivers
+    the result as a float according to the setting of the
+    variable =org-table-duration-custom-format= ('hours by default).
+
+  
+    | Item                          | duration | starting | total |
+    |                               |    (min) |  time AM | hours |
+    |-------------------------------+----------+----------+-------|
+    | Presentation by the candidate |    00:20 |     8:30 |  8.50 |
+    | Presentation Questions        |    00:10 | 08:50:00 |  8.83 |
+    | Break                         |    00:15 | 09:00:00 |  9.00 |
+    | Main interview                |    00:90 | 09:15:00 |  9.25 |
+    | Break                         |    00:15 | 10:45:00 | 10.75 |
+    | HR Interview                  |    00:60 | 11:00:00 | 11.00 |
+    | optional Lunch / Coffee       |    00:60 | 12:00:00 | 12.00 |
+    | optional interview            |    00:30 | 13:00:00 | 13.00 |
+     #+TBLFM: @4$3..@>$3=@-1 + @-1$-1;T::@3$4..@>$4=$-1;t
+
+*** a nicer function for adding up time values
+
+    Here another function to add up a time interval and a clock value.
+     #+NAME: timeadd
+     #+BEGIN_SRC emacs-lisp :results value :var inputtime="9:00" delta="30" :exports both
+       (let ((date (org-parse-time-string
+                    (concat "2015-06-01 "
+                            (substring-no-properties inputtime)))))
+       	 (setf (nth 1 date) (+ (nth 1 date) (string-to-number delta)))
+       	 (format-time-string "%H:%M" (apply 'encode-time date)))
+     #+END_SRC
+
+     #+RESULTS: timeadd
+     : 09:30
+
+    And we use it for calculating the clock value for an interview schedule in
+    the following table.
+   
+    | Item                          | duration | starting |
+    |                               |    (min) |  time AM |
+    |-------------------------------+----------+----------|
+    | Presentation by the candidate |       20 |     8:30 |
+    | Presentation Questions        |       10 |    08:50 |
+    | Break                         |       15 |    09:00 |
+    | Main interview                |       90 |    09:15 |
+    | Break                         |       15 |    10:45 |
+    | HR Interview                  |       60 |    11:00 |
+    | optional Lunch / Coffee       |       60 |    12:00 |
+    | optional interview            |       30 |    13:00 |
+     #+TBLFM: @4$3..@>$3='(org-sbe timeadd (inputtime $@-1) (delta $@-1$-1))  
+** table lookup functions
+   Interesting advanced possibilities are opened up when using the org table lookup
+   functions
+
+   http://orgmode.org/worg/org-tutorials/org-lookups.html
+
+
+   We define a mapping table. Note that we have two mappings for the string "two".
+   #+NAME: tblhash
+   | one   |   1 |
+   | two   |   2 |
+   | three |   3 |
+   | four  |   4 |
+   | two   | 100 |
+
+
+   We fill the second column of the table below according to the
+   associative array defined by the table above. Values which cannot
+   be mapped yield an error. =org-lookup-first= will find the first
+   matching row and give back the associated mapped value. An =#ERROR=
+   will be returned for missing key values.
+  
+   | three |      3 |
+   | five  | #ERROR |
+   | two   |      2 |
+   | six   | #ERROR |
+   | one   |      1 |
+   | four  |      4 |
+   #+TBLFM: $2='(org-lookup-first $1 '(remote(tblhash,@1$1..@>$1)) '(remote(tblhash,@1$2..@>$2)))
+
+
+   =org-lookup-last= accordingly takes the values from the last row that matched.
+
+   | three |      3 |
+   | five  | #ERROR |
+   | two   |    100 |
+   | six   | #ERROR |
+   | one   |      1 |
+   | four  |      4 |
+   #+TBLFM: $2='(org-lookup-last $1 '(remote(tblhash,@1$1..@>$1)) '(remote(tblhash,@1$2..@>$2)))
+
+* referencing table values from lisp
+
+  The lisp function to use for retrieving table values is
+  =org-table-get-remote-range=. Note that the retrieval from tables
+  using advanced naming syntax (row with a =^=) returns the value in
+  parentheses (a bug?). Here an example for multiple cases.
 
   #+NAME: tblRefsFromLisp
   |   | key   | value |
@@ -105,7 +455,7 @@
                            (pp-to-string (substring-no-properties
                                           (org-table-get-remote-range "tblRefsFromLisp" "@3$3")))
                            (pp-to-string (substring-no-properties
-                                          (org-table-get-remote-range "tblRefsFromLisp" "@2$key")))
+                                          (org-table-get-remote-range "tblRefsFromLisp" "@3$key")))
                            (pp-to-string (substring-no-properties
                                           (org-table-get-remote-range "tblRefsFromLisp" "$first")))
                            (pp-to-string (mapcar 'substring-no-properties
@@ -117,176 +467,11 @@
 
   #+RESULTS:
   : "1"
-  : "key"
+  : "A"
   : "(A)"
   : ("1" "" "2" "3" "4")
   : 
   : ("A" "1" "first" "" "B" "2" "C" "3" "D" "4")
-
-* Using src block functions for calculating table fields
-** basic usage
-
-  The *org-sbe* macro (warning: it was called *sbe* in earlier org
-  versions) allows calling the previously defined src blocks from
-  within table formulas and feeding them then named arguments.
-
-  #+NAME: mydouble
-  #+header: :var x=2
-  #+BEGIN_SRC emacs-lisp :results silent
-  (* 2 x)
-  #+END_SRC
-
-  #+NAME: mydivide
-  #+header: :var x=2 y=2
-  #+BEGIN_SRC emacs-lisp :results silent
-  (/ x y)
-  #+END_SRC
-
-  
-  |   |    A | calc double | lisp double | lisp divide |
-  | ! | colA |        colB |        colC |        colD |
-  |---+------+-------------+-------------+-------------|
-  | # |    1 |           2 |           2 |           2 |
-  | # |    3 |           6 |           6 |           2 |
-  | # |    9 |          18 |          18 |           2 |
-  #+TBLFM: $3=$colA*2::$4='(org-sbe mydouble (x $colA))::$5='(org-sbe mydivide (x $colB) (y $colA))
-
-** specifying whether referred fields are numbers or strings
-   *If the field references should be read as strings*, one needs to
-   add an additional dollar sign, e.q. =$$1, $$colname=, a single
-   dollar sign =$1= reads the field value as a number.  Here is an
-   example reading in date strings, and using calc functions for doing
-   some time arithmetic.
-   
-   #+name: addmonths
-   #+BEGIN_SRC emacs-lisp :results silent :var argdate="2014-03-01" argmonths="10"
-     (let ((calc-date-format
-	    '(YYYY "-" MM "-" DD)))
-       (math-format-date (calcFunc-bsub (calcFunc-incmonth (math-parse-date argdate) (string-to-number argmonths)) 1))
-       )
-   #+END_SRC
-
-   |   | WP     |                     | WP duration |   WP start |     WP end |
-   |   | number | subject             |      months |       date |       date |
-   | ! | wpid   | wpname              |    wpmonths |      sdate |      edate |
-   |---+--------+---------------------+-------------+------------+------------|
-   | # | WP0    | Project Management  |          24 | 2015-01-01 | 2016-12-31 |
-   | # | WP1    | IT Infrastructure   |          24 | 2015-01-01 | 2016-12-31 |
-   | # | WP2    | IdM Mngm + Rem Acc  |          12 | 2015-01-01 | 2015-12-31 |
-   | # | WP3    | Data Catalog        |           9 | 2015-01-01 | 2015-09-30 |
-   | # | WP4    | provide existing SW |          24 | 2015-01-01 | 2016-12-31 |
-   | # | WP5    | SW development      |          24 | 2015-01-01 | 2016-12-31 |
-   |---+--------+---------------------+-------------+------------+------------|
-   | # |        | TOTAL               |             |            |            |
-   #+TBLFM: @4$6..@9$6='(org-sbe addmonths (argdate $$sdate) (argmonths $$wpmonths))
-
-
-   A function which sums up the values in a column of table tbl if col1
-   matches match1 and col2 matches match2
-
-   #+NAME: calc_add_if_match2
-   #+HEADER: :var tbl="tbl_grp" col1="group" col2="use" vcol="value" match1="C" match2="1"
-   #+BEGIN_SRC emacs-lisp :exports code 
-      ;; add vcol column values if col1 matches match1 and col2 matchtes match2
-      (let ((c1list (org-table-get-remote-range tbl (format "@I$%s..@>$%s" col1 col1)))
-            (c2list (org-table-get-remote-range tbl (format "@I$%s..@>$%s" col2 col2)))
-            (vallist (org-table-get-remote-range tbl (format "@I$%s..@>$%s" vcol vcol))))
-       	(cl-loop for c1tst in c1list
-                 for c2tst in c2list
-                 for val in vallist
-                 when (and (equal c1tst match1) (equal c2tst match2))
-                 sum (string-to-number val))
-       	)
-   #+END_SRC
-
-   #+RESULTS: calc_add_if_match2
-   : 5
-
-   #+NAME: tbl_grp
-   |   | name    | group | use | value |
-   | ! | name    | group | use | value |
-   |---+---------+-------+-----+-------|
-   |   | john    | B     |   1 |     1 |
-   |   | beth    | B     |   0 |     3 |
-   |   | mike    | C     |   1 |     5 |
-   |   | leslie  | A     |   0 |     7 |
-   |   | barbara | A     |   1 |     4 |
-   |   | ken     | C     |   0 |     2 |
-   |   | thomas  | A     |   1 |     8 |
-
-   To demonstrate the above code, we use it to fill the sum column in
-   the table below. We sum up all values in the above table where the
-   =group= matches the given target group column, and where the =use=
-   column matches "1".
-
-   |   | target group | sum |
-   | ! | grp          |     |
-   |---+--------------+-----|
-   | # | A            |  12 |
-   | # | B            |   1 |
-   | # | C            |   5 |
-   #+TBLFM: $3='(org-sbe calc_add_if_match2 (tbl $"tbl_grp") (col1 $"group") (col2 $"use") (vcol $"value") (match1 $$grp) (match2 $"1") )
-  
-** an analytic look at the involved lisp functions
-
-*** org-sbe
-
-    #+BEGIN_EXAMPLE
-#+TBLFM: @I$6..@II$6='(org-sbe addmonths (argdate $$sdate) (argmonths $$wpmonths))
-    #+END_EXAMPLE
-
-    The double dollar ends up in passing this kind of code line where
-    the resulting string arguments are headed by a dollar sign:
-
-    #+BEGIN_SRC emacs-lisp
-    (org-sbe addmonths (argdate $"2015-01-01") (argmonths $"24"))
-    #+END_SRC
-
-       #+RESULTS:
-       : 2016-12-30
-
-*** org-table-get-remote-range
-    There seems to be a bug in the org-table-get-remote-range
-    function. When I reference the remote range by a field name
-    (defined by "^" in the first column), the result is a string that
-    contains the field value wrapped in parentheses:
-    #+BEGIN_SRC emacs-lisp :results output
-      (princ (pp-to-string (org-table-get-remote-range "remtable1" "$ref_number" )))
-      (princ (pp-to-string (org-table-get-remote-range "remtable1" "@2$3" )))
-      (princ (pp-to-string (org-table-get-remote-range "remtable1" "$ref_date" )))
-      (princ (pp-to-string (org-table-get-remote-range "remtable1" "@4$3" )))
-    #+END_SRC
-
-    #+RESULTS:
-    : #("(24)" 1 3
-    :   (face org-table fontified t))
-    : #("24" 0 2
-    :   (fontified t face org-table))
-    : #("(2014-01-02)" 1 11
-    :   (face org-table fontified t))
-    : #("2014-01-02" 0 10
-    :   (fontified t face org-table))
-
-    Exploring the usage of =remote= inside of a table.
-    - The date is read as an equation ("-" is minus) and I get the
-      result of a substraction
-    
-    Table for remote table test
-    #+NAME: remtable1
-    #+CAPTION: global model parameters
-    |   | Entry    | Value      |
-    |---+----------+------------|
-    |   | a number | 24         |
-    | ^ |          | ref_number |
-    |   | a date   | 2014-01-02 |
-    | ^ |          | ref_date   |
-
-
-    Here we try different ways of referencing remote fields
-    | Entry         | field name ref | num ref | lisp + field name |
-    | remote number |             24 |      24 | (24)              |
-    | remote date   |           2011 |    2011 | (2014-01-02)      |
-    #+TBLFM: @2$2=remote(remtable1,$ref_number)::@2$3=remote(remtable1,@2$3)::@2$4='(identity remote(remtable1,$ref_number))::@3$2=remote(remtable1,$ref_date)::@3$3=remote(remtable1,@4$3)::@3$4='(identity remote(remtable1,$ref_date))
 
 * filtering a table
 
@@ -394,144 +579,6 @@
   | row3 |    6 | CN   | D    |   15 |
   | row7 |   14 | D    | CN   |   35 |
   | row9 |   18 | CN   | D    |   45 |
-
-* some other calc functions used in tables
-
-** conditions using if
-
-   | number | class | even |
-   |--------+-------+------|
-   |      1 | A     | odd  |
-   |      2 | A     | even |
-   |      3 | B     | odd  |
-   |      4 | B     | even |
-   #+TBLFM: @2$2..@>$2=if($1<3,A,B)::@2$3..@>$3=if(deven($1), even, odd)
-
-** locate position of element in a column: find
-
-Note that we use the qualifier =;E= in order to have the vector retain
-the empty fields.
-
-| Pos | AA | BB | CC | DD | EE | FF | GG | HH | II | JJ | KK | LL | MM |
-|-----+----+----+----+----+----+----+----+----+----+----+----+----+----|
-|   1 |    |    |    |    |  1 |    |    |  1 |    |    |    |  1 |    |
-|   2 |    |    |    |  1 |    |    |    |    |    |    |    |    |    |
-|   3 |    |    |    |    |    |    |    |    |    |    |    |    |    |
-|   4 |    |    |    |    |    |  1 |    |    |    |    |    |    |    |
-|   5 |    |    |    |    |    |    |  1 |    |    |    |    |    |    |
-|   6 |  8 |    |    |    |    |    |    |    |    |  1 |    |    |    |
-|   7 |    |    |    |    |    |    |    |    |    |    |    |    |    |
-|   8 |    |    |    |    |    |    |    |    |    |    |    |    |    |
-|   9 |    |    |    |    |    |    |    |    |  1 |    |    |    |    |
-|  10 |    |    |  1 |    |    |    |    |  2 |    |    |  1 |    |    |
-|  11 |  1 |    |    |    |    |    |    |    |    |    |    |    |    |
-|  12 |    |    |    |    |    |    |    |    |    |    |    |    |  1 |
-|  13 |    |    |    |    |    |    |    |  1 |    |    |    |  1 |    |
-|  14 |    |  1 |    |    |    |    |    |    |    |    |    |    |    |
-|  15 |  5 |    |    |    |    |    |    |    |    |    |    |    |    |
-|  16 |    |    |    |  1 |    |    |    |    |    |    |    |    |    |
-|  17 |    |    |    |    |    |    |    |    |  1 |    |    |    |    |
-|  18 |    |    |    |    |    |    |  1 |    |    |    |    |    |    |
-|  19 |    |    |    |    |    |    |    |    |    |    |    |    |    |
-|-----+----+----+----+----+----+----+----+----+----+----+----+----+----|
-|     | 11 | 14 | 10 |  2 |  1 |  4 |  5 |  1 |  9 |  6 | 10 |  1 | 12 |
-#+TBLFM:  @>$<<..@>$> = find(@I..@II, 1); E
-
-* time calculations
-** basic usage
-   Time calculations can be done using the =T= modifier, which
-   will expect input in HH:MM[:SS] format and deliver output
-   in HH:MM[:SS] format.
-
-   For the last column I use the =t= modifier, which delivers
-   the result as a float according to the setting of the
-   variable =org-table-duration-custom-format= ('hours by default).
-
-  
-   | Item                          | duration | starting | total |
-   |                               |    (min) |  time AM | hours |
-   |-------------------------------+----------+----------+-------|
-   | Presentation by the candidate |    00:20 |     8:30 |  8.50 |
-   | Presentation Questions        |    00:10 | 08:50:00 |  8.83 |
-   | Break                         |    00:15 | 09:00:00 |  9.00 |
-   | Main interview                |    00:90 | 09:15:00 |  9.25 |
-   | Break                         |    00:15 | 10:45:00 | 10.75 |
-   | HR Interview                  |    00:60 | 11:00:00 | 11.00 |
-   | optional Lunch / Coffee       |    00:60 | 12:00:00 | 12.00 |
-   | optional interview            |    00:30 | 13:00:00 | 13.00 |
-    #+TBLFM: @4$3..@>$3=@-1 + @-1$-1;T::@3$4..@>$4=$-1;t
-
-** a nicer function for adding up time values
-
-   Here another function to add up a time interval and a clock value.
-    #+NAME: timeadd
-    #+BEGIN_SRC emacs-lisp :results value :var inputtime="9:00" delta="30" :exports both
-      (let ((date (org-parse-time-string
-                   (concat "2015-06-01 "
-                           (substring-no-properties inputtime)))))
-       	(setf (nth 1 date) (+ (nth 1 date) (string-to-number delta)))
-       	(format-time-string "%H:%M" (apply 'encode-time date)))
-    #+END_SRC
-
-    #+RESULTS: timeadd
-    : 09:30
-
-   And we use it for calculating the clock value for an interview schedule in
-   the following table.
-   
-   | Item                          | duration | starting |
-   |                               |    (min) |  time AM |
-   |-------------------------------+----------+----------|
-   | Presentation by the candidate |       20 |     8:30 |
-   | Presentation Questions        |       10 |    08:50 |
-   | Break                         |       15 |    09:00 |
-   | Main interview                |       90 |    09:15 |
-   | Break                         |       15 |    10:45 |
-   | HR Interview                  |       60 |    11:00 |
-   | optional Lunch / Coffee       |       60 |    12:00 |
-   | optional interview            |       30 |    13:00 |
-    #+TBLFM: @4$3..@>$3='(org-sbe timeadd (inputtime $@-1) (delta $@-1$-1))
-  
-* table lookup functions
-  Interesting advanced possibilities are opened up when using the org table lookup
-  functions
-
-  http://orgmode.org/worg/org-tutorials/org-lookups.html
-
-
-  We define a mapping table. Note that we have two mappings for the string "two".
-  #+NAME: tblhash
-  | one   |   1 |
-  | two   |   2 |
-  | three |   3 |
-  | four  |   4 |
-  | two   | 100 |
-
-
-  We fill the second column of the table below according to the
-  associative array defined by the table above. Values which cannot
-  be mapped yield an error. =org-lookup-first= will find the first
-  matching row and give back the associated mapped value. An =#ERROR=
-  will be returned for missing key values.
-  
-  | three |      3 |
-  | five  | #ERROR |
-  | two   |      2 |
-  | six   | #ERROR |
-  | one   |      1 |
-  | four  |      4 |
-  #+TBLFM: $2='(org-lookup-first $1 '(remote(tblhash,@1$1..@>$1)) '(remote(tblhash,@1$2..@>$2)))
-
-
-  =org-lookup-last= accordingly takes the values from the last row that matched.
-
-  | three |      3 |
-  | five  | #ERROR |
-  | two   |    100 |
-  | six   | #ERROR |
-  | one   |      1 |
-  | four  |      4 |
-  #+TBLFM: $2='(org-lookup-last $1 '(remote(tblhash,@1$1..@>$1)) '(remote(tblhash,@1$2..@>$2)))
 
 * A note on choice of column names and remote references
 

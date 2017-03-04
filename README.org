@@ -13,11 +13,12 @@
 #+LANGUAGE: en
 #+SELECT_TAGS: export
 
-* Dfeich's Org-babel and org-exporter example collection
+* Dfeich's Org-babel, org-exporter, org-table example collection
   
-  This is my collection of example documents to demonstrate the usage of org-babel
-  with different languages. I also try to show some exporter functionality in respect
-  to a few backends.
+  This is my collection of example documents to demonstrate the usage
+  of org mode, and especially org-babel with different languages. I
+  also show some exporter functionality in respect to a few
+  backends.
    
   I have used org and especially the org-babel functionality for a large
   number of use cases. Please understand that I cannot include the full
@@ -26,8 +27,10 @@
 
 ** Contents
 
-   Note that you need to look at the examples in *raw* mode! For some of the
-   examples I provide example outputs.
+   Note that you need to look at the examples in *raw* mode! Github
+   can nicely render an org file, but you will lose the markup. For
+   some of the example documents I provide the exported PDF documents
+   as well.
    
    1. Babel examples for various backends
       - [[./lisp/lisp-babel.org][Emacs lisp]]
