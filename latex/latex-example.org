@@ -72,6 +72,15 @@
 \DeclareRobustCommand{\myindex}[1]{#1\index{#1}}
 #+END_EXPORT
 
+# The following lines are needed to automatically convert gif to png
+# for inclusion in PDF exports. It also requires that the variable
+# org-latex-inline-image-rules contains gif as a valid format and
+# that pdflatex is set up to allow shell escapes.
+#+LATEX_HEADER_EXTRA: \usepackage{epstopdf}
+#+LATEX_HEADER_EXTRA: \epstopdfDeclareGraphicsRule{.gif}{png}{.png}{convert #1 \OutputFile}
+#+LATEX_HEADER_EXTRA: \AppendGraphicsExtensions{.gif}
+
+
 # For export to ODT
 # #+OPTIONS: LaTeX:t
 # #+OPTIONS: tex:imagemagick
@@ -580,7 +589,7 @@
   #+END_SRC
 
 
-  To just produce a bibliography of all items in the bib file, on can
+  To just produce a bibliography of all items in the bib file, one can
   use the following LaTeX snippet. The =\nocite{*}= command includes
   an item that has not been cited in the document; a star matches all
   documents, so all get included (q.v. [[http://www.math.uiuc.edu/~hildebr/tex/bibliographies0.html][this link]]).
