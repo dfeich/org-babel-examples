@@ -1,81 +1,290 @@
 #+TITLE: shell-babel
-#+DATE: <2013-08-31 Sat>
 #+AUTHOR: Derek Feichtinger
 #+EMAIL: derek.feichtinger@psi.ch
 #+OPTIONS: ':nil *:t -:t ::t <:t H:3 \n:nil ^:t arch:headline
 #+OPTIONS: author:t c:nil creator:comment d:(not LOGBOOK) date:t e:t
 #+OPTIONS: email:nil f:t inline:t num:t p:nil pri:nil stat:t tags:t
 #+OPTIONS: tasks:t tex:t timestamp:t toc:t todo:t |:t
-#+CREATOR: Emacs 24.3.1 (Org mode 8.0.7)
 #+DESCRIPTION:
 #+EXCLUDE_TAGS: noexport
 #+KEYWORDS:
 #+LANGUAGE: en
 #+SELECT_TAGS: export
 
+# Original start of this document
+# #+DATE: <2013-08-31 Sat>
+# #+CREATOR: Emacs 24.3.1 (Org mode 8.0.7)
+
+
 # By default I do not want that source code blocks are evaluated on export. Usually
 # I want to evaluate them interactively and retain the original results.
 #+PROPERTY: header-args :eval never-export
 
-* using a table as input
 
-  We first create a table from a lisp list of lists. Since my final result table
-  should contain three columns, I already insert a header row with the names for
-  the three columns.
-  #+BEGIN_SRC emacs-lisp :results value :exports both
-    (cons '(col1 col2 col3)
-          (loop for i from 5 to 15 collect `(,i ,(* i 5))))
-  #+END_SRC
-
-  #+NAME: table1
-  #+RESULTS:
-  | col1 | col2 | col3 |
-  |    5 |   25 |      |
-  |    6 |   30 |      |
-  |    7 |   35 |      |
-  |    8 |   40 |      |
-  |    9 |   45 |      |
-  |   10 |   50 |      |
-  |   11 |   55 |      |
-  |   12 |   60 |      |
-  |   13 |   65 |      |
-  |   14 |   70 |      |
-  |   15 |   75 |      |
-
-  sidenote: the -n flag results in line numbers for the exported source code.
-
-  #+NAME: src-table2
-  #+BEGIN_SRC sh -n :results value :exports both :var tbl=table1 :colnames yes
-    while read a b rest; do
-        echo $a $b $((b*2))
-    done < <(echo "$tbl")
-    
+* Version information
+  #+BEGIN_SRC emacs-lisp -n :exports both :eval yes
+        (princ (concat
+                (format "Emacs version: %s\n"
+                        (emacs-version))
+                (format "org version: %s\n"
+                        (org-version))))
   #+END_SRC
 
   #+RESULTS:
-  | col1 | col2 | col3 |
-  |------+------+------|
-  |    5 |   25 |   50 |
-  |    6 |   30 |   60 |
-  |    7 |   35 |   70 |
-  |    8 |   40 |   80 |
-  |    9 |   45 |   90 |
-  |   10 |   50 |  100 |
-  |   11 |   55 |  110 |
-  |   12 |   60 |  120 |
-  |   13 |   65 |  130 |
-  |   14 |   70 |  140 |
-  |   15 |   75 |  150 |
+  : Emacs version: GNU Emacs 25.2.3 (x86_64-pc-linux-gnu, GTK+ Version 3.18.9)
+  :  of 2017-04-25
+  : org version: 9.0.5
 
-  One can use a slice indexing for only importing a subrange of a table
-  #+BEGIN_SRC sh :results value :exports both :var slice=src-table2[3:10,0:1] :colnames yes
-  echo $slice
+  #+BEGIN_SRC sh :results output :exports both :eval yes
+  bash --version
   #+END_SRC
 
   #+RESULTS:
-  : 7 35 8 40 9 45 10 50 11 55 12 60 13 65
+  : GNU bash, version 4.3.46(1)-release (x86_64-pc-linux-gnu)
+  : Copyright (C) 2013 Free Software Foundation, Inc.
+  : License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+  : 
+  : This is free software; you are free to change and redistribute it.
+  : There is NO WARRANTY, to the extent permitted by law.
 
-* additionally supported options
+  #+BEGIN_SRC sh :results output :exports both :eval yes
+  dpkg -l dash | tail -n 1
+  #+END_SRC
+
+  #+RESULTS:
+  : ii  dash           0.5.8-2.1ubuntu2 amd64        POSIX-compliant shell
+
+* Tables as input for source blocks
+** Basics about the implementation and associated problems
+*** Using sh (or dash) as shell
+    #+NAME: tbltest
+    | col1 | col2 | col3 |
+    |   11 |   12 |   13 |
+    |   21 |   22 |   23 |
+    |   31 |   32 |   33 |
+
+
+    When using *sh* as language, I get the "old" behavior of obtaining all field values by just
+    printing the variable.
+    #+BEGIN_SRC sh :results value  :exports both :var tbl=tbltest :colnames yes
+      echo $tbl
+    #+END_SRC
+
+    #+RESULTS:
+    : 11 12 13 21 22 23 31 32 33
+
+    Internally the variable expansion into the bash script is done by this org function:
+    #+BEGIN_SRC elisp :results value :exports both
+    (org-babel--variable-assignments:sh-generic 'tbl '((11 12 13) (21 22 23) (31 32 33)) nil nil)
+    #+END_SRC
+
+    #+RESULTS:
+    : tbl='11	12	13
+    : 21	22	23
+    : 31	32	33'
+
+**** TODO Bug when using =org-babel-expand-src-block= with sh blocks
+
+    When expanding the sh source block above with =org-babel-expand-src-block= it is wrongly expanded to the
+    bash expansion and not to the sh expansion that is used when the block is executed. So, instead of the
+    above expansion, I see the following:
+   
+     #+BEGIN_EXAMPLE
+       unset tbl
+       declare -A tbl
+       tbl['11']='12
+       13'
+       tbl['21']='22
+       23'
+       tbl['31']='32
+       33'
+       echo $tbl
+     #+END_EXAMPLE
+
+*** Using bash as shell
+    When using *bash* as language, the expansion uses bash arrays. The
+    current code (org 9.0.5) makes a case distinction between one-column
+    tables tables with multiple columns. This is implemented in
+    =org-babel--variable-assignments:bash=.
+
+    A table with a single column is treated as a vector and translated to an *indexed bash
+    array*.
+  
+    #+NAME: tblvector
+    #+CAPTION: A vector table
+    | 1 |
+    | 2 |
+    | 3 |
+    | 4 |
+    | 5 |
+
+    #+BEGIN_SRC bash :results value  :exports both :var tbl=tblvector :colnames yes
+      echo ${tbl[*]}
+    #+END_SRC
+
+    #+RESULTS:
+    : 2 3 4 5
+
+    The internal expansion of such a vector table is done via
+    =org-babel--variable-assignments:bash= and then
+    =org-babel--variable-assignments:bash_array=
+  
+    #+BEGIN_SRC elisp :results value
+      (org-babel--variable-assignments:bash 'tbl '((2) (3) (4) (5)) nil nil)
+    #+END_SRC
+
+    #+RESULTS:
+    : unset tbl
+    : declare -a tbl=( '2' '3' '4' '5' )
+
+
+
+    When using the multi column table from above, the expansion by org
+    is done using an *associative bash array*.
+
+    #+BEGIN_SRC bash :results output  :exports both :var tbl=tbltest :colnames yes
+      echo "trying a naive way of printing the table: " $tbl
+      echo "using the correct bash syntax: " ${tbl[*]}
+    #+END_SRC
+
+    #+RESULTS:
+    : trying a naive way of printing the table: 
+    : using the correct bash syntax:  22 23 12 13 32 33
+   
+    Still, even when using the correct syntax for printing all table
+    values, not all our table fields are printed. The reason is seen
+    easily when looking at how the expansion is implemented. The array
+    is set through =org-babel--variable-assignments:bash= and then
+    =org-babel--variable-assignments:bash_assoc=.
+
+    #+BEGIN_SRC elisp :results value :exports both
+      (org-babel--variable-assignments:bash 'tbl '((11 12 13) (21 22 23) (31 32 33)) nil nil)
+    #+END_SRC
+
+    #+RESULTS:
+    : unset tbl
+    : declare -A tbl
+    : tbl['11']='12
+    : 13'
+    : tbl['21']='22
+    : 23'
+    : tbl['31']='32
+    : 33'
+
+    So, the first column ends up as the string indexes of the
+    associative bash array. The current implementation has a major
+    drawback: The original order of the rows is not conserved as
+    demonstrated in this little snippet involving a loop over
+    the index values.
+
+    #+BEGIN_SRC bash :results value  :exports both :var tbl=tbltest :colnames yes
+      for idx in ${!tbl[*]}; do
+	 echo $idx ${tbl[$idx]}
+      done
+    #+END_SRC
+
+    #+RESULTS:
+    | col1 | col2 | col3 |
+    |------+------+------|
+    |   21 |   22 |   23 |
+    |   11 |   12 |   13 |
+    |   31 |   32 |   33 |
+
+    I think it would be nicer to treat the first column identical to
+    the other columns and not make it the index of an associative
+    array, even though this may be appealing for problems involving
+    just two columns where the current implementation allows fast
+    key-value lookups.
+
+    A nicer implementation to me would be the use of a simple indexed array
+    where all values of a row are put into the value part of an array field,
+    the index number just reflecting the row number.
+    This allows me to print all fields with an easy
+    command (=${tbl[*]}=) similar to the older implementations. While this gives me all fields on a
+    single output line (losing the table structure), I can also retrieve
+    the whole table structure with the rows in the original order by using a loop construct.
+
+    #+BEGIN_SRC bash :results value  :exports both :var tbl=tbltest :colnames yes
+      unset tbl
+      declare -a tbl
+      tbl[0]='11 12 13'
+      tbl[1]='21 22 23'
+      tbl[2]='31 32 33'
+
+      for idx in ${!tbl[*]}; do
+	 echo ${tbl[$idx]}
+      done
+    #+END_SRC
+
+    #+RESULTS:
+    | col1 | col2 | col3 |
+    |------+------+------|
+    |   11 |   12 |   13 |
+    |   21 |   22 |   23 |
+    |   31 |   32 |   33 |
+
+** some examples
+   We first create a table from a lisp list of lists. Since my final result table
+   should contain three columns, I already insert a header row with the names for
+   the three columns.
+   #+BEGIN_SRC emacs-lisp :results value :exports both
+     (cons '(col1 col2 col3)
+           (loop for i from 5 to 15 collect `(,i ,(* i 5))))
+   #+END_SRC
+
+   #+NAME: table1
+   #+RESULTS:
+   | col1 | col2 | col3 |
+   |    5 |   25 |      |
+   |    6 |   30 |      |
+   |    7 |   35 |      |
+   |    8 |   40 |      |
+   |    9 |   45 |      |
+   |   10 |   50 |      |
+   |   11 |   55 |      |
+   |   12 |   60 |      |
+   |   13 |   65 |      |
+   |   14 |   70 |      |
+   |   15 |   75 |      |
+
+   sidenote: the -n flag results in line numbers for the exported source code.
+
+   #+NAME: src-table2
+   #+BEGIN_SRC bash -n :results value :exports both :var tbl=table1 :colnames yes
+     for idx in ${!tbl[*]}; do
+         echo $idx ${tbl[$idx]} $((${tbl[$idx]}*2))
+     done
+   #+END_SRC
+
+   #+RESULTS: src-table2
+   | col1 | col2 | col3 |
+   |------+------+------|
+   |   13 |   65 |  130 |
+   |   12 |   60 |  120 |
+   |   11 |   55 |  110 |
+   |   10 |   50 |  100 |
+   |   15 |   75 |  150 |
+   |   14 |   70 |  140 |
+   |    5 |   25 |   50 |
+   |    6 |   30 |   60 |
+   |    7 |   35 |   70 |
+   |    8 |   40 |   80 |
+   |    9 |   45 |   90 |
+
+
+   As remarked before, the order of the rows is regrettably lost with the current implementation of bash arrays. In the
+   present case once could use a sort filter at the end, but this only works because we use some external knowledge
+   about this particular table. For generic tables the order is lost.
+
+   One can use a slice indexing for only importing a subrange of a table
+   #+BEGIN_SRC sh :results value :exports both :var slice=src-table2[3:10,0:1] :colnames yes
+   echo $slice
+   #+END_SRC
+
+   #+RESULTS:
+   : 11 55 10 50 15 75 14 70 5 25 6 30 7 35
+
+* some useful source block options
 ** dir
    One can use the :dir option to have the shell code executed within 
    a particular working directory.
@@ -87,12 +296,14 @@
    #+RESULTS:
    : /home
 
-   Since the directory can also be a TRAMP URL, this :dir allows easy
+   Since the directory can also be a TRAMP URL, =:dir= allows easy
    *execution of commands on remote servers*, which to me is the most
    powerful application of this option. Combine this option with
-   the SSH configuration options *ControlMaster and ProxyCommand* to
-   tunnel all connections through an initial control connection (without having
-   to authenticate each time) and to jump through multiple hops.
+   the SSH configuration options *ControlMaster and ProxyCommand*
+   and all remote hosts become one hop away, and you only need to
+   authenticate once. This allows very nice documenting of remote
+   work and writing template documents collecting information from
+   remote servers.
   
 
    #+BEGIN_SRC sh :results output drawer :dir /ssh:root@dftest2.psi.ch:/etc :exports both
@@ -106,14 +317,72 @@
    /etc
    :END:
 
-* TODO noweb example
-  Redefine noweb markers, since =<<= and =>>= are valid shell code redirectors.
+** line numbering for exported code: -n
+
+   Using the flag =-n= results in the exported code lines being printed with line numbers.
+   
+   #+BEGIN_SRC bash -n :results value  :exports source :var tbl=tbltest :colnames yes
+     unset tbl
+     declare -a tbl
+     tbl[0]='11 12 13'
+     tbl[1]='21 22 23'
+     tbl[2]='31 32 33'
+
+     for idx in ${!tbl[*]}; do
+        echo ${tbl[$idx]}
+     done
+   #+END_SRC
+   
+
+
+* noweb example - including code blocks in other code blocks
+  Redefine the standard *noweb markers*, since =<<= and =>>= are valid shell code redirectors and this messes
+  up the syntax highlighting for source blocks. This can be
+  done by defining the variables =org-babel-noweb-wrap-start= and =org-babel-noweb-wrap-end=. I do this
+  in the footer of this document in the emacs "Local Variables" section choosing a markup as in "=<<<bla>>>=".
+
+  #+NAME: srcCodeA
+  #+BEGIN_SRC bash
+    echo "I am from A"
+  #+END_SRC
+
+  Now we include the code from the upper source block in the following block
+
+  #+BEGIN_SRC bash :results output :exports both :noweb yes
+    echo "This is B"
+
+    <<<srcCodeA>>>
+
+    echo "This is B again"
+
+    cat <<EOF
+    this way we do not mess with "here"-documents
+    EOF
+
+    echo "the end"
+  #+END_SRC
+
+  #+RESULTS:
+  : This is B
+  : I am from A
+  : This is B again
+  : this way we do not mess with "here"-documents
+  : the end
+
+* Changes in regard to earlier versions of this document
+** org-babel-sh-command no longer used for selecting shell
+   In earlier implementations of org one needed to select the
+   particular shell that was run by setting the =org-babel-sh-command=
+   to the shell executable, e.g. "/bin/bash". This was either done
+   globally or in the usual local variable section of a document. The
+   newer org versions (certainly org>9.x) allow specifying the shell
+   type as one usually specifies any language of a source block,
+   i.e. by writing a header like =#+BEGIN_SRC bash=.
 
 * COMMENT babel settings
   
   Local Variables:
-  org-babel-sh-command: "/bin/bash"
-  org-babel-noweb-wrap-start: "{{{"
-  org-babel-noweb-wrap-end: "}}}"
+  org-babel-noweb-wrap-start: "<<<"
+  org-babel-noweb-wrap-end: ">>>"
   org-confirm-babel-evaluate: nil
   End:
