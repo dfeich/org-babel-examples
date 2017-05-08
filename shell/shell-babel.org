@@ -83,24 +83,123 @@
     : 21	22	23
     : 31	32	33'
 
-**** TODO Bug when using =org-babel-expand-src-block= with sh blocks
+**** TODO =org-babel-expand-src-block= expands sh blocks independent of shell defined by src block
 
-    When expanding the sh source block above with =org-babel-expand-src-block= it is wrongly expanded to the
-    bash expansion and not to the sh expansion that is used when the block is executed. So, instead of the
-    above expansion, I see the following:
+     Submitted as bug report to [[http://lists.gnu.org/archive/html/emacs-orgmode/2017-05/msg00082.html][mailing list]]
+
+     When using =org-babel-expand-src-block= with a shell src block
+     one always gets the same code expansion (in my case bash)
+     independent of the shell that is used while the execution of the
+     shell block uses the correct expansion.
+
+     #+BEGIN_SRC sh :results value  :exports both :var tbl=tbltest :colnames yes
+       echo $tbl
+     #+END_SRC
+
+     When expanding the sh source block above with =org-babel-expand-src-block= it is wrongly expanded to the
+     bash expansion and not to the sh expansion that is used when the block is executed. So, instead of the
+     sh expansion,
+     
+    : tbl='11	12	13
+    : 21	22	23
+    : 31	32	33'
+
+
+     I see the following expansion in the opened buffer:
    
      #+BEGIN_EXAMPLE
-       unset tbl
-       declare -A tbl
-       tbl['11']='12
-       13'
-       tbl['21']='22
-       23'
-       tbl['31']='32
-       33'
-       echo $tbl
+	unset tbl
+	declare -A tbl
+	tbl['11']='12
+	13'
+	tbl['21']='22
+	23'
+	tbl['31']='32
+	33'
+	echo $tbl
      #+END_EXAMPLE
 
+     Reason:
+
+     The case distinction in =org-babel-variable-assignments:shell= is
+     made based on the shell-file-name which is a standard emacs
+     variable set by emacs in C code. This is pointing to "/bin/bash"
+     for my installation.
+
+     #+BEGIN_SRC elisp :exports source
+	(defun org-babel-variable-assignments:shell (params)
+         "Return list of shell statements assigning the block's variables."
+         (let ((sep (cdr (assq :separator params)))
+    	   (hline (when (string= "yes" (cdr (assq :hlines params)))
+    		    (or (cdr (assq :hline-string params))
+    			"hline"))))
+           (mapcar
+            (lambda (pair)
+    	  (if (string-suffix-p "bash" shell-file-name)
+    	      (org-babel--variable-assignments:bash
+                   (car pair) (cdr pair) sep hline)
+                (org-babel--variable-assignments:sh-generic
+    	     (car pair) (cdr pair) sep hline)))
+            (org-babel--get-vars params))))
+     #+END_SRC
+
+     Looking at the calls stack for the case where we execute the source block and where we just expand it, we see
+     the following call stack for execution
+
+     #+BEGIN_EXAMPLE
+         org-babel-variable-assignments:shell
+         org-babel-execute:shell
+         org-babel-execute:sh
+         org-babel-execute-src-block
+     #+END_EXAMPLE
+
+     while in the case of just expanding the source block we have
+
+     #+BEGIN_EXAMPLE
+	org-babel-variable-assignments:sh
+	org-babel-expand-src-block
+     #+END_EXAMPLE
+
+     Note that =org-babel-variable-assignments:sh= is an alias for
+     =org-babel-variable-assignments:shell=.
+    
+     A bit of investigation shows that for all shell languages there
+     are aliases defined that finally call
+     =org-babel-execute:shell=. This is set up in the
+     =org-babel-shell-initialize= function. And it is set up in a way
+     that =shell-file-name= is overridden by the name of the
+     particular shell, and this then leads to the correct case
+     distinction using =shell-file-name= in
+     =org-babel-variable-assignments:shell=.
+    
+     #+BEGIN_SRC elisp :exports source
+	(defun org-babel-shell-initialize ()
+         "Define execution functions associated to shell names.
+	This function has to be called whenever `org-babel-shell-names'
+	is modified outside the Customize interface."
+         (interactive)
+         (dolist (name org-babel-shell-names)
+           (eval `(defun ,(intern (concat "org-babel-execute:" name))
+    		  (body params)
+    		,(format "Execute a block of %s commands with Babel." name)
+    		(let ((shell-file-name ,name))
+    		  (org-babel-execute:shell body params))))
+           (eval `(defalias ',(intern (concat "org-babel-variable-assignments:" name))
+    		'org-babel-variable-assignments:shell
+    		,(format "Return list of %s statements assigning to the block's \
+	variables."
+    			 name)))))
+     #+END_SRC
+
+     The same kind of overriding would have to be in place when
+     =org-babel-expand-src-block= calls
+     =org-babel-variable-assignments:shell= in the simple code expansion case. But that
+     would be a bit hacky since the generic =org-babel-expand-src-block= function should
+     not override variables needed in just one subclass of backends. It would be
+     cleaner to have different functions =org-babel-variable-assignments:XXX= for the
+     different shells.
+
+    
 *** Using bash as shell
     When using *bash* as language, the expansion uses bash arrays. The
     current code (org 9.0.5) makes a case distinction between one-column
