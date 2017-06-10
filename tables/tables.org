@@ -12,7 +12,7 @@
 #+KEYWORDS:
 #+LANGUAGE: en
 #+SELECT_TAGS: export
-
+#+TODO: TODO(t) OPEN(o) | DONE(d) FIXED(f)
 # By default I do not want that source code blocks are evaluated on export. Usually
 # I want to evaluate them interactively and retain the original results.
 #+PROPERTY: header-args :eval never-export
@@ -600,6 +600,36 @@
   | # |       |     1 |      2 |      3 |      1 |
   #+TBLFM: @3$3=remote(remtable2,@3$value)::@3$4=remote(remtable2,@3$value2)::@3$5=remote(remtable2,@3$value3a)::@3$6=remote(remtable2,@3$value_a4)
 
+* Exporting tables with some columns hidden
+
+  It is desirable to be able and hide columns in exported output. This is often the
+  case in tables where a lot of computations are done, and where intermediate
+  results end up in columns that one does not want to end up in the exported document.
+
+  This functionality is currently not available by standard org, but since this is Emacs, a simple function
+  implementing this functionality was published by [[https://github.com/brandm][Michael Brand]] within this [[http://lists.gnu.org/archive/html/emacs-orgmode/2016-05/msg00027.html][emacs-orgmode thread]].
+
+  #+BEGIN_SRC emacs-lisp :results silent :exports source
+    (defun dfeich/org-export-delete-commented-cols (back-end)
+      "Delete columns $2 to $> marked as `<#>' on a row with `/' in $1.
+    If you want a non-empty column $1 to be deleted make it $2 by
+    inserting an empty column before and adding `/' in $1."
+      (while (re-search-forward "^[ \t]*| +/ +|\\(.*|\\)? +\\(<#>\\) *|" nil t)
+	(goto-char (match-beginning 2))
+	(org-table-delete-column)
+	(beginning-of-line)))
+    (add-hook 'org-export-before-processing-hook #'dfeich/org-export-delete-commented-cols)
+    ;; (remove-hook 'org-export-before-processing-hook #'dfeich/org-export-delete-commented-cols)
+  #+END_SRC  
+
+  The exported table will have col2 removed.
+
+  |   | col1 | col2 | col3 |
+  | / |  <r> | <#>  |      |
+  |   |   a1 | a2   | a3   |
+  |   |   b1 | b2   | b3   |
+
+  
 
 * Information on internals
 
@@ -620,7 +650,7 @@
   #+END_QUOTE
 
 * Bugs I found [1/2]
-** DONE table names like p2_somename
+** FIXED table names like p2_somename
    CLOSED: [2014-08-01 Fri 14:19]
    *do not use table names like p2_somename or
    somename_p2_someother.* The p2 is interpretet as column P, field 2
@@ -639,7 +669,7 @@
    |      |      |
    #+TBLFM: @2$1=remote(p2_somename,@2$2)
 
-** TODO table referenced by remote calls must not contain same column names
+** OPEN table referenced by remote calls must not contain same column names
 
    #+NAME: remtableIdColName
    |   | one | two |
