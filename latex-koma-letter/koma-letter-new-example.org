@@ -1,0 +1,87 @@
+#+LATEX_CLASS: default-koma-letter
+
+# Base example taken from http://orgmode.org/worg/exporters/koma-letter-export.html
+
+* COMMENT Important export information
+  - You must have loaded the ox-koma-letter package.
+    #+BEGIN_SRC elisp
+      (use-package ox-koma-letter)
+    #+END_SRC
+  - You must export using one of the special koma letter export
+    functions (e.g. =org-koma-letter-export-to-pdf=) and not the
+    normal latex exporter. The usual shortcut is =C-c C-e k o=
+
+* Preamble							   :noexport:
+#+TITLE:  Mis-shapen chaos of well-seeming forms!
+#+SUBJECT: Or: org-mode and KOMA-Script letters
+#+DATE: 1580
+
+#+AUTHOR: Romeo
+#+PLACE: Verona, Italy
+
+#+LCO: DINmtext
+Q# NOTE: Check the KOMA-Script manual to find a LCO that fits the
+#       envelope standards of your country.
+
+# NOTE: Change the order of the backletter, use smart quotes and
+#       include backaddress
+#+OPTIONS: after-closing-order:(my_after_signature ps cc encl)
+#+options: ':t backaddress:t subject:centered
+
+# Remove the first header
+#+LATEX_HEADER: \setkomavar{firsthead}{}
+
+* To-address of the lovely Juliet 					 :to:
+# NOTE: Explicit newlines are not necessary in TO and FROM
+Juliet
+House of Capulet
+Verona
+
+* From 								       :from:
+House of Montague
+Verona
+* Location							   :location:
+#+LATEX_HEADER: \usepackage{tikz}
+#+BEGIN_CENTER
+*Montague*
+#+BEGIN_EXPORT latex
+\tikz \draw (0,0) --+ (0,-1)
+       arc [radius=1, start angle=-180, end angle=0]
+       --+ (0,1) -- cycle
+       node [below=1.5em,midway] {\bfseries M};
+#+END_EXPORT
+#+END_CENTER
+
+* Dear Juliet,
+# NOTE: Your letter is the first non-special heading.  The title of
+# this heading may used as an opening.
+
+#+BEGIN_VERSE
+Then plainly know my heart's dear love is set
+On the fair daughter of rich Capulet:
+As mine on hers, so hers is set on mine;
+And all combin'd, save what thou must combine
+By holy marriage: when, and where, and how
+We met, we woo'd, and made exchange of vow,
+I'll tell thee as we pass; but this I pray,
+That thou consent to marry us to-day.
+#+END_VERSE
+
+* Yours truly,							    :closing:
+Romeo of House Montague
+* some arbitrary LaTeX code				 :my_after_signature:
+#+BEGIN_EXPORT latex
+% this special heading was added dynamically.
+#+END_EXPORT
+* PS									 :ps:
+PS: "PS" is not typeset automatically by KOMA-Script
+
+@@latex:\noindent@@ PPS: This is a feature!
+* CC									 :cc:
+Paris and Lawrence.
+* ENCL								       :encl:
+See also [[https://en.wikisource.org/wiki/The_Tragedy_of_Romeo_and_Juliet][The Tragedy of Romeo and Juliet]]
+* some more arbitrary LaTeX code 			       :after_letter:
+#+BEGIN_EXPORT latex
+% here we can place random LaTeX code, e.g. including PDFs via the pdfpages package.
+#+END_EXPORT
