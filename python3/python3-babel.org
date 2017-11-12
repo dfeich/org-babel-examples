@@ -1,0 +1,1084 @@
+# -*- coding: utf-8 -*-
+#+TITLE: python3 org-babel exporting
+# #+DATE: <2013-07-10 Wed>
+#+AUTHOR: Derek Feichtinger
+#+EMAIL: derek.feichtinger@psi.ch
+#+OPTIONS: ':nil *:t -:t ::t <:t H:3 \n:nil ^:t arch:headline
+#+OPTIONS: author:t c:nil creator:comment d:(not LOGBOOK) date:t e:t
+#+OPTIONS: email:nil f:t inline:t num:t p:nil pri:nil stat:t tags:t
+#+OPTIONS: tasks:t tex:t timestamp:t toc:t todo:t |:t
+# #+CREATOR: Emacs 24.3.1 (Org mode 8.0.5)
+#+DESCRIPTION:
+#+EXCLUDE_TAGS: noexport
+#+KEYWORDS:
+#+LANGUAGE: en
+#+SELECT_TAGS: export
+
+# By default I do not want that source code blocks are evaluated on export. Usually
+# I want to evaluate them interactively and retain the original results.
+#+PROPERTY: header-args :eval never-export
+
+
+* Python executable definition
+
+  Done in the "Local Variables" section at the end of the document
+  by using the variable =org-babel-python-command=
+
+* Version information
+  #+BEGIN_SRC emacs-lisp -n :exports both
+        (princ (concat
+                (format "Emacs version: %s\n"
+                        (emacs-version))
+                (format "org version: %s\n"
+                        (org-version))))        
+  #+END_SRC
+
+  #+RESULTS:
+  : Emacs version: GNU Emacs 25.2.3 (x86_64-pc-linux-gnu, GTK+ Version 3.18.9)
+  :  of 2017-04-25
+  : org version: 9.1.2
+
+  #+BEGIN_SRC python :results output :exports both
+    import sys
+    print(sys.version)
+  #+END_SRC
+
+  #+RESULTS:
+  : 3.6.3 |Anaconda, Inc.| (default, Oct 13 2017, 12:02:49) 
+  : [GCC 7.2.0]
+
+* Links and Documentation
+  - http://orgmode.org/worg/org-contrib/babel/languages/ob-doc-python.html
+
+* Python helper module orgbabelhelper.py
+  In order to work easier with python code blocks, I will define a
+  number of functions within this org file which get tangled into
+  a helper library.
+
+  The conda package can be downloaded from my channel at
+  https://anaconda.org/dfeich/orgbabelhelper
+
+** COMMENT Idea for filtering tangled code
+   In order to have completion while working on a source code block,
+   the completion mechanism needs to know about the imported
+   modules, so one would like to put them into the code block. But
+   if one tangles the blocks together, this results in library imports
+   being redundantly dispered throughout the resulting file.
+
+   I want to declare the needed modules within the block,
+   but filter them out when tangling (using
+   =org-babel-tangle-body-hook=) or exporting (using
+   =org-export-filter-src-block-functions=) based on tags placed around
+   the lines to be removed.
+
+   Here is an implementation:
+
+   #+BEGIN_SRC elisp
+     (defun dfeich/remove-lines-between-matches (startpat endpat)
+       (goto-char (point-min))
+       (let ((beg (if (search-forward-regexp startpat nil t)
+                      (progn (goto-char (match-beginning 0))
+                             (forward-line 0)
+                             (point))
+                    nil))
+             (end (if (search-forward-regexp endpat nil t)
+                      (progn (goto-char (match-beginning 0))
+                             (forward-line 1)
+                             (point))
+                    (match-beginning 0)
+                    nil)))
+         ;;(message "debug:   beg: %s  end: %s" beg end)
+         (if (and beg end)
+             (delete-region beg end)))
+       )
+
+     (defun dfeich/filter-tangled-src-block ()
+       (dfeich/remove-lines-between-matches ".*NOTANGLE-START.*" ".*NOTANGLE-END.*"))
+
+     (add-hook 'org-babel-tangle-body-hook 'dfeich/filter-tangled-src-block)
+   #+END_SRC
+
+   #+RESULTS:
+   | dfeich/filter-tangled-src-block |
+
+   A more advanced idea for python may be that import statements for
+   tangled blocks will be collected into a head section of the tangled
+   file (need to sort out doubles).
+
+** basic package setup
+
+   Package init file:
+   
+   #+BEGIN_SRC python :tangle orgbabelhelper/orgbabelhelper/__init__.py
+     ######################################################################
+     # orgbabelhelper.py
+     #
+     # Author: Derek Feichtinger <derek.feichtinger@psi.ch>
+     #
+     ######################################################################
+     from .orgbabelhelper import *
+
+   #+END_SRC
+
+   Setup.py file:
+
+   #+BEGIN_SRC python :tangle orgbabelhelper/setup.py
+     # we use the distribute framework that has a backward compatible invocation
+     # to the setuptools
+     from setuptools import setup
+
+     setup(
+         name = "orgbabelhelper",
+         version = "1.0.3",
+         description = "python helper module for Emacs org mode babel",
+         long_description = "python helper module for working with Emacs"
+         + " org babel source blocks",
+         author = "Derek Feichtinger",
+         author_email = "dfeich@gmail.com",
+         license = "GPL",
+         url = "https://github.com/dfeich/org-babel-examples/tree/master/python",
+         packages = ['orgbabelhelper'],
+
+         install_requires = ['pandas']
+     )
+   #+END_SRC
+   
+** module imports for orgbabelhelper.py
+
+   #+BEGIN_SRC python :tangle orgbabelhelper/orgbabelhelper/orgbabelhelper.py
+     ######################################################################
+     # orgbabelhelper.py
+     #
+     # Author: Derek Feichtinger <derek.feichtinger@psi.ch>
+     #
+     ######################################################################
+
+     """ This module provides a number of functions for passing informations between
+     the org document and python source code blocks."""
+
+     import pandas as pd
+     import datetime as dt
+     import re
+
+   #+END_SRC
+
+** building the conda package
+
+   1. update the version info in [[*basic package setup][setup.py]] above
+   2. update the version info in file:orgbabelhelper/conda-recipe/meta.yaml
+   3. tangle the files
+   4. execute the source block, below
+
+   Building the conda package
+   #+BEGIN_SRC sh :results output
+     cd orgbabelhelper
+     conda build conda-recipe &> conda-build.out
+     if test $? -eq 0; then
+         echo "Build OK"
+     else
+         echo "Build FAILED. investigate conda-build.out"
+     fi
+   #+END_SRC
+
+   #+RESULTS:
+   : Build OK
+
+   To install the newly built local package, use 
+   #+BEGIN_SRC sh :results output
+   conda install --use-local orgbabelhelper
+   #+END_SRC
+
+   Be aware that if you did not raise the version number, the command will not install the
+   newly built package, but it will fetch the previous one from your conda cache!
+
+* Reading from an org table as input
+
+  #+NAME: tableA
+  | name  | tokns  |
+  |-------+--------|
+  | Peter |      4 |
+  | Paul  |      6 |
+  | Mary  |      8 |
+
+
+  If no =:colnames= parameter is given, it is nil by default and the first line
+  above the header is interpreted as column name row that will be removed.
+  #+BEGIN_SRC python :results output :var tbl=tableA
+  print(tbl)
+  #+END_SRC
+
+  #+RESULTS:
+  : [['Peter', 4], ['Paul', 6], ['Mary', 8]]
+
+  If one wants to retain the first row to be accessible by python, one
+  must explicitly pass =:colnames no=
+  #+BEGIN_SRC python :results output :var tbl=tableA :colnames no
+  print(tbl)
+  #+END_SRC
+
+  #+RESULTS:
+  : [['name', 'tokns'], ['Peter', 4], ['Paul', 6], ['Mary', 8]]
+
+  Printing such a list of lists with =:results value= produces an org table.
+  #+BEGIN_SRC python :results value :var tbl=tableA
+  return tbl
+  #+END_SRC
+
+  #+RESULTS:
+  | Peter | 4 |
+  | Paul  | 6 |
+  | Mary  | 8 |
+
+  The column names from the first row of the original table can be
+  retained by giving the =:colnames yes= argument. This is handled
+  fully by the babel framework and python never sees the column
+  names.
+  #+BEGIN_SRC python :results value :var tbl=tableA :colnames yes
+  return tbl
+  #+END_SRC
+
+  #+RESULTS:
+  | name  | tokns |
+  |-------+-------|
+  | Peter |     4 |
+  | Paul  |     6 |
+  | Mary  |     8 |
+  
+* Generating tables as output
+
+  Example 1:
+  #+BEGIN_SRC python -n :exports both :results value table
+    x = list(range(1,10))
+    y = [xe*3 for xe in x]
+    return [x,y]
+  #+END_SRC
+
+  #+RESULTS:
+  | 1 | 2 | 3 |  4 |  5 |  6 |  7 |  8 |  9 |
+  | 3 | 6 | 9 | 12 | 15 | 18 | 21 | 24 | 27 |
+
+
+  Example 2:
+  #+BEGIN_SRC python -n :exports both :results value table
+    import numpy as np
+
+    x = list(range(1,10))
+    y = [xe*3 for xe in x]
+    return np.array([x,y]).transpose()
+  #+END_SRC
+
+  #+RESULTS:
+  | 1 |  3 |
+  | 2 |  6 |
+  | 3 |  9 |
+  | 4 | 12 |
+  | 5 | 15 |
+  | 6 | 18 |
+  | 7 | 21 |
+  | 8 | 24 |
+  | 9 | 27 |
+
+* Calling a python function from inside an org table
+
+  Here I define the function. It takes =epoch= as the variable, which
+  is a unix time stamp. I want to have it converted to an Org type
+  time format.
+  
+    #+NAME: epoch2day
+    #+BEGIN_SRC python :results output :var epoch=1262675465119 :exports both
+      time = epoch
+      import datetime
+      strtime = str(time)
+      datetimestamp = datetime.datetime.utcfromtimestamp(int(strtime[:10]))
+      print(datetimestamp.strftime('[%Y-%m-%d %a %H:%M:%S]'))
+    #+END_SRC
+
+    #+RESULTS: epoch2day
+    : [2010-01-05 Tue 07:11:05]
+
+  In the table we need to refer to the named source block by using the
+  a short lisp form involving =org-sbe=. If the table value that is
+  referred to in the function is to be interpreted as a number, the
+  reference uses a single dollar sign, e.g. $1 (as here). If it should
+  be interpreted as a string, one puts an additional dollar sign in
+  front, e.g. $$1.
+    
+    
+    |         epoch | day                       |
+    |---------------+---------------------------|
+    | 1262675465119 | [2010-01-05 Tue 07:11:05] |
+    |        123456 | [1970-01-02 Fri 10:17:36] |
+    |      99998754 | [1973-03-03 Sat 09:25:54] |
+    #+TBLFM: $2='(org-sbe epoch2day (epoch $1))
+
+* Dates
+
+  #+NAME: src_orgdate_to_date
+  #+BEGIN_SRC python :tangle orgbabelhelper/orgbabelhelper/orgbabelhelper.py
+            # NOTANGLE-START
+            import re
+            import datetime as dt
+            # NOTANGLE-END
+
+            def orgdate_to_date(datestr):
+                """Returns a python datetime for the org date given in datestr.
+
+                Allows passing in an empty/whitespace string."""
+                if re.match(r'^ *$', datestr):
+                    return ''
+
+                #m = re.match(r'^\[(\d+-\d+-\d+) +[a-zA-Z]{3}\]$', datestr)
+                m = re.match(r'^[\[<](\d+-\d+-\d+) +[a-zA-Z]{3}[\]>]$', datestr)
+                if not m:
+                    raise ValueError("Input String is not a date: >%s<" % datestr)
+
+                return dt.datetime.strptime(m.group(1), '%Y-%m-%d').date()
+
+            def date_to_orgdate(date, active=False):
+                orgstr = date.strftime("%Y-%m-%d %a")
+                if active:
+                    return "<%s>" % orgstr
+                return "[%s]" % orgstr
+
+  #+END_SRC
+
+  
+  *Note:* I am using the noweb syntax and header argument to include
+  the code of the named block into this source block. The noweb syntax
+  is mostly used in literate programing, where we produce code files
+  from the org file (the process is called /tangling/), and this allows
+  us to specify the sequence of the tangled blocks in the final file.
+  But it also is a very nice way to write the first functional test of
+  a code block like here:
+
+  #+BEGIN_SRC python :results output :noweb yes
+    <<src_orgdate_to_date>>
+
+    print(orgdate_to_date('[2016-08-16 Tue]'))
+    print(orgdate_to_date('<2016-08-17 Tue>'))
+    print(date_to_orgdate(dt.datetime(2016,8,18)))
+    print(date_to_orgdate(dt.datetime(2016,8,18), active=True))
+  #+END_SRC
+
+  #+RESULTS:
+  : 2016-08-16
+  : 2016-08-17
+  : [2016-08-18 Thu]
+  : <2016-08-18 Thu>
+    
+* Matplotlib
+** plotting of a simple graph
+#+begin_src python :results file :exports both
+import matplotlib, numpy
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+fig=plt.figure(figsize=(4,2))
+x=numpy.linspace(-15,15)
+plt.plot(numpy.sin(x)/x)
+fig.tight_layout()
+plt.savefig('python3-matplot-fig.png')
+return 'python3-matplot-fig.png' # return filename to org-mode
+#+end_src
+
+#+RESULTS:
+[[file:python3-matplot-fig.png]]
+
+** TODO Plotting from an Org table
+
+The table is passed to python as a list
+
+#+NAME: table1
+| x |  y |
+|---+----|
+| 1 |  1 |
+| 2 |  4 |
+| 3 |  9 |
+| 4 | 16 |
+| 5 | 25 |
+| 6 | 36 |
+| 7 | 49 |
+#+TBLFM: @2$2..@>$2=$1*$1::@3$1..@>$1=@-1 + 1
+
+#+begin_src python :results file :var data=table1 :exports both
+import matplotlib
+import numpy as np
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import seaborn
+
+fname='python3-matplot-fig2.png'
+ar = np.array(data).transpose()
+fig=plt.figure(figsize=(4,2))
+plt.plot(ar[0],ar[1])
+plt.title('Square function')
+fig.tight_layout()
+plt.savefig(fname)
+return fname # return filename to org-mode
+#+end_src
+
+#+RESULTS:
+[[file:python3-matplot-fig2.png]]
+
+* Pandas
+** Reading in a data frame from a table with the column names
+
+   #+NAME: src_orgtable_to_dataframe
+   #+BEGIN_SRC python :tangle orgbabelhelper/orgbabelhelper/orgbabelhelper.py :noweb yes
+     # NOTANGLE-START
+     import pandas as pd
+
+     <<src_orgdate_to_date>>
+     # NOTANGLE-END
+
+     def orgtable_to_dataframe(tbl, index=None, datecols=None):
+         """Read an org table into a data frame.
+
+         Parameters
+         ----------
+         tbl : org table passed in by src block header
+         index : name or index of column to use for index, optional
+         datecols : 'auto' or list of column names, optional. Try
+             to convert cells in these columns to python datetime objects. 
+
+         Returns
+         -------
+         Pandas data frame
+
+         Make sure you use ':colnames no' in your src block header. Else
+         the table's first row containing the column names will not be
+         available to the python code.
+
+         """
+         df = pd.DataFrame(tbl)
+         df.columns = df.iloc[0,:]
+         df = df.iloc[1:,:]
+         df.columns.name = ""
+
+         if datecols is None:
+             datecols = []
+         elif datecols == "auto":
+             datecols = df.columns
+
+         for col in datecols:
+             try:
+                 df[col] = df[col].apply(orgdate_to_date)
+                 df[col] = pd.to_datetime(df[col])
+             except:
+                 pass
+
+         if index in df.columns:
+             df.set_index(index, inplace=True)
+         elif type(index) is int:
+             df.set_index(df.columns[index], inplace=True)
+
+         return df
+   #+END_SRC
+
+   #+RESULTS:
+   : None
+
+   We define a new test table:
+   
+   #+NAME: tableC
+   | Date             | End              | Name  |
+   |------------------+------------------+-------|
+   | [2016-08-10 Wed] | [2016-08-17 Wed] | Peter |
+   | [2016-08-11 Thu] | [2016-08-18 Thu] | Paul  |
+   | [2016-08-12 Fri] | [2016-08-19 Fri] | Mary  |
+   
+   #+BEGIN_SRC python :results output :var tbl=tableC :colnames no :noweb yes
+     <<src_orgtable_to_dataframe>>
+
+     print(orgtable_to_dataframe(tbl))
+     print()
+     print(orgtable_to_dataframe(tbl, index='Name', datecols='auto'))
+     print()
+     print(orgtable_to_dataframe(tbl,1, datecols=['End']))
+
+   #+END_SRC
+
+   #+RESULTS:
+   #+begin_example
+		  Date               End   Name
+   1  [2016-08-10 Wed]  [2016-08-17 Wed]  Peter
+   2  [2016-08-11 Thu]  [2016-08-18 Thu]   Paul
+   3  [2016-08-12 Fri]  [2016-08-19 Fri]   Mary
+
+	       Date        End
+   Name                       
+   Peter 2016-08-10 2016-08-17
+   Paul  2016-08-11 2016-08-18
+   Mary  2016-08-12 2016-08-19
+
+			   Date   Name
+   End                                
+   2016-08-17  [2016-08-10 Wed]  Peter
+   2016-08-18  [2016-08-11 Thu]   Paul
+   2016-08-19  [2016-08-12 Fri]   Mary
+   #+end_example
+
+
+** printing a data frame as a table
+*** using the orgbabelhelper functions
+    I define a function in a named src block with name =dataframe_to_orgtable=.
+    The following function will return a nicely formatted org table.
+   
+    #+NAME: dframeToOrg
+    #+BEGIN_SRC python :tangle orgbabelhelper/orgbabelhelper/orgbabelhelper.py :exports code
+      # NOTANGLE-START
+      import datetime as dt
+      # NOTANGLE-END
+
+      def dataframe_to_orgtable(dframe, name=None, caption=None, attr=None,
+				index=True, date_format=None, hlines=None,
+				encoding='ascii'):
+          """
+          Parameters
+          ----------
+          dframe : data frame
+          name : defines org table's name (#+NAME:), optional
+          caption defines org table's caption (#+CAPTION:): , optional
+          attr : defines org table's LaTeX attributes (#+ATTR_LATEX:), optional
+          index : write the row names, optional
+          date_format : Format string for datetime objects, optional
+          hlines : list  of numbers. Where to put horizontal lines, optional
+          encoding : Encoding for the resulting string, optional
+
+          Returns
+          -------
+          Returns a string containing the data frame formatted as an org table.
+          """
+          result=""
+          if attr:
+              result += "#+ATTR_LATEX: %s\n" % attr
+
+          if caption:
+              result += "#+CAPTION: %s\n" % caption
+
+          if name:
+              result += "#+NAME: %s\n" % name
+
+          lines = '|' + dframe.to_csv(None, sep='|', line_terminator='|\n|',
+                                      encoding=encoding, index=index, date_format=date_format).rstrip("|").rstrip("\n")
+
+          hlines_tmp=[]
+          if hlines is None:
+              hlines_tmp.append(1) # per default add a hl after the 1st line
+          else:
+              for hl in hlines:
+                  if hl < 0:
+                      hlines_tmp.append(len(lines.split('\n')) + hl)
+                  else:
+                      hlines_tmp.append(hl)
+
+          for i,l in enumerate(lines.split('\n')):
+              if i in hlines_tmp:
+                  result +=  "|-----\n"
+              result += l
+              result += "\n"
+          return result
+
+    #+END_SRC
+
+    As before, I use the noweb syntax for including the previous 
+    source block in the following test source block.
+   
+    #+BEGIN_SRC python :results output drawer :noweb yes :exports both
+      import pandas as pd
+      import numpy as np
+      from datetime import datetime
+
+      <<dframeToOrg>>
+
+      df = pd.DataFrame({'A' : range(10, 22),
+			 'B' : ['A', 'B', 'C'] * 4,
+			 'C' : ['foo', 'foo', 'foo', 'bar', 'bar', 'bar'] * 2,
+			 'E' : [datetime(2016,8,1), datetime(2016,8,2), datetime(2016,8,3)] * 4,
+			 'F' : ['one', 'one', 'two', 'three'] * 3})
+
+      print(dataframe_to_orgtable(df))
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    |    |  A | B | C   |          E | F     |
+    |----+----+---+-----+------------+-------|
+    |  0 | 10 | A | foo | 2016-08-01 | one   |
+    |  1 | 11 | B | foo | 2016-08-02 | one   |
+    |  2 | 12 | C | foo | 2016-08-03 | two   |
+    |  3 | 13 | A | bar | 2016-08-01 | three |
+    |  4 | 14 | B | bar | 2016-08-02 | one   |
+    |  5 | 15 | C | bar | 2016-08-03 | one   |
+    |  6 | 16 | A | foo | 2016-08-01 | two   |
+    |  7 | 17 | B | foo | 2016-08-02 | three |
+    |  8 | 18 | C | foo | 2016-08-03 | one   |
+    |  9 | 19 | A | bar | 2016-08-01 | one   |
+    | 10 | 20 | B | bar | 2016-08-02 | two   |
+    | 11 | 21 | C | bar | 2016-08-03 | three |
+
+    :END:
+
+
+    And a second test that demonstrates the handling of dates:
+
+    #+BEGIN_SRC python :results output drawer :var tbl=tableC :noweb yes :exports both :colnames no
+      import pandas as pd
+      import numpy as np
+      from datetime import datetime
+
+      <<dframeToOrg>>
+      <<src_orgtable_to_dataframe>>
+
+      df = orgtable_to_dataframe(tbl, datecols='auto', index='Name')
+
+      print(dataframe_to_orgtable(df, date_format='%d. %b %Y'))
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    | Name  | Date         | End          |
+    |-------+--------------+--------------|
+    | Peter | 10. Aug 2016 | 17. Aug 2016 |
+    | Paul  | 11. Aug 2016 | 18. Aug 2016 |
+    | Mary  | 12. Aug 2016 | 19. Aug 2016 |
+
+    :END:
+
+*** data frame printing using Ipython.display
+   As an alternative, the display function from Ipython is also able
+   to align a frame. I only managed to get =diplay_pretty= working
+   up to now, and its output is lacking table separators. So, it
+   only displays nicely in an example environment.
+
+   The display_latex and display_html functions produce no output.
+   
+   #+BEGIN_SRC python :results output verbatim :noweb yes :exports both
+     import pandas as pd
+     import numpy as np
+     from IPython.display import display_pretty
+
+     df = pd.DataFrame({'A' : ['one', 'one', 'two', 'three'] * 3,
+                      'B' : ['A', 'B', 'C'] * 4,
+                      'C' : ['foo', 'foo', 'foo', 'bar', 'bar', 'bar'] * 2,
+                      'D' : np.random.randn(12),
+                      'E' : np.random.randn(12)})
+
+     display_pretty(df)
+   #+END_SRC
+
+   #+RESULTS:
+   #+begin_example
+	   A  B    C         D         E
+   0     one  A  foo  0.806869  0.203922
+   1     one  B  foo  1.154905  0.575621
+   2     two  C  foo -0.668775 -0.580192
+   3   three  A  bar  0.305664 -0.584782
+   4     one  B  bar -0.241157  0.966334
+   5     one  C  bar -1.566110  0.786920
+   6     two  A  foo -0.219846  0.219746
+   7   three  B  foo -0.754962 -0.733362
+   8     one  C  foo  1.139128  0.201013
+   9     one  A  bar  1.173745  1.877245
+   10    two  B  bar  0.409883 -0.002807
+   11  three  C  bar  1.259812  0.032088
+   #+end_example
+   
+*** an older and simpler dataFrame printing alternative:
+   In order to get a nice org table, it is necessary to pass the
+   frame's contents back as a list. The column names end up as the
+   first row in the table. I cut this row away by using the [1:]
+   slice.
+
+    #+BEGIN_SRC python :results value table
+    import pandas as pd
+    import numpy as np
+    import sys
+
+    df = pd.DataFrame({'A' : ['one', 'one', 'two', 'three'] * 3,
+                     'B' : ['A', 'B', 'C'] * 4,
+                     'C' : ['foo', 'foo', 'foo', 'bar', 'bar', 'bar'] * 2,
+                     'D' : np.random.randn(12),
+                     'E' : np.random.randn(12)})
+
+    return(np.array(list(df.T.itertuples())).transpose()[1:])
+
+  #+END_SRC
+
+  #+RESULTS:
+  | one   | A | foo |   2.508310927690858 |   1.4212167647263316 |
+  | one   | B | foo | 0.28239765022454894 |  0.47616134885185635 |
+  | two   | C | foo |    1.14895581934408 | -0.09326447746112657 |
+  | three | A | bar |  1.0927923682133607 |  0.28452792547511996 |
+  | one   | B | bar | 0.49904403422738475 |  -0.8005146943576631 |
+  | one   | C | bar |  1.2699278695887504 |  -0.3168765757932704 |
+  | two   | A | foo |  0.7656249226386683 |  -0.5065906840681278 |
+  | three | B | foo |  1.6869541724323962 |   1.5750248694840912 |
+  | one   | C | foo | 0.09983816806873623 |   1.4653088893641633 |
+  | one   | A | bar |  0.9747638218129419 |   0.9442942333443328 |
+  | two   | B | bar |  0.4321258569996147 |   0.8781227903348797 |
+  | three | C | bar |  -0.611529395694038 | 0.045972487651284366 |
+
+
+** plotting a data frame with matplotlib (and placing a code reference)
+
+#+NAME: table2
+| x |  y |
+|---+----|
+| 1 |  1 |
+| 2 |  4 |
+| 3 |  9 |
+| 4 | 16 |
+| 5 | 25 |
+| 6 | 36 |
+| 7 | 49 |
+#+TBLFM: @2$2..@>$2=$1*$1::@3$1..@>$1=@-1 + 1
+
+Here we also show how a code reference works. It can be inserted using
+the *org-store-link* command while editing the src code in the dedicated
+buffer:
+
+In line [[(zcol)]] we define a new column (in this sentence you should see
+the number of the respective line in the exported file)
+
+The *-r* flag in the =BEGIN_SRC= line removes the reference string
+from the source code listing in the output (else the string would have
+ended up in the exported version's source code).  Regrettably the
+reference is not removed when the code gets executed, so I need to
+insert language specific commenting to keep the code functional.
+
+  #+BEGIN_SRC python -n -r :results file :var data=table2 :exports both
+    import matplotlib
+    import matplotlib.pyplot as plt
+    import pandas as pd
+    import numpy as np
+    matplotlib.use('Agg')
+    import seaborn
+    
+    fname='python-matplot-fig3.png'
+    df = pd.DataFrame(data)
+    df.columns = ['x','y']
+    df['z'] = df['x'] * 3                                             #(ref:zcol)
+    
+    df.plot(figsize=(4,2))
+    plt.savefig(fname)
+    return fname
+  #+END_SRC
+
+  #+RESULTS:
+  [[file:python-matplot-fig3.png]]
+
+
+** Pie plot from table via orgbabelhelper
+
+   I use the orgbabelhelper =orgtable_to_dataframe= function to convert tha
+   table to a data frame.
+   I do not want the default percent labels in the pie sections, so I use a lambda
+   function to put in the original absolute values.
+   
+   #+BEGIN_SRC python :results file :var tbl=tableA fname="pie-plot.png" :colnames no
+     import matplotlib
+     import matplotlib.pyplot as plt
+     import pandas as pd
+     import numpy as np
+     import seaborn
+     import orgbabelhelper as obh
+
+     df = obh.orgtable_to_dataframe(tbl,'name')
+
+     dfsum = df['tokns'].sum()
+     df.plot(kind='pie',
+             y='tokns',
+             fontsize=20,
+             autopct=lambda v: int(np.round(v*dfsum/100, 0)),
+             figsize=(6,6))
+     plt.savefig(fname)
+     return fname
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:pie-plot.png]]
+
+** time series resampling
+
+  Let's say we are taking measurements twice a day, every 12h.
+
+  #+BEGIN_SRC python :results output drawer :exports both
+    import pandas as pd
+    import numpy as np
+    import orgbabelhelper as obh
+
+    ts = pd.date_range('2013-07-01 06:00:00', periods=20, freq='12h')
+    val = [x * 10.0 for x in range(len(ts))]
+
+    tdf = pd.DataFrame({'value': val}, index=ts)
+    # Now we put one observation as invalid
+    tdf.value[14] = np.NaN
+    # and we delete another one
+    #tdf = tdf.drop(tdf.index[2])
+    tdf = tdf.drop(tdf.index[6:8])
+
+    newdf = tdf.resample('1D', loffset='6h',how='min').rename(columns={'value': '1D_resample'})
+    newdf['diff'] = newdf.diff()
+
+    print(obh.dataframe_to_orgtable(pd.concat([tdf,newdf], join='inner',axis=1)))
+  #+END_SRC
+
+  #+RESULTS:
+  :RESULTS:
+  |                     | value | 1D_resample | diff |
+  |---------------------+-------+-------------+------|
+  | 2013-07-01 06:00:00 |   0.0 |         0.0 |      |
+  | 2013-07-02 06:00:00 |  20.0 |        20.0 | 20.0 |
+  | 2013-07-03 06:00:00 |  40.0 |        40.0 | 20.0 |
+  | 2013-07-05 06:00:00 |  80.0 |        80.0 |      |
+  | 2013-07-06 06:00:00 | 100.0 |       100.0 | 20.0 |
+  | 2013-07-07 06:00:00 | 120.0 |       120.0 | 20.0 |
+  | 2013-07-08 06:00:00 |       |       150.0 | 30.0 |
+  | 2013-07-09 06:00:00 | 160.0 |       160.0 | 10.0 |
+  | 2013-07-10 06:00:00 | 180.0 |       180.0 | 20.0 |
+
+  :END:
+
+* TODO Sympy
+
+  I define a post-wrapping function for putting the results into the desired equation environment for
+  LaTeX exporting.
+
+  #+NAME: scrWrapEquation
+  #+BEGIN_SRC sh :results output :exports code :var outp="expample output"
+    cat <<EOF
+    \begin{equation}
+    $outp
+    \end{equation}
+    EOF
+  #+END_SRC
+
+  The correct preview of the resulting LaTeX fragment I only get with
+  the /output drawer/ results options. I tested rendering with the
+  =:results latex= option, but the resulting LaTeX block is not
+  rendered by the =org-toggle-latex-fragment= command (=C-c C-x C-l=).
+  
+  #+BEGIN_SRC python :results output drawer :exports both :post scrWrapEquation(outp=*this*)
+    import sympy as sym
+
+    x = sym.Symbol('x')
+    k = sym.Symbol('k')
+
+    print sym.latex(sym.Integral(1/x, x))
+  #+END_SRC
+
+  #+RESULTS:
+  :RESULTS:
+  \begin{equation}
+  \int \frac{1}{x}\, dx
+  \end{equation}
+  :END:
+
+  The above LaTeX equation is also rendered nicely in the HTML export.
+  
+
+  For simple in-buffer consummation, one may also want to just use the ASCII output
+  #+BEGIN_SRC python :results output :exports both
+    import sympy as sym
+    import sys
+
+    x = sym.Symbol('x')
+    k = sym.Symbol('k')
+
+    print sym.pretty_print(sym.Integral(1/x, x))
+
+  #+END_SRC
+
+  #+RESULTS:
+  :   /    
+  :  |     
+  :  | 1   
+  :  | - dx
+  :  | x   
+  :  |     
+  : /      
+  : None
+
+  Or as an alternative, the unicode rendering.
+  
+  #+BEGIN_SRC python :results output :exports both
+    import sympy as sym
+    import sys
+
+    import codecs
+    sys.stdout = codecs.getwriter('utf8')(sys.stdout)
+
+    x = sym.Symbol('x')
+    k = sym.Symbol('k')
+
+    print sym.pretty_print(sym.Integral(1/x, x), use_unicode=True)
+
+  #+END_SRC
+
+  #+RESULTS:
+  : ⌠     
+  : ⎮ 1   
+  : ⎮ ─ dx
+  : ⎮ x   
+  : ⌡     
+  : None
+
+  
+* No more unicode related problems with python3 in Org Babel
+** Strings sent to stdout must be encoded to be correct ASCII
+   The stdout to which org babel writes expects an ASCII stream. If
+   one wants to print python unicode strings, the unicode strings must
+   get encoded using 'utf-8' encoding, so that none of the bytes in the
+   string contain values > 127.
+
+   This is all a bit cumbersome in python2, but it seems to work nicely
+   by using python3.
+
+   #+BEGIN_SRC python :results output :exports both :prologue "# -*- coding: utf-8 -*-"
+     import sys
+     print('stdout encoding is ', sys.stdout.encoding)
+     print('default encoding is %s\n' % sys.getdefaultencoding())
+
+     strg = u'Can we see Umlauts? äöü. And accents? éè.'
+
+   #+END_SRC
+
+   #+RESULTS:
+   : stdout encoding is  UTF-8
+   : default encoding is utf-8
+   : 
+
+
+** passing data into the source block using the :var header argument
+*** simple string arguments
+    #+BEGIN_SRC python :results output :var s="äöü"  :prologue "# -*- coding: utf-8 -*-"
+      import sys
+      print('default encoding is %s' % sys.getdefaultencoding())
+
+      print("defined in header var: ", s, type(s), len(s))
+
+      b="äöü"
+      print("defined as byte string in src block: ", b, type(b), len (b))
+
+      c=u'äöü'
+      print('defined as unicode in src block with explicit encoding: ',c.encode('utf-8'), type(c), len(c))
+
+      #+END_SRC
+
+    #+RESULTS:
+    : default encoding is utf-8
+    : defined in header var:  äöü <class 'str'> 3
+    : defined as byte string in src block:  äöü <class 'str'> 3
+    : defined as unicode in src block with explicit encoding:  b'\xc3\xa4\xc3\xb6\xc3\xbc' <class 'str'> 3    
+
+*** passing in a table containing unicode strings
+    Let's look at passing a table into a babel block:
+   
+    #+NAME: tableB
+    | name  | tokens |
+    |-------+--------|
+    | Peter |     14 |
+    | René  |     15 |
+    | Sämi  |     15 |
+    | Paul  |     16 |
+    | Mary  |     18 |
+
+
+    In python3 all of the unicode passing problems seem to be nicely resolved
+
+    #+BEGIN_SRC python :results output :var tbl=tableB  :prologue "# -*- coding: utf-8 -*-" :noweb yes
+     import sys
+
+     print('stdout encoding is ', sys.stdout.encoding)
+     print()
+
+     for row in tbl:
+	 print(row[0], row[1])
+     print()
+
+     print(tbl)
+   #+END_SRC
+
+   #+RESULTS:
+   : stdout encoding is  UTF-8
+   : 
+   : Peter 14
+   : René 15
+   : Sämi 15
+   : Paul 16
+   : Mary 18
+   : 
+   : [['Peter', 14], ['René', 15], ['Sämi', 15], ['Paul', 16], ['Mary', 18]]
+
+*** passing in a table for a data frame in pandas
+   #+BEGIN_SRC python :results output :var tbl=tableB  :prologue "# -*- coding: utf-8 -*-" :colnames no :noweb yes
+     import sys
+     import pandas as pd
+     import orgbabelhelper as obh
+
+     print('stdout encoding is ', sys.stdout.encoding)
+     print()
+
+     df = obh.orgtable_to_dataframe(tbl)
+
+     print('printing the bytestring dataframe fields renders correct with python3')
+     print('and also the character count is correct:')
+     for n in df['name']:
+	 print(n, type(n), "len: %d" % len(n))
+     print()
+
+     print(df)
+
+   #+END_SRC
+
+   #+RESULTS:
+   #+begin_example
+   stdout encoding is  UTF-8
+
+   printing the bytestring dataframe fields renders correct with python3
+   and also the character count is correct:
+   Peter <class 'str'> len: 5
+   René <class 'str'> len: 4
+   Sämi <class 'str'> len: 4
+   Paul <class 'str'> len: 4
+   Mary <class 'str'> len: 4
+
+       name tokens
+   1  Peter     14
+   2   René     15
+   3   Sämi     15
+   4   Paul     16
+   5   Mary     18
+   #+end_example
+
+   
+* COMMENT Environment setup and test
+  #+BEGIN_SRC python :exports both :results value
+import sys
+import pandas
+return(sys.executable)
+
+  #+END_SRC
+
+  #+RESULTS:
+  : /opt/anaconda/python3.6/bin/python
+
+These definitions are necessary for having babel use the correct
+virtual environment
+
+Before using the anaconda python distribution I was a heavy user of python
+virtualenv. I do not use this much any more, but these are the relevant
+options:
+- python-shell-virtualenv-path: only affects sessions via the run-python function
+- org-babel-python-command: defines executable for non-session src blocks
+
+# python-shell-virtualenv-path: "/home/dfeich/py-virtualenv/notebook"
+# org-babel-python-command: "/home/dfeich/py-virtualenv/notebook/bin/python"
+
+Local Variables:
+org-babel-python-command: "/opt/anaconda/python3.6/bin/python"
+org-babel-after-execute-hook: (lambda () (org-display-inline-images nil t) (org-redisplay-inline-images))
+org-confirm-babel-evaluate: nil
+org-babel-sh-command: "/bin/bash"
+End:
+

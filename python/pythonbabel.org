@@ -512,7 +512,7 @@ return fname # return filename to org-mode
 
 ** printing a data frame as a table
 
-   I define a function in a named src block with name =dframeToOrg=.
+   I define a function in a named src block with name =dataframe_to_orgtable=.
    The following function will return a nicely formatted org table.
    
    #+NAME: dframeToOrg
