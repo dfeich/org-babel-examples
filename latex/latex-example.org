@@ -95,9 +95,9 @@
   #+END_SRC
 
   #+RESULTS:
-  : Emacs version: GNU Emacs 25.1.1 (x86_64-unknown-linux-gnu, GTK+ Version 3.18.9)
-  :  of 2016-09-10
-  : org version: 8.3.6
+  : Emacs version: GNU Emacs 25.2.1 (x86_64-pc-linux-gnu, GTK+ Version 3.18.9)
+  :  of 2017-11-25
+  : org version: 9.1.2
 
 * Debugging
   Org removes some of the intermediate files if the variable =org-latex-remove-logfiles=
@@ -136,7 +136,7 @@
  # definition.
 
  # $$
- # \unit[20]{s} \cdot \unit[9.81]{m/s^2} = \unit[196.2]{m/s} 
+ # \unit[20]{s}imap://psich%5Cfeichtinger@mail.ethz.ch:993/fetch%3EUID%3E/INBOX%3E488946 \cdot \unit[9.81]{m/s^2} = \unit[196.2]{m/s} 
  # $$
 
  from an [[http://stefaanlippens.net/textnormal][article by Stefaan Lippens]] on on using /textnormal/ for including
@@ -465,20 +465,37 @@
    #+LATEX:\tiny
    Text Example
    #+LATEX:\normalsize (default)
+
 ** Footnotes and margin notes
 
-    This is a text with a \myindex{footnote} [fn:1]. The footnote will be displayed
-    on the bottom of the current page. One can also place all footnotes
-    in a separate chapter called /footnotes/ at the end of the org file[fn:2].
+   Examples for \myindex{footnotes}: This is a text with a
+   \myindex{footnote} [fn:1]. The footnote will be displayed on the
+   bottom of the current page. One can also place all footnotes in a
+   separate chapter called /footnotes/ at the end of the org
+   file[fn:2].
 
+   Footnotes definitions can be placed within an org section using the
+   =[fn:1]= syntax and observing that no leading indentation is
+   allowed on such a line. Alternatively the footnotes can be
+   collected in a special section called "Footnotes". I recommend
+   reading the respective INFO entry (e.g. there is also the
+   possibility to define footnotes inline). When using =C-c C-x f= to
+   insert footnotes a lot of the work is taken over by org itself
+   (also allows footnote renumbering, etc.). One can jump between the
+   footnote reference and its definition by the usual =C-c C-o=
+   combination.
+
+
+    
     #+BEGIN_EXPORT LaTeX
       \newcommand{\mymarginpar}[1]{%
 	\marginpar[\raggedleft#1]{\raggedright#1}}   
     #+END_EXPORT
-    \myindex{Margin notes} one can set by directly inlining the LaTeX command
+    \myindex{Margin notes} can be inserted by directly inlining the LaTeX command
     #+LATEX:\marginpar{\textit{a default margin note}}
-    as demonstrated here. By default the margin notes are justified. This often
-    looks awkward. Using this [[http://tex.stackexchange.com/questions/32173/raggedouter-to-typeset-marginal-text-in-twoside-book][stackexchange answer]], I define a macro which yields:
+    as demonstrated in the source code for this section. By default
+    the margin notes are justified. This often looks awkward. Using
+    this [[http://tex.stackexchange.com/questions/32173/raggedouter-to-typeset-marginal-text-in-twoside-book][stackexchange answer]], I define a macro which yields:
 
     I like the margin notes to be left aligned instead of being justified.
     #+LATEX:\mymarginpar{\textit{a left aligned margin note that looks nicer}}
@@ -499,14 +516,6 @@
      the elements via a leading =#+NAME:= line.
    
 
-** Text Footnotes
-
-   Examples for \myindex{footnotes}.
-
-   # IMPORTANT NOTE: No indentation is allowed for footnotes
-
-[fn:1] This is the footnote text
-[fn:2] this is a footnote from the end of the org document
 
 * some interesting links
    - Org LaTeX exports
@@ -629,3 +638,11 @@ Local variables:
 org-confirm-babel-evaluate: t
 org-latex-remove-logfiles: nil
 End:
+
+* Footnotes
+  # IMPORTANT NOTE: No indentation is allowed for footnotes
+
+[fn:1] This is the footnote text
+
+[fn:2] this is another footnote
+
