@@ -409,6 +409,84 @@
   | 200 | 30 |   4 |
   :END:
 
+* Library of babel
+
+  The "Library of Babel" feature provides a kind of primitive function
+  library system for org files. It allows running source blocks that
+  have been added to it in every org file. The library is implemented
+  as an association list with the source block names as the keys. It
+  is stored in the =org-babel-library-of-babel= variable.
+  
+  Execute the following source block to load the source code blocks of the
+  test file =lib-of-babel-test.org= into the library of babel.
+
+  #+BEGIN_SRC elisp :exports code'
+  (org-babel-lob-ingest "./lib-of-babel-test.org")
+  #+END_SRC
+
+  #+RESULTS:
+  : 1
+  
+  For example, the post table alignment function of the last section is a useful generic function. I renamed it in the
+  =lib-of-babel-test.org= file to =srcPostAlignTablesLIB= to demonstrate that it indeed is the definition from that file.
+
+  I can call the function like any normally defined named source code block which produces:
+
+  #+CALL: srcPostAlignTablesLIB()
+
+  #+RESULTS:
+  #+begin_example
+  |  5 | 22222 |
+  |  0 |       |
+  | 12 |    45 |
+  |----+-------|
+  | 17 |       |
+  ,#+TBLFM:@>$1=vsum(@1..@-1)
+
+  |  1 | 22222 |
+  |  0 |       |
+  | 12 |    45 |
+  #+end_example
+
+
+  But more interesting for this example, I can also use it in the =:post= block:
+  
+  #+header: :var text="|A|22222|\n|B||\n|C|45|\n|---\n|||\n#+TBLFM:@>$2=vsum(@1..@-1)\n\n|X|3|\n|Y|4|\n|Z|5|\n|---\n|||\n#+TBLFM:@>$2=vsum(@1..@-1)\n"
+  #+BEGIN_SRC elisp :results output raw drawer :post srcPostAlignTablesLIB(*this*) :exports both
+  (princ text)
+  #+END_SRC
+
+  #+RESULTS:
+  :RESULTS:
+  | A | 22222 |
+  | B |       |
+  | C |    45 |
+  |---+-------|
+  |   | 22267 |
+  #+TBLFM:@>$2=vsum(@1..@-1)
+
+  | X |  3 |
+  | Y |  4 |
+  | Z |  5 |
+  |---+----|
+  |   | 12 |
+  #+TBLFM:@>$2=vsum(@1..@-1)
+  :END:
+
+  Note: Originally, I thought I could have the babel library as a
+  local variable by executing the =org-babel-lob-ingest= on a file
+  local variable in the local variable section of the file (using
+  first make-local-variable and the using the ingest). But it turns
+  out that during the ingest the buffer associated with the sourced
+  file is active, so the local variable in this buffer remains
+  unset. This is regrettable, because this means that the library of
+  babel is always global. One could set the
+  =org-babel-library-of-babel= variable directly to the final value
+  instead of using the ingest function, but this would break the
+  abstraction.
+
+
+  
 * COMMENT org babel settings
 
 Local variables:

@@ -1,0 +1,19 @@
+* Example of an org-babel library
+
+  #+NAME: srcPostAlignTablesLIB
+  #+header: :var text="|5|22222|\n|0||\n|12|45|\n|---\n|||\n#+TBLFM:@>$1=vsum(@1..@-1)\n\n|1|22222|\n|0||\n|12|45|\n"
+  #+BEGIN_SRC emacs-lisp :results value :exports both
+    (with-temp-buffer
+      (erase-buffer)
+      (cl-assert text nil "PostAlignTables received nil instead of text ")
+      (insert text)
+      (beginning-of-buffer)
+      (org-mode)
+      (while
+          (search-forward-regexp org-table-any-line-regexp nil t)
+        (org-table-align)
+        (org-table-recalculate 'iterate)
+        (goto-char (org-table-end)))
+      (buffer-string))
+  #+END_SRC
+
