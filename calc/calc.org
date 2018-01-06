@@ -34,6 +34,7 @@
   - Note that, unlike in usual computer notation, multiplication binds
     more strongly than division: `a*b/c*d' is equivalent to
     `(a*b)/(c*d)'
+  - [[https://github.com/SueDNymme/emacs-calc-qref][Nice reference sheet]] on calc maintained by Sue D. Nymme
    
 * babel calc
 
@@ -250,7 +251,7 @@ fsolve(x*2+x=4,x)
    #+RESULTS:
    : 32.8083989501 ft
 
-* A sample of functions that can be used in formulas
+* Some sample functions that can be used in formulas
   - [[info:calc#Formulas]]
   - factorial: $6! => 720 $   also fact(6) can be used in writing
   - find: $ find([5, 6, 7, 8], 6) => 2 $
@@ -267,9 +268,43 @@ fsolve(x*2+x=4,x)
     $utpn(0.2b, 0, 0.5) => 0.34457825839$
     - http://www-zeuthen.desy.de/~kolanosk/smd_ss02/skripte/
 
-      $now(0) => <11:03:18pm Sun Aug 11, 2013>$
-      $unixtime(now(0)) => 1376262280$
+** Time calculations
+   q.v. [[info:calc#Date%20Arithmetic][info:calc#Date Arithmetic]]
+   
+  - $now(0) => <11:03:18pm Sun Aug 11, 2013>$
+  - $now() => <10:48:31pm Wed Jun 28, 2017> $
+  - Using calc HMS forms
+    - $ 11@ 41' 15.561" - 11@ 40' 58.096" => 0@ 0' 17.465" $
+  - The date function with a date form as argument returns a number of days since Jan 1, 1 AD.
+    The date function with an INT argument yields back a date form.
+    - $date(<Sun Aug 11, 2013>) => 735091 $
+    - $date(735091) => <Sun Aug 11, 2013> $
+    - $date(<10:00am Sun Aug 11, 2013>) => 735091.416667 $
+    - $date(<Sun Aug 11, 2013>) - date(<Thu Aug 1, 2013>) => 10 $
+    - $<Sun Aug 11, 2013> - <Thu Aug 1, 2013> => 10  $
+    - $date(<10:00am Sun Aug 11, 2013>) - date(<9:00am Thu Aug 1, 2013>) => 10.041667 $
+  - The date function with a comma separated list builds a date or a date/time form    
+    - $date(2017, 6, 26) => <Mon Jun 26, 2017> $
+    - $date(2017, 6, 26, 11@ 41' 15.561") => <11:41:16am Mon Jun 26, 2017> $
+    - $date(2017, 6, 26, 11, 41, 15) => <11:41:15am Mon Jun 26, 2017> $
+    - Not quite clear whether the angular bracket format is any good for more exact calculations
+      - $ <11:03:18pm Sun Aug 11, 2013> - <11:03:18pm Sun Aug 11, 2013> => 0. $
+      - $ <11:03:18pm Sun Aug 11, 2013> - <11:02:18pm Sun Aug 11, 2013> => 6.94e-4 $
+      - $ <11:03:18pm Sun Aug 11, 2013> - <11:03:17pm Sun Aug 11, 2013> => 1.2e-5 $
+      - $ <11:03:18pm Sun Aug 11, 2013> - <6:03:18pm Sun Aug 11, 2013> => 0.208333 $
+  - Unix time
+    - $unixtime(<9:00am Wed Jun 28, 2017>) => 1498640400 $
+    - $unixtime(1498640400) => <9:00am Wed Jun 28, 2017>  $
+    - $unixtime(now(0)) => 1376262280$
+  - Julian date
+    - $julian(date(2017, 6, 26)) => 2457929 $
+    - $julian(2457929) => <Mon Jun 26, 2017> $
+  - Using a calc variable 
+    - $ testdate := <11:41:15am Mon Jun 26, 2017> $
+    - $ year(testdate) => 2017 $
 
+      $ date(date(<Fri Apr 16, 2010>) - 10) => <Tue Apr 6, 2010>    $
+      
 * COMMENT babel settings
 Local variables:
 org-confirm-babel-evaluate: nil
