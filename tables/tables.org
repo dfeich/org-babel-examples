@@ -689,6 +689,19 @@
    |   |     |     |
 #+TBLFM: @3$2=remote(remtableIdColName,@3$one)
 
+* Indirection in remote calls
+
+  Org supports indirection for the tablename argument of the =remote=
+  function in table formulas:
+  
+  | Tablename         |      |          |
+  |-------------------+------+----------|
+  | remtableIdColName |    4 |        4 |
+  | table1            |  USA |       50 |
+  | remtable1         | 2011 | ref_date |
+  #+TBLFM: @2$2..@>$2=remote($1,@4$3)::@2$3..@>$3=remote($1,@>$>)
+
+  
 * COMMENT Org Babel settings
 Local variables:
 org-confirm-babel-evaluate: nil
