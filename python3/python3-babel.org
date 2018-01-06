@@ -105,7 +105,7 @@
    tangled blocks will be collected into a head section of the tangled
    file (need to sort out doubles).
 
-** basic package setup
+** basic files for package setup
 
    Package init file:
    
@@ -128,18 +128,23 @@
      from setuptools import setup
 
      setup(
-         name = "orgbabelhelper",
-         version = "1.0.3",
-         description = "python helper module for Emacs org mode babel",
-         long_description = "python helper module for working with Emacs"
-         + " org babel source blocks",
-         author = "Derek Feichtinger",
-         author_email = "dfeich@gmail.com",
-         license = "GPL",
-         url = "https://github.com/dfeich/org-babel-examples/tree/master/python",
-         packages = ['orgbabelhelper'],
+	 name = "orgbabelhelper",
+	 version = "1.0.3",
+	 description = "python helper module for Emacs org mode babel",
+	 long_description = "python helper module for working with Emacs"
+	 + " org babel source blocks",
+	 author = "Derek Feichtinger",
+	 author_email = "dfeich@gmail.com",
+	 license = "GPL",
+	 url = "https://github.com/dfeich/org-babel-examples/tree/master/python",
+	 packages = ['orgbabelhelper'],
 
-         install_requires = ['pandas']
+	 install_requires = ['pandas'],
+	 classifiers = [
+	     "Development Status :: 4 - Beta",
+	     "Intended Audience :: Developers",
+	     "Programming Language :: Python :: 3"
+	 ]
      )
    #+END_SRC
    
@@ -191,6 +196,9 @@
    Be aware that if you did not raise the version number, the command will not install the
    newly built package, but it will fetch the previous one from your conda cache!
 
+** uploading package to pypi
+   follow https://packaging.python.org/tutorials/distributing-packages/
+   
 * Reading from an org table as input
 
   #+NAME: tableA
