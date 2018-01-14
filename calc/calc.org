@@ -267,6 +267,7 @@ fsolve(x*2+x=4,x)
     distributed random variable will exceed x: uttn(x,m,s):
     $utpn(0.2b, 0, 0.5) => 0.34457825839$
     - http://www-zeuthen.desy.de/~kolanosk/smd_ss02/skripte/
+  - prime factorisation $ prfac(9370) => [2, 5, 937] $
 
 ** Time calculations
    q.v. [[info:calc#Date%20Arithmetic][info:calc#Date Arithmetic]]
