@@ -60,7 +60,25 @@
   |---+-------+--------+---------------+----------+----------|
   |   | Total |        |               | 51700.00 | 55836.00 |
   #+TBLFM: @>$5..@>$>=vsum(@I..@II);%.2f::@3$5..@5$5=$num * $peritem::@3$6..@5$6=$sum*1.08;%.2f
+
+  Using a column formula instead of the range formula for column 5. In order to use the
+  other advanced features like the naming of fields, it is necessary
+  to mark the rows to be affected by the column formula with a "*". All other
+  rows will not be calculated from the column formula.
+
+  |   | Name    | number | cost per item |      sum | incl VAT |
+  | ! | name    |    num |       peritem |      sum |          |
+  |---+---------+--------+---------------+----------+----------|
+  | * | name1   |      3 |       1500.00 |    4500. |  4860.00 |
+  | ^ | varname |        |               |          |          |
+  | * | name2   |      9 |       4000.00 |   36000. | 38880.00 |
+  | * | name3   |      4 |       2800.00 |   11200. | 12096.00 |
+  |---+---------+--------+---------------+----------+----------|
+  |   | Total   |        |               | 51700.00 | 55836.00 |
+  #+TBLFM: @>$5..@>$>=vsum(@I..@II);%.2f::$5=$num * $peritem::$6=$sum*1.08;%.2f
+
   
+
 * Table formulas
 ** using lisp functions in table formulas
 *** basic usage
