@@ -1,0 +1,150 @@
+#+TITLE: Library of Babel
+#+DATE: <2017-12-29 Fri>
+#+AUTHOR: Derek Feichtinger
+#+EMAIL: derek.feichtinger@psi.ch
+#+LANGUAGE: en
+#+SELECT_TAGS: export
+#+EXCLUDE_TAGS: noexport
+#+CREATOR: Emacs 25.2.1 (Org mode 9.1.2)
+
+* Introduction
+  I define all source block names with a prefix "lob", so that it will be easy to use expansion/completion
+  for these functions.
+
+* Table related functions
+** PostAlignTables - Align and calculate multiple tables of an output block
+   
+   #+NAME: lobPostAlignTables
+   #+header: :var text="|5|22222|\n|0||\n|12|45|\n|---\n|||\n#+TBLFM:@>$1=vsum(@1..@-1)\n\n|1|22222|\n|0||\n|12|45|\n"
+   #+BEGIN_SRC emacs-lisp :results value :exports both
+     (with-temp-buffer
+       (erase-buffer)
+       (cl-assert text nil "PostAlignTables received nil instead of text ")
+       (insert text)
+       (beginning-of-buffer)
+       (org-mode)
+       (while
+           (search-forward-regexp org-table-any-line-regexp nil t)
+         (org-table-align)
+         (org-table-recalculate 'iterate)
+         (goto-char (org-table-end)))
+       (buffer-string))
+   #+END_SRC
+
+*** Test
+
+    #+BEGIN_SRC emacs-lisp :results output drawer :post lobPostAlignTables(*this*) :exports both
+      (princ
+       (concat
+        "#+CAPTION: Test1\n"
+        "|A|B|C|\n"
+        "|---\n"
+        "|1|20|300|\n"
+        "|200|30|4|\n"
+        "|---\n"
+        "||||\n"
+        "#+TBLFM: @>$1..@>$3=vsum(@I..@II)\n"
+        "\n#+CAPTION: Test2\n"
+        "|A|B|C|\n"
+        "|---\n"
+        "|1|20|300|\n"
+        "|200|30|4|\n"
+        ))
+    #+END_SRC
+
+    #+RESULTS:
+    :RESULTS:
+    #+CAPTION: Test1
+    |   A |  B |   C |
+    |-----+----+-----|
+    |   1 | 20 | 300 |
+    | 200 | 30 |   4 |
+    |-----+----+-----|
+    | 201 | 50 | 304 |
+    #+TBLFM: @>$1..@>$3=vsum(@I..@II)
+
+    #+CAPTION: Test2
+    |   A |  B |   C |
+    |-----+----+-----|
+    |   1 | 20 | 300 |
+    | 200 | 30 |   4 |
+    :END:
+      
+** InsertTableFromFile
+
+    #+NAME: lobInsertTableFromFile
+    #+HEADER: :var tname="test-table2" fname="/tmp/insert-file-test.org"
+    #+BEGIN_SRC elisp :results value raw drawer
+      (with-temp-buffer
+	(org-mode)
+	(insert-file-contents fname)
+	(goto-char (point-min))
+	(unless (re-search-forward
+		 (concat "^[ \t]*#\\+\\(tbl\\)?name:[ \t]*"
+			 (regexp-quote tname) "[ \t]*$")
+		 nil t)
+	  (user-error "Can't find table named %s in file" tname fname))
+	(let ((tstart (match-beginning 0))
+	      tend)
+	  (forward-line 1)
+	  (while (looking-at-p "^[ \t]*#\\+")
+	    (forward-line 1))
+	  (unless (looking-at org-table-line-regexp)
+	    (user-error "no table at location of %s" tname))
+	  (goto-char (org-table-end))
+	  (while (looking-at-p "^[ \t]*#\\+TBLFM:")
+	    (forward-line 1))
+	  (buffer-substring tstart (point)))
+	)
+    #+END_SRC
+
+    #+RESULTS: srcInsertTableFromFile
+    :RESULTS:
+    #+NAME: test-table2
+    | a |  b |  c |
+    |---+----+----|
+    | 1 | 20 | 10 |
+    | 2 | 40 | 20 |
+    |---+----+----|
+    |   |    | 30 |
+    #+TBLFM: @>$>=vsum(@I..@II)
+    :END:
+
+  
+*** Test
+
+    Creating a file for testing
+    #+BEGIN_SRC elisp
+       (with-temp-file "/tmp/insert-file-test.org"
+	 (goto-char (point-max))
+	 (insert "some text at the start
+       ,#+NAME: test-table1
+       | a | b | c |
+       |---+---+---|
+       | 1 | 2 | 3 |
+       | 2 | 4 | 6 |
+       |---+---+---|
+       |   |   | 9 |
+       ,#+TBLFM: @>$>=vsum(@I..@II)
+       some text at the end
+
+       ,#+NAME: notable
+       ,#+BEGIN_EXAMPLE
+       Some Example
+       ,#+END_EXAMPLE
+
+       some other text at the start
+       ,#+NAME: test-table2
+       | a |  b |  c |
+       |---+----+----|
+       | 1 | 20 | 10 |
+       | 2 | 40 | 20 |
+       |---+----+----|
+       |   |    | 30 |
+       ,#+TBLFM: @>$>=vsum(@I..@II)
+       some other text at the end"))
+
+     #+END_SRC
+
+     #+RESULTS:
+   

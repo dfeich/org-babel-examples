@@ -1,0 +1,8 @@
+*.bbl
+*.synctex.gz
+*.aux
+*.out
+*.log
+*.tex
+*.pyg
+*/_minted-*
