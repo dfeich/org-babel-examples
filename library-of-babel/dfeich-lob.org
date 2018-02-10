@@ -147,4 +147,81 @@
      #+END_SRC
 
      #+RESULTS:
-   
+
+     
+
+** TableFilter
+
+    #+NAME: lobTableFilter
+    #+HEADER: :var tbl=tblFiltertest col=0 vals="Peter Paul"
+    #+BEGIN_SRC elisp :results value  :colnames y
+      (let ((lst (split-string vals)))
+	(concatenate 'list  (loop for row in tbl
+				  if (member (nth col row) lst)
+				  collect row into newtbl
+				  ;; else do (princ (format "%s: %s\n" (nth col row) lst))
+				  finally return newtbl)))
+   #+END_SRC
+
+*** Test
+
+    #+NAME: tblFiltertest
+    | Name  | A |  B |
+    |-------+---+----|
+    | Peter | 1 | 10 |
+    | Paul  | 2 | 20 |
+    | Mary  | 3 | 30 |
+    | Peter | 4 | 40 |
+    | Mary  | 5 | 50 |
+    | Peter | 6 | 60 |
+
+    #+CALL: lobTableFilter(tbl=tblFiltertest, col=0, vals="Peter Paul")
+
+    #+RESULTS:
+    | Name  | A |  B |
+    |-------+---+----|
+    | Peter | 1 | 10 |
+    | Paul  | 2 | 20 |
+    | Peter | 4 | 40 |
+    | Peter | 6 | 60 |
+
+** GroupTable
+
+    #+NAME: lobGroupTable
+    #+HEADER: :var tbl=tblFiltertest grp="Name" op="sum" rescols="B" 
+    #+BEGIN_SRC python :results output verbatim drawer :colnames no
+      import pandas as pd
+      import numpy as np
+      import orgbabelhelper as obh
+      import sys
+      import re
+
+      df = obh.orgtable_to_dataframe(tbl)
+      #print re.split(r",\s*", rescols) + [grp]
+      df = df[re.split(r",\s*", rescols) + [grp]]
+      assert grp in df.columns, "Error: group column %s not in table columns %s" % (grp, ",".join(df.columns))
+
+      if op == "sum":
+          res = df.groupby(grp).sum()
+      else:
+          error("operation %s not implemented" % op)
+          sys.exit(1)
+
+      print obh.dataframe_to_orgtable(res)
+
+    #+END_SRC
+
+    
+*** Test
+
+    #+CALL: lobGroupTable(tbl=tblFiltertest, grp="Name", op="sum", rescols="B")
+
+    #+RESULTS:
+    :RESULTS:
+    | Name  |   B |
+    |-------+-----|
+    | Mary  |  80 |
+    | Paul  |  20 |
+    | Peter | 110 |
+
+    :END:
