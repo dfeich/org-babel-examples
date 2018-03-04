@@ -73,34 +73,90 @@
 ** InsertTableFromFile
 
     #+NAME: lobInsertTableFromFile
-    #+HEADER: :var tname="test-table2" fname="/tmp/insert-file-test.org"
-    #+BEGIN_SRC elisp :results value raw drawer
-      (with-temp-buffer
-	(org-mode)
-	(insert-file-contents fname)
-	(goto-char (point-min))
-	(unless (re-search-forward
-		 (concat "^[ \t]*#\\+\\(tbl\\)?name:[ \t]*"
-			 (regexp-quote tname) "[ \t]*$")
-		 nil t)
-	  (user-error "Can't find table named %s in file" tname fname))
-	(let ((tstart (match-beginning 0))
-	      tend)
-	  (forward-line 1)
-	  (while (looking-at-p "^[ \t]*#\\+")
-	    (forward-line 1))
-	  (unless (looking-at org-table-line-regexp)
-	    (user-error "no table at location of %s" tname))
-	  (goto-char (org-table-end))
-	  (while (looking-at-p "^[ \t]*#\\+TBLFM:")
-	    (forward-line 1))
-	  (buffer-substring tstart (point)))
-	)
+    #+HEADER: :var tname="test-table1" fname="/tmp/insert-file-test.org" newcaption="" newattr="" newname=""
+    #+BEGIN_SRC elisp :results output drawer
+      (let* ((klist (cl-remove-if (lambda (x) (equal (cadr x) ""))
+				  `(("ATTR_LATEX" ,newattr) ("CAPTION" ,newcaption) ("NAME" ,newname))))
+	     (tbl
+	      (with-temp-buffer
+		(org-mode)
+		(insert-file-contents fname)
+		(goto-char (point-min))
+		(unless (re-search-forward
+			 (concat "^[ \t]*#\\+\\(tbl\\)?name:[ \t]*"
+				 (regexp-quote tname) "[ \t]*$")
+			 nil t)
+		  (user-error "Can't find table named %s in file" tname fname))
+		(forward-line 0)
+		(let ((tstart (match-beginning 0))
+		      tend)
+		  (while (looking-at "^[ \t]*#\\+\\([^:]+\\): *\\(.*\\)")
+		    (add-to-list 'klist `(,(match-string 1) ,(match-string 2)))
+		    (delete-region (point) (line-end-position))
+		    (kill-line))
+		  (unless (looking-at org-table-line-regexp)
+		    (looking-at "^.*$")
+		    (user-error "no table at location of %s, Looking-at: '%s'" tname (match-string 0)))
+		  (goto-char (org-table-end))
+		  (while (looking-at-p "^[ \t]*#\\+TBLFM:")
+		    (forward-line 1))
+		  (buffer-substring tstart (point))))))
+	(setq klist (nreverse klist)) ;; reverse for giving priority to new user settings
+	(dolist (elem '("NAME" "CAPTION" "ATTR_LATEX"))
+	  (when (assoc elem klist)
+	    (princ (format "#+%s: %s\n" elem (cadr (assoc elem klist))))))
+	(princ tbl))
     #+END_SRC
 
-    #+RESULTS: srcInsertTableFromFile
+*** Test setup boilerplate
+
+    Creating a file for testing
+    #+BEGIN_SRC elisp
+      (with-temp-file "/tmp/insert-file-test.org"
+	(goto-char (point-max))
+	(insert "some text at the start
+      ,#+NAME: test-table1
+      | a | b | c |
+      |---+---+---|
+      | 1 | 2 | 3 |
+      | 2 | 4 | 6 |
+      |---+---+---|
+      |   |   | 9 |
+      ,#+TBLFM: @>$>=vsum(@I..@II)
+      some text at the end
+
+      ,#+NAME: notable
+      ,#+BEGIN_EXAMPLE
+      Some Example
+      ,#+END_EXAMPLE
+
+      some other text at the start
+      ,#+NAME: test-table2
+      ,#+CAPTION: original caption of test-table2
+      ,#+ATTR_LATEX: :font \\footnotesize :placement [H]
+      | a |  b |  c |
+      |---+----+----|
+      | 1 | 20 | 10 |
+      | 2 | 40 | 20 |
+      |---+----+----|
+      |   |    | 30 |
+      ,#+TBLFM: @>$>=vsum(@I..@II)
+      some other text at the end"))
+
+     #+END_SRC
+
+     #+RESULTS:
+
+     
+*** Test
+
+    #+CALL: lobInsertTableFromFile(tname="test-table2", fname="/tmp/insert-file-test.org")
+
+    #+RESULTS:
     :RESULTS:
     #+NAME: test-table2
+    #+CAPTION: original caption of test-table2
+    #+ATTR_LATEX: :font \footnotesize :placement [H]
     | a |  b |  c |
     |---+----+----|
     | 1 | 20 | 10 |
@@ -110,46 +166,24 @@
     #+TBLFM: @>$>=vsum(@I..@II)
     :END:
 
-  
-*** Test
 
-    Creating a file for testing
-    #+BEGIN_SRC elisp
-       (with-temp-file "/tmp/insert-file-test.org"
-	 (goto-char (point-max))
-	 (insert "some text at the start
-       ,#+NAME: test-table1
-       | a | b | c |
-       |---+---+---|
-       | 1 | 2 | 3 |
-       | 2 | 4 | 6 |
-       |---+---+---|
-       |   |   | 9 |
-       ,#+TBLFM: @>$>=vsum(@I..@II)
-       some text at the end
+    #+CALL: lobInsertTableFromFile(tname="test-table2", fname="/tmp/insert-file-test.org", newcaption="new caption", newname="newname")
 
-       ,#+NAME: notable
-       ,#+BEGIN_EXAMPLE
-       Some Example
-       ,#+END_EXAMPLE
+    #+RESULTS:
+    :RESULTS:
+    #+NAME: newname
+    #+CAPTION: new caption
+    #+ATTR_LATEX: :font \footnotesize :placement [H]
+    | a |  b |  c |
+    |---+----+----|
+    | 1 | 20 | 10 |
+    | 2 | 40 | 20 |
+    |---+----+----|
+    |   |    | 30 |
+    #+TBLFM: @>$>=vsum(@I..@II)
+    :END:
 
-       some other text at the start
-       ,#+NAME: test-table2
-       | a |  b |  c |
-       |---+----+----|
-       | 1 | 20 | 10 |
-       | 2 | 40 | 20 |
-       |---+----+----|
-       |   |    | 30 |
-       ,#+TBLFM: @>$>=vsum(@I..@II)
-       some other text at the end"))
-
-     #+END_SRC
-
-     #+RESULTS:
-
-     
-
+    
 ** TableFilter
 
     #+NAME: lobTableFilter
