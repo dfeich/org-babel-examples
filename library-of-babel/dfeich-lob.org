@@ -91,7 +91,7 @@
 		(let ((tstart (match-beginning 0))
 		      tend)
 		  (while (looking-at "^[ \t]*#\\+\\([^:]+\\): *\\(.*\\)")
-		    (add-to-list 'klist `(,(match-string 1) ,(match-string 2)))
+		    (add-to-list 'klist `(,(upcase (match-string 1)) ,(match-string 2)))
 		    (delete-region (point) (line-end-position))
 		    (kill-line))
 		  (unless (looking-at org-table-line-regexp)
@@ -132,7 +132,7 @@
 
       some other text at the start
       ,#+NAME: test-table2
-      ,#+CAPTION: original caption of test-table2
+      ,#+caption: original caption of test-table2
       ,#+ATTR_LATEX: :font \\footnotesize :placement [H]
       | a |  b |  c |
       |---+----+----|
