@@ -291,6 +291,13 @@
     | Some text | Some other text |
     | 10        | 20              |
 
+    #+CAPTION: Table scriptsize
+    #+ATTR_LATEX: :placement [H] :font \scriptsize
+    | Column 1  | Column 2        |
+    |-----------+-----------------|
+    | Some text | Some other text |
+    | 10        | 20              |
+
     #+CAPTION: Table tiny size
     #+ATTR_LATEX: :placement [H] :font \tiny
     | Column 1  | Column 2        |
@@ -445,26 +452,27 @@
 * Text features
 ** Text font size
    #+LATEX:\Huge
-   Text Example
+   Text Example Huge
    #+LATEX:\huge
-   Text Example
+   Text Example huge
    #+LATEX:\LARGE
-   Text Example
+   Text Example LARGE
    #+LATEX:\Large
-   Text Example
+   Text Example Large
    #+LATEX:\large
-   Text Example
-   #+LATEX:\normalsize (default)
-   Text Example
+   Text Example large
+   #+LATEX:\normalsize
+   Text Example normalsize
    #+LATEX:\small
-   Text Example
+   Text Example small
    #+LATEX:\footnotesize
-   Text Example
+   Text Example footnotesize
    #+LATEX:\scriptsize
-   Text Example
+   Text Example scriptsize
    #+LATEX:\tiny
-   Text Example
-   #+LATEX:\normalsize (default)
+   Text Example tiny
+
+   #+LATEX:\normalsize
 
 ** Footnotes and margin notes
 

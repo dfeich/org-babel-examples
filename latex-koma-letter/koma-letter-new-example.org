@@ -10,7 +10,10 @@
   - You must export using one of the special koma letter export
     functions (e.g. =org-koma-letter-export-to-pdf=) and not the
     normal latex exporter. The usual shortcut is =C-c C-e k o=
-
+* COMMENT Documentation links
+  - http://www.golatex.de/wiki/KOMA-Script
+  - https://komascript.de/
+    
 * Preamble							   :noexport:
 #+TITLE:  Mis-shapen chaos of well-seeming forms!
 #+SUBJECT: Or: org-mode and KOMA-Script letters
