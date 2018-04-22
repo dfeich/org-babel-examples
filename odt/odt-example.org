@@ -122,7 +122,7 @@
   [[file:fig/t3cumjobs2013.png]]
 
 * Exporting to MS Word
-  This can be done on the command line using LibreOffice (or formerly soffice):
+  This can be done via [[https://github.com/kawabata/ox-pandoc][ox-pandoc] directly or on the command line using LibreOffice (or formerly soffice):
 
 :  libreoffice --convert-to docx --headless my-document.odt
   
