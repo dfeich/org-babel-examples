@@ -55,9 +55,8 @@
 # line. Width can be defined
 #+LATEX_HEADER_EXTRA: \usepackage{tabularx}
 
-# For using tabularx with tables that can span several pages,
-# i.e. like tabularx + longtable together
-#+LATEX_HEADER_EXTRA: \usepackage{ltablex}
+# For tables spanning multiple pages with text wrapping
+#+LATEX_HEADER_EXTRA: \usepackage{tabu,longtable}
 
 # booktabs can be used for getting a nicer table style with
 # thicker lines on top and on the bottom
@@ -332,14 +331,14 @@
     observed, as can be confirmed in the resulting PDF.
 
 *** Table over multiple pages with long text wrapped to cell width
-    Use the \myindex{tabularx} environment and make sure that you have loaded the \myindex{ltablex}
-    package.
+    Use the \myindex{longtabu} environment. This requires that you
+    have loaded the \myindex{tabu} and \myindex{longtable} packages.
 
-    Note: If I set a caption either with the =#+CAPTION:= markup or the =:caption=
-    header argument, the table will no longer correctly wrap to the next page, but
-    it will overflow over the page.
 
-    #+LATEX_HEADER_EXTRA: \usepackage{tabu,longtable}
+    # In order to get homogeneous line spacings, I need to set the following
+    # parameter (q.v. https://tex.stackexchange.com/questions/21570/strange-line-spacing-effects-in-longtabu)
+    #+LATEX: \tabulinesep=1.2mm
+
     #+CAPTION: A multi-page table with automatic text wrapping
     #+NAME: tblLongTabularx
     #+ATTR_LATEX: :environment longtabu :width \linewidth :align lX
