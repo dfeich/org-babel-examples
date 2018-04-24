@@ -338,11 +338,11 @@
     Note: If I set a caption either with the =#+CAPTION:= markup or the =:caption=
     header argument, the table will no longer correctly wrap to the next page, but
     it will overflow over the page.
-    
-    # #+CAPTION: A multi-page table with automatic text wrapping
 
+    #+LATEX_HEADER_EXTRA: \usepackage{tabu,longtable}
+    #+CAPTION: A multi-page table with automatic text wrapping
     #+NAME: tblLongTabularx
-    #+ATTR_LATEX: :environment tabularx :width \linewidth :align lX
+    #+ATTR_LATEX: :environment longtabu :width \linewidth :align lX
     | 100 | Some extremely long sentence which surely needs a linebreak if I add some additional words like these        |
     | 101 | Some other extremely long sentence which surely needs a linebreak  if I add some additional words like these |
     | 102 | bla bla                                                                                                      |
