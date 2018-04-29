@@ -106,6 +106,10 @@
    - d:nil do not export org heading drawers
    - tags:nil do not export headline tags
 
+** addtional LaTeX packages
+
+   # for generating example texts for testing
+   #+BEAMER_HEADER: \usepackage{blindtext}
 
 * Introduction
 ** An alternative title page for a section
@@ -239,18 +243,40 @@ with its own headline, is displayed in a block:
     \end{exampleblock}
     #+END_EXAMPLE
 
-** some more blocks
-*** a color box						   :B_beamercolorbox:
+** colorbox
+#+LaTeX: \setbeamercolor{myblockcolor}{bg=magenta,fg=white}
+*** a block containing a colorbox                                   :B_block:
     :PROPERTIES:
-    :BEAMER_env: beamercolorbox
+    :BEAMER_env: block
     :END:
-    The beamercolorbox does not seem to work
-    #+BEGIN_EXAMPLE
-    \begin{beamercolorbox}[shadow=true, rounded=true]{eecks}
-    ...
+
+    # it seems I have do explicitely define the color settings for the
+    # specific colorbox. I need to use the heading name of my colorbox in the following
+    # inline LaTex setting:
+    #+LATEX:  \setbeamercolor{colboxA}{fg=yellow,bg=white!10!blue}
+**** colboxA                                               :B_beamercolorbox:
+     :PROPERTIES:
+     :BEAMER_env: beamercolorbox
+     :BEAMER_opt: shadow=true,rounded=true,wd=0.9\textwidth,sep=1em
+     :END:
+     The beamercolorbox text and an Org example block
+     #+BEGIN_EXAMPLE
+     \begin{beamercolorbox}[shadow=true, rounded=true]{eecks}
+     ...
+     \end{beamercolorbox}
+     #+END_EXAMPLE
+
+*** a color box test made with inline LaTex code
+
+    #+BEGIN_EXPORT latex
+  \setbeamercolor{coloredboxstuff}{fg=yellow,bg=white!10!blue}
+  \begin{beamercolorbox}[wd=0.9\textwidth,sep=1em]{coloredboxstuff}
+    Just some text.
     \end{beamercolorbox}
-    #+END_EXAMPLE
-     
+    #+END_EXPORT
+
+    
+    
 ** fullframe							:B_fullframe:
    :PROPERTIES:
    :BEAMER_env: fullframe
@@ -340,7 +366,7 @@ with its own headline, is displayed in a block:
    :END:
 
    Use the =allowframebreaks= Beamer option.
-   #+LATEX: \small
+   #+LATEX: \scriptsize
    #+BEGIN_SRC emacs-lisp
      (use-package python
        :config (progn
@@ -611,9 +637,11 @@ x =
 
 ** Summary
    - org is an incredible tool for time management
-   - *but* it is also excellent for writing and for preparing presentations
+     - it is also excellent for composing documents
    - Beamer is a very powerful \LaTeX{} package for presentations
-   - the combination is unbeatable!
+   - the combination is unbeatable: Org Beamer
+     - ease of composing slides fast and being able to use all the other Org features
+     - though, it takes a bit of a learning curve and examples to copy from
 
 
 * Appendix							 :B_appendix:
