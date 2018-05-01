@@ -64,6 +64,8 @@
 # tabu package succeeds.
 #+LATEX_HEADER_EXTRA: \usepackage{tabu,longtable}
 
+#+LATEX_HEADER_EXTRA: \usepackage[table]{xcolor}
+
 # booktabs can be used for getting a nicer table style with
 # thicker lines on top and on the bottom
 #+LATEX_HEADER_EXTRA: \usepackage{booktabs}
@@ -93,20 +95,61 @@
 
 
 * Version information
-  #+BEGIN_SRC emacs-lisp :results output :exports results :eval query-export
+  - Emacs version
+    #+BEGIN_SRC emacs-lisp :results output :exports results :eval query-export
     (princ (concat (format "Emacs version: %s\n" (emacs-version))
                    (format "org version: %s\n" (org-version))))
     
-  #+END_SRC
+    #+END_SRC
 
-  #+RESULTS:
-  : Emacs version: GNU Emacs 25.2.1 (x86_64-pc-linux-gnu, GTK+ Version 3.18.9)
-  :  of 2017-11-25
-  : org version: 9.1.2
+    #+RESULTS:
+    : Emacs version: GNU Emacs 25.3.1 (x86_64-pc-linux-gnu, GTK+ Version 3.18.9)
+    :  of 2017-12-30
+    : org version: 9.1.9
+
+  - LaTeX version
+    #+BEGIN_SRC bash :results output :exports results :eval query-export
+    latex -v
+    #+END_SRC
+
+    #+RESULTS:
+    #+begin_example
+    pdfTeX 3.14159265-2.6-1.40.16 (TeX Live 2015/Debian)
+    kpathsea version 6.2.1
+    Copyright 2015 Peter Breitenlohner (eTeX)/Han The Thanh (pdfTeX).
+    There is NO warranty.  Redistribution of this software is
+    covered by the terms of both the pdfTeX copyright and
+    the Lesser GNU General Public License.
+    For more information about these matters, see the file
+    named COPYING and the pdfTeX source.
+    Primary author of pdfTeX: Peter Breitenlohner (eTeX)/Han The Thanh (pdfTeX).
+    Compiled with libpng 1.6.17; using libpng 1.6.17
+    Compiled with zlib 1.2.8; using zlib 1.2.8
+    Compiled with poppler version 0.41.0
+    #+end_example
+
 
 * Debugging
-  Org removes some of the intermediate files if the variable =org-latex-remove-logfiles=
-  is set to true. So, for debugging, it makes sense to set it to nil.
+  - Org removes some of the intermediate files if the variable =org-latex-remove-logfiles=
+    is set to true. So, for debugging, it makes sense to set it to nil.
+  - Use =pdflatex= with the option synctex=1. This option creates =*.synctex.gz= files
+    which can be used by a viewer to jump to the respective text in the Tex file upon
+    mouse clicking within the PDF. This is very useful to check the resulting LaTeX
+    code when doing tests. Here is my own setting of the =org-latex-pdf-process= emacs
+    configuration variable.
+    #+BEGIN_EXAMPLE
+     (setq org-latex-pdf-process
+	   (let
+	       ((cmd (concat "pdflatex -shell-escape -interaction nonstopmode"
+			     " --synctex=1"
+			     " -output-directory %o %f")))
+	     (list cmd
+		   "cd %o; if test -r %b.idx; then makeindex %b.idx; fi"
+		   "cd %o; bibtex %b"
+		   cmd
+		   cmd)))
+    #+END_EXAMPLE
+
   
 * Major document elements
 ** Equations
@@ -313,12 +356,14 @@
 
 *** Sidewaystable
 
+    Use the =float: sideways= ATTR option  (The =float: sidewaystable== has
+    been deprecated since Org 8.3, q.v. [[info:org#Tables%20in%20LaTeX%20export][info:org#Tables in LaTeX export]])
     Using the sidewaystable together with a =:placement [H]= specifier
-    requires that one uses the =rotfloat= environment.
+    requires that the =rotfloat= package is loaded.
 
     #+NAME: tblSideways
     #+CAPTION: A sidewaystable
-    #+ATTR_LATEX: :font \footnotesize :float sidewaystable :placement [H]
+    #+ATTR_LATEX: :font \footnotesize :float sideways :placement [H]
     | Column 1 | Column 2 | Column 3 | Column 4 | Column 5 | Column 6 |
     |----------+----------+----------+----------+----------+----------|
     |        1 |       10 |      100 |     1000 | example  | result   |
@@ -334,7 +379,7 @@
 
     Even though in the [[info:org#LaTeX%20specific%20attributes][info documentation it reads]]: "Note: :placement
     is ignored for :float sideways tables.", the modifier =[H]= is
-    observed, as can be confirmed in the resulting PDF.
+    observed, as can be confirmed in the resulting TeX code.
 
 *** Table over multiple pages with long text wrapped to cell width
     Use the \myindex{longtabu} environment. This requires that you
@@ -395,6 +440,130 @@
     |  74 | Some other extremely long sentence which surely needs a linebreak  if I add some additional words like these |
     |  72 | bla bla                                                                                                      |
    
+
+*** Tables with colored rows using xcolors and colortbl
+
+    A very nice reference for color in tables is proviced by Xavier on the texblog.org:
+    https://texblog.org/2018/01/15/color-table-series-part-2-xcolor-package/
+
+    One can use the =\rowcolors= command to define coloring of alternating rows. In
+    front of the table use the following
+    : #+LATEX: \rowcolors[]{2}{blue!10}{blue!25}
+
+    The arguments translate to
+    - =[2]= start coloring in the second row
+    - ={blue!10}{blue!25}= definition of the two colors for odd and even
+      rows according to the xcolors package
+
+    In order to prevent spillover of the rowcolors definition into later table, I
+    wrap the whole table in =#+LATEX: {= and =#+LATEX: }= definitions.
+    
+    #+LATEX: {
+    #+LATEX: \rowcolors[]{2}{blue!10}{blue!25}
+    #+NAME: tblAlternateColor
+    #+CAPTION: A table with alternate line colors
+    #+ATTR_LATEX: :font \footnotesize :placement [H]
+    | Column 1 | Column 2 | Column 3 | Column 4 | Column 5 | Column 6 |
+    |----------+----------+----------+----------+----------+----------|
+    |        1 |       10 |      100 |     1000 | example  | result   |
+    |        2 |       11 |      101 |     1001 | example  | result   |
+    |        3 |       12 |      102 |     1002 | example  | result   |
+    |        4 |       13 |      103 |     1003 | example  | result   |
+    |        5 |       14 |      104 |     1004 | example  | result   |
+    |        6 |       15 |      105 |     1005 | example  | result   |
+    |        7 |       16 |      106 |     1006 | example  | result   |
+    #+LATEX: }
+
+    
+
+*** TODO Tables with colored rows using tabu
+    
+    #+LATEX: \definecolor{lightb}{RGB}{217,224,250}
+
+    This needs the *tabu* and *xcolor* packages to be loaded. Use the LaTeX command
+    =\taburowcolors= to define the colors right before the table.
+
+    : #+LATEX: \taburowcolors[2]2{lightgray..white}
+
+    The options in this command translate to
+    - =[2]= start coloring in 2nd row
+    - =2= : use 2 colors (so, if set to 2 then it is just alternating)
+    - ={lightgray..white}= defines the first and last color in the color range. This
+      is a color series definition provided by the *xcolor* package.
+
+    #+LATEX: \taburowcolors[2]2{lightgray..white}
+    #+NAME: tblAlternateColor
+    #+CAPTION: A table with alternate line colors
+    #+ATTR_LATEX: :environment tabu :font \footnotesize :placement [H]
+    | Column 1 | Column 2 | Column 3 | Column 4 | Column 5 | Column 6 |
+    |----------+----------+----------+----------+----------+----------|
+    |        1 |       10 |      100 |     1000 | example  | result   |
+    |        2 |       11 |      101 |     1001 | example  | result   |
+    |        3 |       12 |      102 |     1002 | example  | result   |
+    |        4 |       13 |      103 |     1003 | example  | result   |
+    |        5 |       14 |      104 |     1004 | example  | result   |
+    |        6 |       15 |      105 |     1005 | example  | result   |
+    |        7 |       16 |      106 |     1006 | example  | result   |
+
+
+    =Booktabs= style does not mix well with this. The caption is too near
+    to the table ruler, so here some work would need to be invested to
+    get an aesthetically pleasing layout.
+    
+    #+LATEX: \taburowcolors[2]2{lightgray..white}
+    #+NAME: tblAlternateColor
+    #+CAPTION: A table with alternate line colors
+    #+ATTR_LATEX: :environment tabu :font \footnotesize :booktabs t :placement [H]
+    | Column 1 | Column 2 | Column 3 | Column 4 | Column 5 | Column 6 |
+    |----------+----------+----------+----------+----------+----------|
+    |        1 |       10 |      100 |     1000 | example  | result   |
+    |        2 |       11 |      101 |     1001 | example  | result   |
+    |        3 |       12 |      102 |     1002 | example  | result   |
+    |        4 |       13 |      103 |     1003 | example  | result   |
+    |        5 |       14 |      104 |     1004 | example  | result   |
+    |        6 |       15 |      105 |     1005 | example  | result   |
+    |        7 |       16 |      106 |     1006 | example  | result   |
+
+
+    Here, for comparison, a colored table produced by an inline LaTeX
+    fragment. Q.v. [[https://tex.stackexchange.com/questions/88142/row-colored-with-alternatingly-with-taburowcolors-is-pink][this stackexchange discussion]] to understand the
+    color series.
+
+    Note: I need to do some more testing to get a better understanding of how the
+    color ranges are defined. E.g. here in the 5th row there is suddenly
+    a yellow color pouring in.
+
+    
+    #+BEGIN_EXPORT latex
+\definecolor{lightb}{RGB}{217,224,250}
+
+\begin{table}[H]
+    \begin{tabu}{>{\bfseries}lX[l]}
+        \toprule
+        \taburowcolors[1]3{lightb..white}
+        Row1 & 1 \\
+        Row2 & 2 \\
+        Row3 & 3 \\
+        Row4 & 4 \\
+        Row5 & 5 \\
+        \bottomrule
+    \end{tabu}
+\end{table}
+
+\begin{table}[H]
+    \begin{tabu}{>{\bfseries}lX[l]}
+        \toprule
+        \taburowcolors[1]4{lightb..white}
+        Row1 & 1 \\
+        Row2 & 2 \\
+        Row3 & 3 \\
+        Row4 & 4 \\
+        Row5 & 5 \\
+        \bottomrule
+    \end{tabu}
+\end{table}
+#+END_EXPORT
+    
 *** COMMENT DOES NOT WORK: Radio tables and skipping columns and rows
 
     The reason why it does not work is that the feature is only
