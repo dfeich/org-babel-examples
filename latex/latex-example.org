@@ -29,14 +29,30 @@
 # override this on a per-source block level using the :eval header argument.
 #+PROPERTY: header-args :eval never-export
 
+* Org and LaTeX exporter configuration
+** Basic configuration
 # #+OPTIONS: texht:t
 #+LATEX_CLASS: article
 #+LATEX_CLASS_OPTIONS: [a4paper]
 
+# NOTE: LATEX_HEADER_EXTRA lines will not be loaded when previewing
+# LaTeX snippets while LATEX_HEADER lines will be evaluated even for
+# rendering snippets
+
+# lmodern provides Latin Modern Type1 fonts. If this is left out,
+# Type3 fonts are used which results in a document from which one
+# cannot copy/paste (copy contains symbol crap) and the PDF readers also
+# usually cannot search within the document for strings.
+#+LATEX_HEADER_EXTRA: \usepackage{lmodern}
+
+# Needed for rotating floats, e.g. for placing the sidewaystable
+# correctly and for rotating graphics
+#+LATEX_HEADER_EXTRA: \usepackage{rotfloat}
+
+** Misc configuration
 # show hyperlinks in blue font
 #+LATEX_HEADER: \hypersetup{colorlinks=true, linkcolor=blue}
 
-# LATEX_HEADER_EXTRA lines will not be loaded when previewing LaTeX snippets
 
 # package to typeset units in equations
 #+LATEX_HEADER_EXTRA: \usepackage{units}
@@ -45,15 +61,8 @@
 # not put into the PDF document
 #+LATEX_HEADER_EXTRA: \usepackage{comment}
 
-# Needed for rotating floats, e.g. for placing the sidewaystable
-#+LATEX_HEADER_EXTRA: \usepackage{rotfloat}
 
-# lmodern provides Latin Modern Type1 fonts. If this is left out,
-# Type3 fonts are used which results in a document from which one
-# cannot copy/paste (copy contains symbol crap) and the PDF readers also
-# usually cannot search within the document for strings.
-#+LATEX_HEADER_EXTRA: \usepackage{lmodern}
-
+** Tables related configuration
 # for tables where the text in a cell should be able to get wrapped to
 # the next line. Width can be defined explicitely
 #+LATEX_HEADER_EXTRA: \usepackage{tabularx}
@@ -70,6 +79,7 @@
 # thicker lines on top and on the bottom
 #+LATEX_HEADER_EXTRA: \usepackage{booktabs}
 
+** Index configuration
 # Index creation
 #+LATEX_HEADER_EXTRA: \usepackage{makeidx}
 #+LATEX_HEADER_EXTRA: \makeindex
@@ -79,6 +89,7 @@
 \DeclareRobustCommand{\myindex}[1]{#1\index{#1}}
 #+END_EXPORT
 
+** Graphics
 # The following lines are needed to automatically convert gif to png
 # for inclusion in PDF exports. It also requires that the variable
 # org-latex-inline-image-rules contains gif as a valid format and
@@ -87,8 +98,8 @@
 #+LATEX_HEADER_EXTRA: \epstopdfDeclareGraphicsRule{.gif}{png}{.png}{convert #1 \OutputFile}
 #+LATEX_HEADER_EXTRA: \AppendGraphicsExtensions{.gif}
 
-
-# For export to ODT
+** Other
+# For export to ODT (the file is not optimized for this)
 # #+OPTIONS: LaTeX:t
 # #+OPTIONS: tex:imagemagick
 # #+OPTIONS: tex:dvipng
@@ -130,8 +141,10 @@
 
 
 * Debugging
-  - Org removes some of the intermediate files if the variable =org-latex-remove-logfiles=
-    is set to true. So, for debugging, it makes sense to set it to nil.
+  - Org removes some of the intermediate files if the variable
+    =org-latex-remove-logfiles= is set to true. So, for debugging, it
+    makes sense to set it to nil. I have done this locally in this document's
+    local variables.
   - Use =pdflatex= with the option synctex=1. This option creates =*.synctex.gz= files
     which can be used by a viewer to jump to the respective text in the Tex file upon
     mouse clicking within the PDF. This is very useful to check the resulting LaTeX
@@ -595,6 +608,14 @@
    In order to get nice source code formatting and markup, one needs to add the *minted* package. I add here
    the relevant excerpt from my emacs initialization file (listing [[listing-minted-config]]), which also serves as a first lisp code example
 
+   *TODO:* I was not yet able to figure out how to force org to place
+   the source code listing exactly here in the text. While the
+   documentation accepts a =:float t= attribute (and every source
+   block with a caption automatically becomes a float), the placement
+   modifier seems not to get translated
+   
+   : #+ATTR_LaTeX: :float t :placement [H]
+
    #+NAME: listing-minted-config
    #+CAPTION: emacs init.el snippet for including code markup by minted
    #+BEGIN_SRC emacs-lisp :exports code
@@ -744,6 +765,11 @@
   The =#+BIBLIOGRAPHY:= command inserts the reference list at the
   location where it is placed. It requires the name of the bib-file
   (without .bib extension) and the name of a style (e.g. plain).
+
+  If no citations are created, make sure that the bibliography
+  file is really found. You may have to run "bibtex myfile.aux"
+  yourself, and for that you need to make sure that the AUX file
+  is not removed after org runs (q.v. [[*Debugging]] section).
   
   For HTML exports one can also pass options to the =bibtex2html=
   binary (look at the comments section of =ox-bibtex.el= and also the
