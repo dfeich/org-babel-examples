@@ -149,7 +149,67 @@
    #+RESULTS:
    ((10 str two strings) (20 str2 2 strings))
 
+* TODO using a list as input for a source block
 
+  #+NAME: mylist
+  - item1
+  - item2
+    1. subitem2.1
+    2. subitem2.2
+  - item3
+    - subitem3.1
+  - item4
+
+  Let's look at the resulting structure that is passed to a source block
+
+  #+BEGIN_SRC elisp :results output :var lst=mylist
+  (pp lst)
+  #+END_SRC
+
+  #+RESULTS:
+  : (("item1")
+  :  ("item2"
+  :   (ordered
+  :    ("subitem2.1")
+  :    ("subitem2.2")))
+  :  ("item3"
+  :   (unordered
+  :    ("subitem3.1")))
+  :  ("item4"))
+
+  This is different from the current entry in the Manual ([[info:org#var][info:org#var]]), where it is said that only top
+  level items are passed along. But this complete passing along of the structure opens nice and
+  interesting ways of using lists. Need to ask whether this interface will remain stable.
+
+  One important point to clarify is, why is the returned structure not exactly the result of
+  what the Org function =org-list-to-lisp= returns? Comparing with that output we see that the
+  current handing over of a list by the =:var= argument is losing the outermost layer of information
+  that describes whether the top level list is of the ordered, unordered, ... type.
+
+  #+BEGIN_SRC elisp :results output :var lname="mylist"
+    (pp (save-excursion
+	  (goto-char (point-min))
+	  (unless (search-forward-regexp (concat  "#\\\+NAME: .*" lname) nil t)
+	    (error "No list of this name found: %s" lname))
+	  (forward-line 1)
+	  (org-list-to-lisp)))
+  #+END_SRC
+
+  #+RESULTS:
+  #+begin_example
+  (unordered
+   ("item1")
+   ("item2"
+    (ordered
+     ("subitem2.1")
+     ("subitem2.2")))
+   ("item3"
+    (unordered
+     ("subitem3.1")))
+   ("item4"))
+  #+end_example
+
+  
 * calling source blocks as a function
 ** Chaining source block execution
    I *can have another piece of code implicitly called* by using its
@@ -236,47 +296,47 @@
    #+CALL: make-table1()
 
    #+RESULTS: new-make-table1
-   |  5 | 25 |   |
-   |  6 | 30 |   |
-   |  7 | 35 |   |
-   |  8 | 40 |   |
-   |  9 | 45 |   |
-   | 10 | 50 |   |
-   | 11 | 55 |   |
-   | 12 | 60 |   |
-   | 13 | 65 |   |
-   | 14 | 70 |   |
-   | 15 | 75 |   |
+   | col1 | col2 | col3 |
+   |------+------+------|
+   |    5 |   25 |      |
+   |    6 |   30 |      |
+   |    7 |   35 |      |
+   |    8 |   40 |      |
+   |    9 |   45 |      |
+   |   10 |   50 |      |
+   |   11 |   55 |      |
+   |   12 |   60 |      |
+   |   13 |   65 |      |
+   |   14 |   70 |      |
+   |   15 |   75 |      |
 
-   #+RESULTS:
-   |  5 | 25 |   |
-   |  6 | 30 |   |
-   |  7 | 35 |   |
-   |  8 | 40 |   |
-   |  9 | 45 |   |
-   | 10 | 50 |   |
-   | 11 | 55 |   |
-   | 12 | 60 |   |
-   | 13 | 65 |   |
-   | 14 | 70 |   |
-   | 15 | 75 |   |
-
+   
 * Inline src calls
 
-  This is the result of an inline src call in lisp:
+  Basic inline source calls:
 
-  src_emacs-lisp[:var tbl=table1 :results raw]{(nth 0 (nth (- (length tbl) 1) tbl))} 15
+  - src_emacs-lisp[:var tbl=table1]{(nth 0 (nth (- (length tbl) 1) tbl))} {{{results(=15=)}}}
 
-  and this is another:
+  - src_emacs-lisp[:results value]{(org-table-get-remote-range "table1" "@>$1" )} {{{results(=15=)}}} 
+
+  Note, that the result gets wrapped into an ORG MACRO syntax using three curly brackets. This allows
+  org to replace the results of the evaluation if the inline call is executed multiple times.
+  
+  If one uses the =:results raw= option, the results are placed "as is" into the buffer, so multiple
+  executions will lead to multiple insertions of the result.
 
   src_emacs-lisp[:results raw]{(org-table-get-remote-range "table1" "@>$1" )} 15
 
 
-  src_emacs-lisp[:results value]{(org-table-get-remote-range "table1" "@>$1" )} =15=
+  Inline source code is only supposed to create one-line results. If you write code that generates
+  multiple result lines, an error is raised: /Inline error: multiline result cannot be used/
+
+  src_emacs-lisp[:results value]{(princ "hahha\nyesyesyes" )}
 
 * Defining buffer wide variables for src blocks
   One can use a verbatim block like this. I define a named block =myvar= and
-  I pass it into the variable s of the following code block.
+  I pass it into the variable s of the following code block. This lends itself to some nice
+  ideas of inserting test in form of templates with some custom variable replacement
 
   #+NAME: myvar
   : world
@@ -288,6 +348,10 @@
   #+RESULTS:
   : hello world
 
+  #+BEGIN_SRC emacs-lisp :var 
+  
+  #+END_SRC
+  
 * Using a :post function for post-formatting and executing generated tables
 
   Often I produce multiple tables from a source block (e.g. printing
