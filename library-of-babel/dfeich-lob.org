@@ -222,7 +222,7 @@
 ** GroupTable
 
     #+NAME: lobGroupTable
-    #+HEADER: :var tbl=tblFiltertest grp="Name" op="sum" rescols="B" 
+    #+HEADER: :var tbl=tblGroupingTest grp="Name" op="sum" rescols="B"
     #+BEGIN_SRC python :results output verbatim drawer :colnames no
       import pandas as pd
       import numpy as np
@@ -231,12 +231,14 @@
       import re
 
       df = obh.orgtable_to_dataframe(tbl)
+      grparr = re.split(r",\s*", grp)
       #print re.split(r",\s*", rescols) + [grp]
-      df = df[re.split(r",\s*", rescols) + [grp]]
-      assert grp in df.columns, "Error: group column %s not in table columns %s" % (grp, ",".join(df.columns))
+      df = df[re.split(r",\s*", rescols) + grparr]
+      for elem in grparr:
+          assert elem in df.columns, "Error: group column %s not in table columns %s" % (elem, ",".join(df.columns))
 
       if op == "sum":
-          res = df.groupby(grp).sum()
+          res = df.groupby(grparr).sum()
       else:
           error("operation %s not implemented" % op)
           sys.exit(1)
@@ -248,14 +250,40 @@
     
 *** Test
 
-    #+CALL: lobGroupTable(tbl=tblFiltertest, grp="Name", op="sum", rescols="B")
+    #+NAME: tblGroupingTest
+    | Name  | Year | A |  B |
+    |-------+------+---+----|
+    | Peter | 2018 | 1 | 10 |
+    | Paul  | 2018 | 2 | 20 |
+    | Mary  | 2018 | 3 | 30 |
+    | Peter | 2019 | 4 | 40 |
+    | Paul  | 2019 | 5 | 50 |
+    | Mary  | 2019 | 5 | 60 |
+    | Peter | 2019 | 6 | 70 |
+
+    #+CALL: lobGroupTable(tbl=tblGroupingTest, grp="Name", op="sum", rescols="B")
 
     #+RESULTS:
     :RESULTS:
     | Name  |   B |
     |-------+-----|
-    | Mary  |  80 |
-    | Paul  |  20 |
-    | Peter | 110 |
+    | Mary  |  90 |
+    | Paul  |  70 |
+    | Peter | 120 |
+
+    :END:
+
+    #+CALL: lobGroupTable(tbl=tblGroupingTest, grp="Year,Name", op="sum", rescols="B")
+
+    #+RESULTS:
+    :RESULTS:
+    | Year | Name  |   B |
+    |------+-------+-----|
+    | 2018 | Mary  |  30 |
+    | 2018 | Paul  |  20 |
+    | 2018 | Peter |  10 |
+    | 2019 | Mary  |  60 |
+    | 2019 | Paul  |  50 |
+    | 2019 | Peter | 110 |
 
     :END:
