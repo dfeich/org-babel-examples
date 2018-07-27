@@ -129,7 +129,7 @@
 
      setup(
 	 name = "orgbabelhelper",
-	 version = "1.0.3",
+	 version = "1.0.4",
 	 description = "python helper module for Emacs org mode babel",
 	 long_description = "python helper module for working with Emacs"
 	 + " org babel source blocks",
@@ -169,13 +169,13 @@
 
 ** building the conda package
 
-   1. update the version info in [[*basic package setup][setup.py]] above
+   1. update the version info in [[*basic files for package setup][setup.py]] above
    2. update the version info in file:orgbabelhelper/conda-recipe/meta.yaml
    3. tangle the files
    4. execute the source block, below
 
    Building the conda package
-   #+BEGIN_SRC sh :results output
+   #+BEGIN_SRC bash :results output
      cd orgbabelhelper
      conda build conda-recipe &> conda-build.out
      if test $? -eq 0; then
@@ -196,8 +196,55 @@
    Be aware that if you did not raise the version number, the command will not install the
    newly built package, but it will fetch the previous one from your conda cache!
 
+** uploading the package to anaconda   
+
+   Needs the anaconda-client package to be present in the environment.
+
+   : anaconda upload /home/dfeich/desk/conda-build/linux-64/orgbabelhelper-1.0.4-py36_0.tar.bz2
+
 ** uploading package to pypi
    follow https://packaging.python.org/tutorials/distributing-packages/
+
+   Produce package in the dist/ directory
+   #+BEGIN_SRC bash :results output :dir orgbabelhelper/
+   python3 setup.py sdist   
+   #+END_SRC
+
+   #+RESULTS:
+   #+begin_example
+   running sdist
+   running egg_info
+   writing orgbabelhelper.egg-info/PKG-INFO
+   writing dependency_links to orgbabelhelper.egg-info/dependency_links.txt
+   writing requirements to orgbabelhelper.egg-info/requires.txt
+   writing top-level names to orgbabelhelper.egg-info/top_level.txt
+   reading manifest file 'orgbabelhelper.egg-info/SOURCES.txt'
+   writing manifest file 'orgbabelhelper.egg-info/SOURCES.txt'
+   running check
+   creating orgbabelhelper-1.0.4
+   creating orgbabelhelper-1.0.4/orgbabelhelper
+   creating orgbabelhelper-1.0.4/orgbabelhelper.egg-info
+   copying files to orgbabelhelper-1.0.4...
+   copying setup.py -> orgbabelhelper-1.0.4
+   copying orgbabelhelper/__init__.py -> orgbabelhelper-1.0.4/orgbabelhelper
+   copying orgbabelhelper/orgbabelhelper.py -> orgbabelhelper-1.0.4/orgbabelhelper
+   copying orgbabelhelper.egg-info/PKG-INFO -> orgbabelhelper-1.0.4/orgbabelhelper.egg-info
+   copying orgbabelhelper.egg-info/SOURCES.txt -> orgbabelhelper-1.0.4/orgbabelhelper.egg-info
+   copying orgbabelhelper.egg-info/dependency_links.txt -> orgbabelhelper-1.0.4/orgbabelhelper.egg-info
+   copying orgbabelhelper.egg-info/requires.txt -> orgbabelhelper-1.0.4/orgbabelhelper.egg-info
+   copying orgbabelhelper.egg-info/top_level.txt -> orgbabelhelper-1.0.4/orgbabelhelper.egg-info
+   Writing orgbabelhelper-1.0.4/setup.cfg
+   Creating tar archive
+   removing 'orgbabelhelper-1.0.4' (and everything under it)
+   #+end_example
+
+   Then use the following command line for the installation
+
+   To the test PyPi
+   : twine upload --repository-url https://test.pypi.org/legacy/ dist/orgbabelhelper-1.0.4.tar.gz
+
+   For the production PyPi
+   : twine upload --repository-url https://upload.pypi.org/legacy/  dist/orgbabelhelper-1.0.4.tar.gz
    
 * Reading from an org table as input
 
@@ -304,6 +351,14 @@
     #+RESULTS: epoch2day
     : [2010-01-05 Tue 07:11:05]
 
+
+  Let's first call the function as a normal org CALL  
+
+  #+CALL: epoch2day(epoch=1262675400000)
+
+  #+RESULTS:
+  : [2010-01-05 Tue 07:10:00]
+  
   In the table we need to refer to the named source block by using the
   a short lisp form involving =org-sbe=. If the table value that is
   referred to in the function is to be interpreted as a number, the
@@ -336,7 +391,7 @@
                     return ''
 
                 #m = re.match(r'^\[(\d+-\d+-\d+) +[a-zA-Z]{3}\]$', datestr)
-                m = re.match(r'^[\[<](\d+-\d+-\d+) +[a-zA-Z]{3}[\]>]$', datestr)
+                m = re.match(r'^[\[<](\d+-\d+-\d+) +[a-zA-Z]{2,3}[\]>]$', datestr)
                 if not m:
                     raise ValueError("Input String is not a date: >%s<" % datestr)
 
@@ -363,6 +418,7 @@
     <<src_orgdate_to_date>>
 
     print(orgdate_to_date('[2016-08-16 Tue]'))
+    print(orgdate_to_date('[2016-08-16 Di]'))
     print(orgdate_to_date('<2016-08-17 Tue>'))
     print(date_to_orgdate(dt.datetime(2016,8,18)))
     print(date_to_orgdate(dt.datetime(2016,8,18), active=True))
@@ -370,10 +426,11 @@
 
   #+RESULTS:
   : 2016-08-16
+  : 2016-08-16
   : 2016-08-17
   : [2016-08-18 Thu]
   : <2016-08-18 Thu>
-    
+  
 * Matplotlib
 ** plotting of a simple graph
 #+begin_src python :results file :exports both
@@ -939,7 +996,7 @@ insert language specific commenting to keep the code functional.
    get encoded using 'utf-8' encoding, so that none of the bytes in the
    string contain values > 127.
 
-   This is all a bit cumbersome in python2, but it seems to work nicely
+   While this was very cumbersome in python2, it works 
    by using python3.
 
    #+BEGIN_SRC python :results output :exports both :prologue "# -*- coding: utf-8 -*-"
