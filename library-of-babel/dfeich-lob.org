@@ -13,7 +13,7 @@
 
 * Table related functions
 ** PostAlignTables - Align and calculate multiple tables of an output block
-   
+
    #+NAME: lobPostAlignTables
    #+header: :var text="|5|22222|\n|0||\n|12|45|\n|---\n|||\n#+TBLFM:@>$1=vsum(@1..@-1)\n\n|1|22222|\n|0||\n|12|45|\n"
    #+BEGIN_SRC emacs-lisp :results value :exports both
@@ -69,7 +69,7 @@
     |   1 | 20 | 300 |
     | 200 | 30 |   4 |
     :END:
-      
+
 ** InsertTableFromFile
 
     #+NAME: lobInsertTableFromFile
@@ -147,7 +147,7 @@
 
      #+RESULTS:
 
-     
+
 *** Test
 
     #+CALL: lobInsertTableFromFile(tname="test-table2", fname="/tmp/insert-file-test.org")
@@ -183,7 +183,7 @@
     #+TBLFM: @>$>=vsum(@I..@II)
     :END:
 
-    
+
 ** TableFilter
 
     #+NAME: lobTableFilter
@@ -247,7 +247,7 @@
 
     #+END_SRC
 
-    
+
 *** Test
 
     #+NAME: tblGroupingTest
@@ -287,3 +287,80 @@
     | 2019 | Peter | 110 |
 
     :END:
+** ExportOneTableToExcel
+
+   Function to write a single table TBL to an Excel file FNAME.
+
+   #+NAME: lobExportOneTableToExcel
+   #+HEADER: :var tbl=tblGroupingTest fname="TestExcelFileA.xlsx" sheet="MySheet1"
+   #+BEGIN_SRC python :results silent :colnames no
+     import pandas as pd
+     import numpy as np
+     from pathlib import Path
+     import orgbabelhelper as obh
+     import openpyxl
+
+     df = obh.orgtable_to_dataframe(tbl)
+
+     with pd.ExcelWriter(fname, engine='openpyxl') as writer:
+         if Path(fname).exists():
+             book = openpyxl.load_workbook(fname)
+             writer.book = book
+         df.to_excel(writer, sheet, index=False)
+         writer.save()
+   #+END_SRC
+
+   - TODO: Suppress columns/rows containing org meta information (e.g. "!" column)
+
+** ExportTablesToExcel
+
+   Function to write several tables to different sheets in the same
+   Excel file FNAME. The table names are given as a string TBLNAMES
+   containing the comma separated list of table names. The sheet name
+   is given in SHEET.
+
+   Here I use a method copied from the =org-sbe= implementation where
+   a particular source block is called by executing
+   =org-babel-execute-src-block= on a constructed source block info
+   structure, where the call is given as part of that source block's
+   =:var= definition.
+
+   #+NAME: lobExportTablesToExcel
+   #+HEADER: :var tblnames="tblGroupingTest, tblFiltertest" fname="TestExcelFileB.xlsx" overwrite="no"
+   #+BEGIN_SRC elisp :results silent
+     (when (file-exists-p fname)
+       (if (string=  overwrite "yes")
+           (delete-file fname)
+         (error "Error: File exists: %s. Refusing to overwrite!" fname)))
+     (cl-loop
+      for tbl in (split-string tblnames "," t "[[:space]]**")
+      do (org-babel-execute-src-block
+          nil
+          (list "emacs-lisp" "myresults"
+                `((:var .
+                        ,(format "myresults=lobExportOneTableToExcel[](tbl=%s, fname=\"%s\", sheet=\"%s\")"
+                                 tbl fname tbl))))
+          '((:results . "silent")))
+      (message "wrote table %s to file %s" tbl fname))
+   #+END_SRC
+
+   - TODO: Allow overwriting of Excel sheets.
+     - If overwite=yes and a new
+       sheet has the same name as an existing sheet, the new sheet is
+       added with a new name.
+
+
+*** Test
+
+    Test without overwrite option
+    #+CALL: lobExportTablesToExcel(tblnames="tblGroupingTest, tblFiltertest", fname="TestExcelFileB.xlsx")
+
+    Test with overwrite option
+    #+CALL: lobExportTablesToExcel(tblnames="tblGroupingTest, tblFiltertest", fname="TestExcelFileB.xlsx", overwrite="yes")
+
+
+
+* Local Variables
+Local variables:
+org-confirm-babel-evaluate: nil
+End:
