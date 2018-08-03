@@ -486,103 +486,151 @@ return fname # return filename to org-mode
 
 * Pandas
 ** Reading in a data frame from a table with the column names
+*** orgtable_to_dataframe
+    #+NAME: src_orgtable_to_dataframe
+    #+BEGIN_SRC python :tangle orgbabelhelper/orgbabelhelper/orgbabelhelper.py :noweb yes
+      # NOTANGLE-START
+      import pandas as pd
 
-   #+NAME: src_orgtable_to_dataframe
-   #+BEGIN_SRC python :tangle orgbabelhelper/orgbabelhelper/orgbabelhelper.py :noweb yes
-     # NOTANGLE-START
-     import pandas as pd
+      <<src_orgdate_to_date>>
+      # NOTANGLE-END
 
-     <<src_orgdate_to_date>>
-     # NOTANGLE-END
+      def orgtable_to_dataframe(tbl, index=None, datecols=None,
+                                clean_adv=True):
+          """Read an org table into a data frame.
 
-     def orgtable_to_dataframe(tbl, index=None, datecols=None):
-         """Read an org table into a data frame.
+          Parameters
+          ----------
+          tbl : org table passed in by src block header
+          index : name or index of column to use for index, optional
+          datecols : 'auto' or list of column names, optional. Try
+              to convert cells in these columns to python datetime objects.
+          clean_adv : if True, remove column with advanced org markup
+              (column containing !, ^, _, $,) and associated rows.
 
-         Parameters
-         ----------
-         tbl : org table passed in by src block header
-         index : name or index of column to use for index, optional
-         datecols : 'auto' or list of column names, optional. Try
-             to convert cells in these columns to python datetime objects. 
+          Returns
+          -------
+          Pandas data frame
 
-         Returns
-         -------
-         Pandas data frame
+          Make sure you use ':colnames no' in your src block header. Else
+          the table's first row containing the column names will not be
+          available to the python code.
 
-         Make sure you use ':colnames no' in your src block header. Else
-         the table's first row containing the column names will not be
-         available to the python code.
+          """
+          df = pd.DataFrame(tbl)
+          df.columns = df.iloc[0,:]
+          df = df.iloc[1:,:]
+          df.columns.name = ""
 
-         """
-         df = pd.DataFrame(tbl)
-         df.columns = df.iloc[0,:]
-         df = df.iloc[1:,:]
-         df.columns.name = ""
+          if clean_adv:
+              s = df.iloc[:,0]
+              if '!' in s.values:
+                  df = df.drop(s[[x in ['^', '$', '_', '!'] for x in s]].index)
+                  df = df.iloc[:,1:]
 
-         if datecols is None:
-             datecols = []
-         elif datecols == "auto":
-             datecols = df.columns
+          if datecols is None:
+              datecols = []
+          elif datecols == "auto":
+              datecols = df.columns
 
-         for col in datecols:
-             try:
-                 df[col] = df[col].apply(orgdate_to_date)
-                 df[col] = pd.to_datetime(df[col])
-             except:
-                 pass
+          for col in datecols:
+              try:
+                  df[col] = df[col].apply(orgdate_to_date)
+                  df[col] = pd.to_datetime(df[col])
+              except:
+                  pass
 
-         if index in df.columns:
-             df.set_index(index, inplace=True)
-         elif type(index) is int:
-             df.set_index(df.columns[index], inplace=True)
+          if index in df.columns:
+              df.set_index(index, inplace=True)
+          elif type(index) is int:
+              df.set_index(df.columns[index], inplace=True)
 
-         return df
-   #+END_SRC
+          return df
+    #+END_SRC
 
-   #+RESULTS:
-   : None
-
-   We define a new test table:
+*** Test with date columns
+    We define a new test table:
    
-   #+NAME: tableC
-   | Date             | End              | Name  |
-   |------------------+------------------+-------|
-   | [2016-08-10 Wed] | [2016-08-17 Wed] | Peter |
-   | [2016-08-11 Thu] | [2016-08-18 Thu] | Paul  |
-   | [2016-08-12 Fri] | [2016-08-19 Fri] | Mary  |
+    #+NAME: tableC
+    | Date             | End              | Name  |
+    |------------------+------------------+-------|
+    | [2016-08-10 Wed] | [2016-08-17 Wed] | Peter |
+    | [2016-08-11 Thu] | [2016-08-18 Thu] | Paul  |
+    | [2016-08-12 Fri] | [2016-08-19 Fri] | Mary  |
    
-   #+BEGIN_SRC python :results output :var tbl=tableC :colnames no :noweb yes
-     <<src_orgtable_to_dataframe>>
+    #+BEGIN_SRC python :results output :var tbl=tableC :colnames no :noweb yes
+      <<src_orgtable_to_dataframe>>
 
-     print(orgtable_to_dataframe(tbl))
-     print()
-     print(orgtable_to_dataframe(tbl, index='Name', datecols='auto'))
-     print()
-     print(orgtable_to_dataframe(tbl,1, datecols=['End']))
+      print(orgtable_to_dataframe(tbl))
+      print()
+      print(orgtable_to_dataframe(tbl, index='Name', datecols='auto'))
+      print()
+      print(orgtable_to_dataframe(tbl,1, datecols=['End']))
 
-   #+END_SRC
+    #+END_SRC
 
-   #+RESULTS:
-   #+begin_example
-		  Date               End   Name
-   1  [2016-08-10 Wed]  [2016-08-17 Wed]  Peter
-   2  [2016-08-11 Thu]  [2016-08-18 Thu]   Paul
-   3  [2016-08-12 Fri]  [2016-08-19 Fri]   Mary
+    #+RESULTS:
+    #+begin_example
+		   Date               End   Name
+    1  [2016-08-10 Wed]  [2016-08-17 Wed]  Peter
+    2  [2016-08-11 Thu]  [2016-08-18 Thu]   Paul
+    3  [2016-08-12 Fri]  [2016-08-19 Fri]   Mary
 
-	       Date        End
-   Name                       
-   Peter 2016-08-10 2016-08-17
-   Paul  2016-08-11 2016-08-18
-   Mary  2016-08-12 2016-08-19
+		Date        End
+    Name                       
+    Peter 2016-08-10 2016-08-17
+    Paul  2016-08-11 2016-08-18
+    Mary  2016-08-12 2016-08-19
 
-			   Date   Name
-   End                                
-   2016-08-17  [2016-08-10 Wed]  Peter
-   2016-08-18  [2016-08-11 Thu]   Paul
-   2016-08-19  [2016-08-12 Fri]   Mary
-   #+end_example
+			    Date   Name
+    End                                
+    2016-08-17  [2016-08-10 Wed]  Peter
+    2016-08-18  [2016-08-11 Thu]   Paul
+    2016-08-19  [2016-08-12 Fri]   Mary
+    #+end_example
+
+*** Test with advanced org table features
+
+    - [ ] maybe allow to use org column names from !-row
+    - [X] option to delete !-column
+
+    #+NAME: tblExpExcelTest
+    |   | First Name | Group  | Usage flag | Value |
+    | ! | name       | group  |        use | value |
+    |---+------------+--------+------------+-------|
+    | $ | x=20       |        |            |       |
+    |   | john       | B      |          1 |     1 |
+    | ^ |            | jgroup |            |       |
+    |   | beth       | B      |          0 |     3 |
+    |   | mike       | C      |          1 |     5 |
+    |   | leslie     | A      |          0 |     7 |
+    | _ |            |        |      label |       |
+    |   | barbara    | A      |          1 |     4 |
+    |   | ken        | C      |          0 |     2 |
+    |   | thomas     | A      |          1 |     8 |
 
 
+
+    #+BEGIN_SRC python :results output :var tbl=tblExpExcelTest :colnames=no :noweb yes
+      import pandas as pd
+      import numpy as np
+
+      <<src_orgtable_to_dataframe>>
+
+      df = orgtable_to_dataframe(tbl,clean_adv=True)
+      print(df)
+    #+END_SRC
+
+    #+RESULTS:
+    :    First Name Group Usage flag Value
+    : 3        john     B          1     1
+    : 5        beth     B          0     3
+    : 6        mike     C          1     5
+    : 7      leslie     A          0     7
+    : 9     barbara     A          1     4
+    : 10        ken     C          0     2
+    : 11     thomas     A          1     8
+    
 ** printing a data frame as a table
 *** using the orgbabelhelper functions
     I define a function in a named src block with name =dataframe_to_orgtable=.
