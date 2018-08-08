@@ -486,7 +486,7 @@ return fname # return filename to org-mode
 
 * Pandas
 ** Reading in a data frame from a table with the column names
-*** orgtable_to_dataframe
+*** src for orgtable_to_dataframe
     #+NAME: src_orgtable_to_dataframe
     #+BEGIN_SRC python :tangle orgbabelhelper/orgbabelhelper/orgbabelhelper.py :noweb yes
       # NOTANGLE-START
@@ -496,7 +496,7 @@ return fname # return filename to org-mode
       # NOTANGLE-END
 
       def orgtable_to_dataframe(tbl, index=None, datecols=None,
-                                clean_adv=True):
+                                clean_adv=True, num_titlerows=1):
           """Read an org table into a data frame.
 
           Parameters
@@ -507,6 +507,7 @@ return fname # return filename to org-mode
               to convert cells in these columns to python datetime objects.
           clean_adv : if True, remove column with advanced org markup
               (column containing !, ^, _, $,) and associated rows.
+          num_titlerows : number of title rows
 
           Returns
           -------
@@ -518,15 +519,19 @@ return fname # return filename to org-mode
 
           """
           df = pd.DataFrame(tbl)
-          df.columns = df.iloc[0,:]
-          df = df.iloc[1:,:]
-          df.columns.name = ""
 
           if clean_adv:
               s = df.iloc[:,0]
               if '!' in s.values:
                   df = df.drop(s[[x in ['^', '$', '_', '!'] for x in s]].index)
                   df = df.iloc[:,1:]
+
+          if num_titlerows > 0:
+              for x in range(0,len(df.columns)):
+                  df.iloc[num_titlerows-1,x] = df.iloc[0:num_titlerows,x].str.cat(sep=' ')
+              df.columns = df.iloc[num_titlerows-1,:]
+              df = df.iloc[num_titlerows:,:]
+          df.columns.name = ""
 
           if datecols is None:
               datecols = []
@@ -548,89 +553,157 @@ return fname # return filename to org-mode
           return df
     #+END_SRC
 
-*** Test with date columns
-    We define a new test table:
+*** Tests
+**** Test with date columns
+     We define a new test table:
    
-    #+NAME: tableC
-    | Date             | End              | Name  |
-    |------------------+------------------+-------|
-    | [2016-08-10 Wed] | [2016-08-17 Wed] | Peter |
-    | [2016-08-11 Thu] | [2016-08-18 Thu] | Paul  |
-    | [2016-08-12 Fri] | [2016-08-19 Fri] | Mary  |
+     #+NAME: tableC
+     | Date             | End              | Name  |
+     |------------------+------------------+-------|
+     | [2016-08-10 Wed] | [2016-08-17 Wed] | Peter |
+     | [2016-08-11 Thu] | [2016-08-18 Thu] | Paul  |
+     | [2016-08-12 Fri] | [2016-08-19 Fri] | Mary  |
    
-    #+BEGIN_SRC python :results output :var tbl=tableC :colnames no :noweb yes
-      <<src_orgtable_to_dataframe>>
+     #+BEGIN_SRC python :results output :var tbl=tableC :colnames no :noweb yes
+       <<src_orgtable_to_dataframe>>
 
-      print(orgtable_to_dataframe(tbl))
-      print()
-      print(orgtable_to_dataframe(tbl, index='Name', datecols='auto'))
-      print()
-      print(orgtable_to_dataframe(tbl,1, datecols=['End']))
+       print(orgtable_to_dataframe(tbl))
+       print()
+       print(orgtable_to_dataframe(tbl, index='Name', datecols='auto'))
+       print()
+       print(orgtable_to_dataframe(tbl,1, datecols=['End']))
 
-    #+END_SRC
+     #+END_SRC
 
-    #+RESULTS:
-    #+begin_example
-		   Date               End   Name
-    1  [2016-08-10 Wed]  [2016-08-17 Wed]  Peter
-    2  [2016-08-11 Thu]  [2016-08-18 Thu]   Paul
-    3  [2016-08-12 Fri]  [2016-08-19 Fri]   Mary
+     #+RESULTS:
+     #+begin_example
+		    Date               End   Name
+     1  [2016-08-10 Wed]  [2016-08-17 Wed]  Peter
+     2  [2016-08-11 Thu]  [2016-08-18 Thu]   Paul
+     3  [2016-08-12 Fri]  [2016-08-19 Fri]   Mary
 
-		Date        End
-    Name                       
-    Peter 2016-08-10 2016-08-17
-    Paul  2016-08-11 2016-08-18
-    Mary  2016-08-12 2016-08-19
+		 Date        End
+     Name                       
+     Peter 2016-08-10 2016-08-17
+     Paul  2016-08-11 2016-08-18
+     Mary  2016-08-12 2016-08-19
 
-			    Date   Name
-    End                                
-    2016-08-17  [2016-08-10 Wed]  Peter
-    2016-08-18  [2016-08-11 Thu]   Paul
-    2016-08-19  [2016-08-12 Fri]   Mary
-    #+end_example
+			     Date   Name
+     End                                
+     2016-08-17  [2016-08-10 Wed]  Peter
+     2016-08-18  [2016-08-11 Thu]   Paul
+     2016-08-19  [2016-08-12 Fri]   Mary
+     #+end_example
 
-*** Test with advanced org table features
+**** Test with advanced org table features
 
-    - [ ] maybe allow to use org column names from !-row
-    - [X] option to delete !-column
+     - [ ] maybe allow to use org column names from !-row
+     - [X] option to delete !-column
 
-    #+NAME: tblExpExcelTest
-    |   | First Name | Group  | Usage flag | Value |
-    | ! | name       | group  |        use | value |
-    |---+------------+--------+------------+-------|
-    | $ | x=20       |        |            |       |
-    |   | john       | B      |          1 |     1 |
-    | ^ |            | jgroup |            |       |
-    |   | beth       | B      |          0 |     3 |
-    |   | mike       | C      |          1 |     5 |
-    |   | leslie     | A      |          0 |     7 |
-    | _ |            |        |      label |       |
-    |   | barbara    | A      |          1 |     4 |
-    |   | ken        | C      |          0 |     2 |
-    |   | thomas     | A      |          1 |     8 |
+     #+NAME: tblExpExcelTest
+     |   | First Name | Group  | Usage flag | Value |
+     | ! | name       | group  |        use | value |
+     |---+------------+--------+------------+-------|
+     | $ | x=20       |        |            |       |
+     |   | john       | B      |          1 |     1 |
+     | ^ |            | jgroup |            |       |
+     |   | beth       | B      |          0 |     3 |
+     |   | mike       | C      |          1 |     5 |
+     |   | leslie     | A      |          0 |     7 |
+     | _ |            |        |      label |       |
+     |   | barbara    | A      |          1 |     4 |
+     |   | ken        | C      |          0 |     2 |
+     |   | thomas     | A      |          1 |     8 |
 
 
 
-    #+BEGIN_SRC python :results output :var tbl=tblExpExcelTest :colnames=no :noweb yes
-      import pandas as pd
-      import numpy as np
+     #+BEGIN_SRC python :results output :var tbl=tblExpExcelTest :colnames=no :noweb yes
+       import pandas as pd
+       import numpy as np
 
-      <<src_orgtable_to_dataframe>>
+       <<src_orgtable_to_dataframe>>
 
-      df = orgtable_to_dataframe(tbl,clean_adv=True)
-      print(df)
-    #+END_SRC
+       df = orgtable_to_dataframe(tbl,clean_adv=True)
+       print(df)
+     #+END_SRC
 
-    #+RESULTS:
-    :    First Name Group Usage flag Value
-    : 3        john     B          1     1
-    : 5        beth     B          0     3
-    : 6        mike     C          1     5
-    : 7      leslie     A          0     7
-    : 9     barbara     A          1     4
-    : 10        ken     C          0     2
-    : 11     thomas     A          1     8
+     #+RESULTS:
+     :    First Name Group Usage flag Value
+     : 3        john     B          1     1
+     : 5        beth     B          0     3
+     : 6        mike     C          1     5
+     : 7      leslie     A          0     7
+     : 9     barbara     A          1     4
+     : 10        ken     C          0     2
+     : 11     thomas     A          1     8
     
+**** TODO Test for joining of multiple title rows
+
+     #+NAME: tblTwoTitleRowsA
+     | First |   Game |  costs |
+     | name  | tokens | in CHF |
+     |-------+--------+--------|
+     | Peter |      4 |     20 |
+     | Paul  |      6 |     30 |
+     | Mary  |      8 |     40 |
+     #+TBLFM: $3=$2 5
+
+
+     #+NAME: tblTwoTitleRowsB
+     |   | First    | Game   | costs   |
+     |   | name     | tokens | in CHF  |
+     | ! | name     | tokens | costs   |
+     |   | (string) | (int)  | (float) |
+     |---+----------+--------+---------|
+     |   | Peter    | 4      | 20.0    |
+     |   | Paul     | 6      | 30.0    |
+     |   | Mary     | 8      | 40.0    |
+     #+TBLFM: $4=$3 5
+     
+     #+BEGIN_SRC python :results output :var tblA=tblTwoTitleRowsA tblB=tblTwoTitleRowsB :colnames=no :noweb yes
+       import pandas as pd
+       import numpy as np
+
+       <<src_orgtable_to_dataframe>>
+
+       print("first table with 2 title rows:\n")
+       print(orgtable_to_dataframe(tblA, num_titlerows=2))
+       print("\nfirst table with 0 title rows:\n")
+       print(orgtable_to_dataframe(tblA, num_titlerows=0))
+       print("\nsecond table with 3 title rows:\n")
+       print(orgtable_to_dataframe(tblB, num_titlerows=3))
+
+     #+END_SRC
+
+     #+RESULTS:
+     #+begin_example
+     first table with 2 title rows:
+
+       First name Game tokens costs in CHF
+     2      Peter           4           20
+     3       Paul           6           30
+     4       Mary           8           40
+
+     first table with 0 title rows:
+
+	    0       1       2
+     0  First    Game   costs
+     1   name  tokens  in CHF
+     2  Peter       4      20
+     3   Paul       6      30
+     4   Mary       8      40
+
+     second table with 3 title rows:
+
+       First name (string)         ...          costs in CHF (float)
+     4               Peter         ...                            20
+     5                Paul         ...                            30
+     6                Mary         ...                            40
+
+     [3 rows x 3 columns]
+     #+end_example
+     
+     
 ** printing a data frame as a table
 *** using the orgbabelhelper functions
     I define a function in a named src block with name =dataframe_to_orgtable=.
