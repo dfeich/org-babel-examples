@@ -129,7 +129,7 @@
 
      setup(
 	 name = "orgbabelhelper",
-	 version = "1.0.4",
+	 version = "1.0.5",
 	 description = "python helper module for Emacs org mode babel",
 	 long_description = "python helper module for working with Emacs"
 	 + " org babel source blocks",
@@ -485,7 +485,7 @@ return fname # return filename to org-mode
 [[file:python3-matplot-fig2.png]]
 
 * Pandas
-** Reading in a data frame from a table with the column names
+** orgtable_to_dataframe - reading in a data frame from a table with the column names
 *** src for orgtable_to_dataframe
     #+NAME: src_orgtable_to_dataframe
     #+BEGIN_SRC python :tangle orgbabelhelper/orgbabelhelper/orgbabelhelper.py :noweb yes
@@ -553,7 +553,7 @@ return fname # return filename to org-mode
           return df
     #+END_SRC
 
-*** Tests
+*** Tests of orgtable_to_dataframe
 **** Test with date columns
      We define a new test table:
    
@@ -637,7 +637,7 @@ return fname # return filename to org-mode
      : 10        ken     C          0     2
      : 11     thomas     A          1     8
     
-**** TODO Test for joining of multiple title rows
+**** Test for joining of multiple title rows
 
      #+NAME: tblTwoTitleRowsA
      | First |   Game |  costs |
@@ -704,8 +704,8 @@ return fname # return filename to org-mode
      #+end_example
      
      
-** printing a data frame as a table
-*** using the orgbabelhelper functions
+** dataframe_to_orgtable - printing a data frame as a table
+*** src for dataframe_to_orgtable
     I define a function in a named src block with name =dataframe_to_orgtable=.
     The following function will return a nicely formatted org table.
    
@@ -725,7 +725,7 @@ return fname # return filename to org-mode
           name : defines org table's name (#+NAME:), optional
           caption defines org table's caption (#+CAPTION:): , optional
           attr : defines org table's LaTeX attributes (#+ATTR_LATEX:), optional
-          index : write the row names, optional
+          index : if True, write the row names as the first column, optional
           date_format : Format string for datetime objects, optional
           hlines : list  of numbers. Where to put horizontal lines, optional
           encoding : Encoding for the resulting string, optional
@@ -766,6 +766,8 @@ return fname # return filename to org-mode
 
     #+END_SRC
 
+*** Tests for dataframe_to_orgtable
+    
     As before, I use the noweb syntax for including the previous 
     source block in the following test source block.
    
@@ -830,6 +832,8 @@ return fname # return filename to org-mode
 
     :END:
 
+
+** other methods for printing a data frame
 *** data frame printing using Ipython.display
    As an alternative, the display function from Ipython is also able
    to align a frame. I only managed to get =diplay_pretty= working
