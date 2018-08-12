@@ -717,7 +717,7 @@ return fname # return filename to org-mode
 
       def dataframe_to_orgtable(dframe, name=None, caption=None, attr=None,
 				index=True, date_format=None, hlines=None,
-				encoding='ascii'):
+				encoding='utf-8'):
           """
           Parameters
           ----------
@@ -770,69 +770,97 @@ return fname # return filename to org-mode
     
     As before, I use the noweb syntax for including the previous 
     source block in the following test source block.
-   
-    #+BEGIN_SRC python :results output drawer :noweb yes :exports both
-      import pandas as pd
-      import numpy as np
-      from datetime import datetime
 
-      <<dframeToOrg>>
+**** Test with columns of different types (including datetime)
+     #+BEGIN_SRC python :results output drawer :noweb yes :exports both
+       import pandas as pd
+       import numpy as np
+       from datetime import datetime
 
-      df = pd.DataFrame({'A' : range(10, 22),
-			 'B' : ['A', 'B', 'C'] * 4,
-			 'C' : ['foo', 'foo', 'foo', 'bar', 'bar', 'bar'] * 2,
-			 'E' : [datetime(2016,8,1), datetime(2016,8,2), datetime(2016,8,3)] * 4,
-			 'F' : ['one', 'one', 'two', 'three'] * 3})
+       <<dframeToOrg>>
 
-      print(dataframe_to_orgtable(df))
-    #+END_SRC
+       df = pd.DataFrame({'A' : range(10, 22),
+			  'B' : ['A', 'B', 'C'] * 4,
+			  'C' : ['foo', 'foo', 'foo', 'bar', 'bar', 'bar'] * 2,
+			  'E' : [datetime(2016,8,1), datetime(2016,8,2), datetime(2016,8,3)] * 4,
+			  'F' : ['one', 'one', 'two', 'three'] * 3})
 
-    #+RESULTS:
-    :RESULTS:
-    |    |  A | B | C   |          E | F     |
-    |----+----+---+-----+------------+-------|
-    |  0 | 10 | A | foo | 2016-08-01 | one   |
-    |  1 | 11 | B | foo | 2016-08-02 | one   |
-    |  2 | 12 | C | foo | 2016-08-03 | two   |
-    |  3 | 13 | A | bar | 2016-08-01 | three |
-    |  4 | 14 | B | bar | 2016-08-02 | one   |
-    |  5 | 15 | C | bar | 2016-08-03 | one   |
-    |  6 | 16 | A | foo | 2016-08-01 | two   |
-    |  7 | 17 | B | foo | 2016-08-02 | three |
-    |  8 | 18 | C | foo | 2016-08-03 | one   |
-    |  9 | 19 | A | bar | 2016-08-01 | one   |
-    | 10 | 20 | B | bar | 2016-08-02 | two   |
-    | 11 | 21 | C | bar | 2016-08-03 | three |
+       print(dataframe_to_orgtable(df))
+     #+END_SRC
 
-    :END:
+     #+RESULTS:
+     :RESULTS:
+     |    |  A | B | C   |          E | F     |
+     |----+----+---+-----+------------+-------|
+     |  0 | 10 | A | foo | 2016-08-01 | one   |
+     |  1 | 11 | B | foo | 2016-08-02 | one   |
+     |  2 | 12 | C | foo | 2016-08-03 | two   |
+     |  3 | 13 | A | bar | 2016-08-01 | three |
+     |  4 | 14 | B | bar | 2016-08-02 | one   |
+     |  5 | 15 | C | bar | 2016-08-03 | one   |
+     |  6 | 16 | A | foo | 2016-08-01 | two   |
+     |  7 | 17 | B | foo | 2016-08-02 | three |
+     |  8 | 18 | C | foo | 2016-08-03 | one   |
+     |  9 | 19 | A | bar | 2016-08-01 | one   |
+     | 10 | 20 | B | bar | 2016-08-02 | two   |
+     | 11 | 21 | C | bar | 2016-08-03 | three |
 
+     :END:
 
-    And a second test that demonstrates the handling of dates:
+**** Test using date format specification:
 
-    #+BEGIN_SRC python :results output drawer :var tbl=tableC :noweb yes :exports both :colnames no
-      import pandas as pd
-      import numpy as np
-      from datetime import datetime
+     #+BEGIN_SRC python :results output drawer :var tbl=tableC :noweb yes :exports both :colnames no
+       import pandas as pd
+       import numpy as np
+       from datetime import datetime
 
-      <<dframeToOrg>>
-      <<src_orgtable_to_dataframe>>
+       <<dframeToOrg>>
+       <<src_orgtable_to_dataframe>>
 
-      df = orgtable_to_dataframe(tbl, datecols='auto', index='Name')
+       df = orgtable_to_dataframe(tbl, datecols='auto', index='Name')
 
-      print(dataframe_to_orgtable(df, date_format='%d. %b %Y'))
-    #+END_SRC
+       print(dataframe_to_orgtable(df, date_format='%d. %b %Y'))
+     #+END_SRC
 
-    #+RESULTS:
-    :RESULTS:
-    | Name  | Date         | End          |
-    |-------+--------------+--------------|
-    | Peter | 10. Aug 2016 | 17. Aug 2016 |
-    | Paul  | 11. Aug 2016 | 18. Aug 2016 |
-    | Mary  | 12. Aug 2016 | 19. Aug 2016 |
+     #+RESULTS:
+     :RESULTS:
+     | Name  | Date         | End          |
+     |-------+--------------+--------------|
+     | Peter | 10. Aug 2016 | 17. Aug 2016 |
+     | Paul  | 11. Aug 2016 | 18. Aug 2016 |
+     | Mary  | 12. Aug 2016 | 19. Aug 2016 |
 
-    :END:
+     :END:
 
+**** Test with horizontal line separator specification
+     
+     #+BEGIN_SRC python :results output verbatim drawer :var tblB=tblTwoTitleRowsB :colnames=no :noweb yes
+       import pandas as pd
+       import numpy as np
 
+       <<src_orgtable_to_dataframe>>
+       <<dframeToOrg>>
+
+       df = orgtable_to_dataframe(tblB, num_titlerows=2)
+       df.drop(3, inplace=True)
+       df = df.append({'First name': 'SUM',
+                       'Game tokens': df['Game tokens'].sum(),
+                       'costs in CHF': df['costs in CHF'].sum()}, ignore_index=True)
+       print(dataframe_to_orgtable(df, hlines=[1,-1], index=False))
+     #+END_SRC
+
+     #+RESULTS:
+     :RESULTS:
+     | First name | Game tokens | costs in CHF |
+     |------------+-------------+--------------|
+     | Peter      |           4 |         20.0 |
+     | Paul       |           6 |         30.0 |
+     | Mary       |           8 |         40.0 |
+     |------------+-------------+--------------|
+     | SUM        |          18 |         90.0 |
+
+     :END:
+     
 ** other methods for printing a data frame
 *** data frame printing using Ipython.display
    As an alternative, the display function from Ipython is also able
