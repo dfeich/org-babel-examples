@@ -129,7 +129,7 @@
 
      setup(
 	 name = "orgbabelhelper",
-	 version = "1.0.5",
+	 version = "1.0.7",
 	 description = "python helper module for Emacs org mode babel",
 	 long_description = "python helper module for working with Emacs"
 	 + " org babel source blocks",
@@ -238,7 +238,7 @@
    removing 'orgbabelhelper-1.0.4' (and everything under it)
    #+end_example
 
-   Then use the following command line for the installation
+   Then use the following command line for the installation (needs username/password)
 
    To the test PyPi
    : twine upload --repository-url https://test.pypi.org/legacy/ dist/orgbabelhelper-1.0.4.tar.gz
@@ -378,30 +378,32 @@
 
   #+NAME: src_orgdate_to_date
   #+BEGIN_SRC python :tangle orgbabelhelper/orgbabelhelper/orgbabelhelper.py
-            # NOTANGLE-START
-            import re
-            import datetime as dt
-            # NOTANGLE-END
+    # NOTANGLE-START
+    import re
+    import datetime as dt
+    # NOTANGLE-END
 
-            def orgdate_to_date(datestr):
-                """Returns a python datetime for the org date given in datestr.
+    def orgdate_to_date(datestr):
+        """Returns a python date or datetime for the org date given in datestr.
 
-                Allows passing in an empty/whitespace string."""
-                if re.match(r'^ *$', datestr):
-                    return ''
+        Allows passing in an empty/whitespace string."""
+        if re.match(r'^ *$', datestr):
+            return ''
 
-                #m = re.match(r'^\[(\d+-\d+-\d+) +[a-zA-Z]{3}\]$', datestr)
-                m = re.match(r'^[\[<](\d+-\d+-\d+) +[a-zA-Z]{2,3}[\]>]$', datestr)
-                if not m:
-                    raise ValueError("Input String is not a date: >%s<" % datestr)
+        #m = re.match(r'^\[(\d+-\d+-\d+) +[a-zA-Z]{3}\]$', datestr)
+        m = re.match(r'^[\[<](\d+-\d+-\d+) +[a-zA-Z]{2,3}( \d+:\d+)?[\]>]$', datestr)
+        if not m:
+            raise ValueError("Input String is not an Org date time: >%s<" % datestr)
 
-                return dt.datetime.strptime(m.group(1), '%Y-%m-%d').date()
+        if m.group(2):
+            return dt.datetime.strptime(m.group(1) + ' ' + m.group(2), '%Y-%m-%d %H:%M')
+        return dt.datetime.strptime(m.group(1), '%Y-%m-%d').date()
 
-            def date_to_orgdate(date, active=False):
-                orgstr = date.strftime("%Y-%m-%d %a")
-                if active:
-                    return "<%s>" % orgstr
-                return "[%s]" % orgstr
+    def date_to_orgdate(date, active=False):
+        orgstr = date.strftime("%Y-%m-%d %a")
+        if active:
+            return "<%s>" % orgstr
+        return "[%s]" % orgstr
 
   #+END_SRC
 
@@ -418,7 +420,8 @@
     <<src_orgdate_to_date>>
 
     print(orgdate_to_date('[2016-08-16 Tue]'))
-    print(orgdate_to_date('[2016-08-16 Di]'))
+    print(orgdate_to_date('[2016-08-17 Wed 18:30]'))
+    print(orgdate_to_date('[2016-08-18 Thu]'))
     print(orgdate_to_date('<2016-08-17 Tue>'))
     print(date_to_orgdate(dt.datetime(2016,8,18)))
     print(date_to_orgdate(dt.datetime(2016,8,18), active=True))
@@ -426,7 +429,8 @@
 
   #+RESULTS:
   : 2016-08-16
-  : 2016-08-16
+  : 2016-08-17 18:30:00
+  : 2016-08-18
   : 2016-08-17
   : [2016-08-18 Thu]
   : <2016-08-18 Thu>
@@ -558,11 +562,11 @@ return fname # return filename to org-mode
      We define a new test table:
    
      #+NAME: tableC
-     | Date             | End              | Name  |
-     |------------------+------------------+-------|
-     | [2016-08-10 Wed] | [2016-08-17 Wed] | Peter |
-     | [2016-08-11 Thu] | [2016-08-18 Thu] | Paul  |
-     | [2016-08-12 Fri] | [2016-08-19 Fri] | Mary  |
+     | Date                   | End              | Name  |
+     |------------------------+------------------+-------|
+     | [2016-08-10 Wed 10:00] | [2016-08-17 Wed] | Peter |
+     | [2016-08-11 Thu 11:00] | [2016-08-18 Thu] | Paul  |
+     | [2016-08-12 Fri 12:00] | [2016-08-19 Fri] | Mary  |
    
      #+BEGIN_SRC python :results output :var tbl=tableC :colnames no :noweb yes
        <<src_orgtable_to_dataframe>>
@@ -577,22 +581,22 @@ return fname # return filename to org-mode
 
      #+RESULTS:
      #+begin_example
-		    Date               End   Name
-     1  [2016-08-10 Wed]  [2016-08-17 Wed]  Peter
-     2  [2016-08-11 Thu]  [2016-08-18 Thu]   Paul
-     3  [2016-08-12 Fri]  [2016-08-19 Fri]   Mary
+			  Date               End   Name
+     1  [2016-08-10 Wed 10:00]  [2016-08-17 Wed]  Peter
+     2  [2016-08-11 Thu 11:00]  [2016-08-18 Thu]   Paul
+     3  [2016-08-12 Fri 12:00]  [2016-08-19 Fri]   Mary
 
-		 Date        End
-     Name                       
-     Peter 2016-08-10 2016-08-17
-     Paul  2016-08-11 2016-08-18
-     Mary  2016-08-12 2016-08-19
+			  Date        End
+     Name                                
+     Peter 2016-08-10 10:00:00 2016-08-17
+     Paul  2016-08-11 11:00:00 2016-08-18
+     Mary  2016-08-12 12:00:00 2016-08-19
 
-			     Date   Name
-     End                                
-     2016-08-17  [2016-08-10 Wed]  Peter
-     2016-08-18  [2016-08-11 Thu]   Paul
-     2016-08-19  [2016-08-12 Fri]   Mary
+				   Date   Name
+     End                                      
+     2016-08-17  [2016-08-10 Wed 10:00]  Peter
+     2016-08-18  [2016-08-11 Thu 11:00]   Paul
+     2016-08-19  [2016-08-12 Fri 12:00]   Mary
      #+end_example
 
 **** Test with advanced org table features
