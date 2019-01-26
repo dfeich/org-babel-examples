@@ -1,7 +1,7 @@
 #+TITLE:     plantuml-babel.org
 #+AUTHOR:    Derek Feichtinger
 #+EMAIL:     dfeich@dflt1w
-#+DATE:      2012-11-18 Sun
+# #+DATE:      2012-11-18 Sun
 #+DESCRIPTION:
 #+KEYWORDS:
 #+LANGUAGE:  en
@@ -21,18 +21,31 @@
 #+PROPERTY: header-args :eval never-export
 
 * Links
-  - http://plantuml.sourceforge.net/
+  - Homepage:  http://plantuml.com/
+  - Downloads:  http://plantuml.sourceforge.net/
+  - Source code: https://github.com/plantuml/plantuml
+  - Language Reference: http://plantuml.com/PlantUML_Language_Reference_Guide.pdf
 
-*  Information on the local installation  
+* Information on the local installation
+   #+BEGIN_SRC emacs-lisp :results output :exports results :eval query-export
+   (princ (concat (format "Emacs version: %s\n" (emacs-version))
+                  (format "org version: %s\n" (org-version))))
+    
+   #+END_SRC
 
-  #+BEGIN_SRC sh :results output :var jpath=(expand-file-name org-plantuml-jar-path)
+   #+RESULTS:
+   : Emacs version: GNU Emacs 26.1 (build 1, x86_64-pc-linux-gnu, GTK+ Version 3.22.30)
+   :  of 2018-11-13
+   : org version: 9.1.14
+
+  #+BEGIN_SRC sh :results output :exports results :var jpath=(expand-file-name org-plantuml-jar-path) :eval query-export
   echo "Emacs variable org-plantuml-jar-path:$jpath\n\n"
   if test ! -r "$jpath"; then
      echo "ERROR: Cannot read the file"
      return
   fi
   java -jar "$jpath" -version
-  echo 
+  echo "-------------------------"
   java -jar "$jpath" -checkversion
   #+END_SRC
 
@@ -41,29 +54,41 @@
   Emacs variable org-plantuml-jar-path:/home/dfeich/.emacs.d/javalib/plantuml.jar
 
 
-  PlantUML version 8015 (Sun Dec 14 16:41:52 CET 2014)
+  PlantUML version 1.2019.00 (Sun Jan 13 16:46:42 CET 2019)
   (GPL source distribution)
-  OpenJDK Runtime Environment
-  OpenJDK 64-Bit Server VM
-  1.7.0_65-b32
-  Linux
+  Java Runtime: OpenJDK Runtime Environment
+  JVM: OpenJDK 64-Bit Server VM
+  Java Version: 1.8.0_191-8u191-b12-0ubuntu0.18.04.1-b12
+  Operating System: Linux
+  OS Version: 4.15.0-43-generic
+  Default Encoding: UTF-8
+  Language: en
+  Country: US
+  Machine: dflt2w
+  PLANTUML_LIMIT_SIZE: 4096
+  Processors: 4
+  Max Memory: 4,651,483,136
+  Total Memory: 313,524,224
+  Free Memory: 306,980,040
+  Used Memory: 6,544,184
+  Thread Active Count: 1
 
   The environment variable GRAPHVIZ_DOT has not been set
   Dot executable is /usr/bin/dot
-  Dot version: dot - graphviz version 2.36.0 (20140111.2315)
+  Dot version: dot - graphviz version 2.40.1 (20161225.0304)
   Installation seems OK. File generation OK
+  -------------------------
+  PlantUML version 1.2019.00 (Sun Jan 13 16:46:42 CET 2019)
 
-  PlantUML version 8015 (Sun Dec 14 16:41:52 CET 2014)
-
-  Last available version for download : 8015
+  Last available version for download : 1201900
 
   Your version is up to date.
-#+end_example
+  #+end_example
 
 
 **  Help text
 
-  #+BEGIN_SRC sh :results output :var jpath=(expand-file-name org-plantuml-jar-path)
+  #+BEGIN_SRC sh :results output :var jpath=(expand-file-name org-plantuml-jar-path) :eval query-export
   java -jar "$jpath" -help
   #+END_SRC
 
@@ -75,9 +100,9 @@
 	  (to process files or directories)
 
   You can use the following wildcards in files/dirs:
-	  *	means any characters but '/'
+	  ,*	means any characters but '/'
 	  ?	one and only one character but '/'
-	  **	means any characters (used to recurse through directories)
+	  ,**	means any characters (used to recurse through directories)
 
   where options include:
       -gui		To run the graphical user interface
@@ -87,22 +112,28 @@
       -tpdf		To generate images using PDF format
       -tvdx		To generate images using VDX format
       -txmi		To generate XMI file for class diagram
-      -thtml		To generate HTML files for class diagram
+      -tscxml		To generate SCXML file for state diagram
+      -thtml		To generate HTML file for class diagram
       -ttxt		To generate images with ASCII art
       -tutxt		To generate images with ASCII art using Unicode characters
+      -tlatex		To generate images using LaTeX/Tikz format
+      -tlatex:nopreamble	To generate images using LaTeX/Tikz format without preamble
       -o[utput] "dir"	To generate images in the specified directory
       -DVAR1=value	To set a preprocessing variable as if '!define VAR1 value' were used
       -Sparam1=value	To set a skin parameter as if 'skinparam param1 value' were used
       -r[ecurse]		recurse through directories
-      -config "file"	To read the provided config file before each diagram
+      -I/path/to/file	To include file as if '!include file' were used
+      -I/path/to/*.puml	To include files with pattern
       -charset xxx	To use a specific charset (default is UTF-8)
       -e[x]clude pattern	To exclude files that match the provided pattern
       -metadata		To retrieve PlantUML sources from PNG images
+      -nometadata		To NOT export metadata in PNG/SVG generated files
+      -checkmetadata		Skip PNG files that don't need to be regenerated
       -version		To display information about PlantUML and Java versions
       -checkversion	To check if a newer version is available for download
       -v[erbose]		To have log information
       -quiet		To NOT print error message into the console
-      -keepfiles		To NOT delete temporary files after process
+      -debugsvek		To generate intermediate svek files
       -h[elp]		To display this help message
       -testdot		To test the installation of graphviz
       -graphvizdot "exe"	To specify dot executable
@@ -112,7 +143,6 @@
       -decodeurl		To retrieve the PlantUML source from an encoded URL
       -syntax		To report any syntax error from standard input without generating images
       -language		To print the list of PlantUML keywords
-      -nosuggestengine	To disable the suggest engine when errors in diagrams
       -checkonly		To check the syntax of files without generating images
       -failfast		To stop processing as soon as a syntax error in diagram occurs
       -failfast2		To do a first syntax check before processing files, to fail even faster
@@ -120,70 +150,92 @@
       -duration		To print the duration of complete diagrams processing
       -nbthread N		To use (N) threads for processing
       -nbthread auto	To use 4 threads for processing
+      -timeout N		Processing timeout in (N) seconds. Defaults to 15 minutes (900 seconds).
       -author[s]		To print information about PlantUML authors
       -overwrite		To allow to overwrite read only files
       -printfonts		To print fonts available on your system
+      -enablestats	To enable statistics computation
+      -disablestats	To disable statistics computation (default)
+      -htmlstats		To output general statistics in file plantuml-stats.html
+      -xmlstats		To output general statistics in file plantuml-stats.xml
+      -realtimestats	To generate statistics on the fly rather than at the end
+      -loopstats		To continuously print statistics about usage
+      -splash		To display a splash screen with some progress bar
+      -progress		To display a textual progress bar in console
+      -pipeimageindex N	To generate the Nth image with pipe option
+      -stdlib		To print standart library info
+      -extractstdlib	To extract PlantUML Standard Library into stdlib folder
+      -filename "example.puml"	To override %filename% variable
+      -preproc		To output preprocessor text of diagrams
+      -cypher		To cypher texts of diagrams so that you can share them
 
   If needed, you can setup the environment variable GRAPHVIZ_DOT.
-#+end_example
+  #+end_example
 
-
-* Tests
-
-** simple test
+* simple test
 #+BEGIN_SRC plantuml :file fig/sequence1.png :exports both
+  @startuml
   ' this is a comment
   Alice -> Bob: Authentication Request
   Bob --> Alice: Authentication Response
   John --> Alice: another Authentication Request
   Alice --> John: another Authentication Response
+  @enduml
 #+END_SRC
 
+#+ATTR_LATEX: :float t  :width 0.4\textwidth :placement [H]
 #+RESULTS:
 [[file:fig/sequence1.png]]
 
-** simple test with SVG graphic
+* TODO using SVG graphic
 
-   The /svg/ package uses inkscape to separate the text and graphical
-   elements of the SVG into a Tex file (*.pdf_tex) and a PDF file
-   containig the graph elements.  E.g. svg-sequence1.svg into
-   svg-sequence1.pdf_tex and svg-sequence1.pdf.
+  The /svg/ package uses inkscape to separate the text and graphical
+  elements of the SVG into a Tex file (*.pdf_tex) and a PDF file
+  containig the graph elements.  E.g. svg-sequence1.svg into
+  svg-sequence1.pdf_tex and svg-sequence1.pdf.
 
-   Currently, SVG pictures can only be rendered correctly, *if the picture
-   is in the same directory* as the tex (and therefore also org q) source file.
+  Currently, SVG pictures can only be rendered correctly, *if the picture
+  is in the same directory* as the tex source file (and therefore also the org source file).
 
-   # #+LATEX: \setsvg{svgpath = fig/}
-   # #+LATEX: \setsvg{path = fig/}   
+  Note: with the current org version 9.1.14 and Emacs 26.1 the SVG is not correctly displayed in
+  the org buffer, but the SVG renders fine in the exported Latex PDF.
+  
+  # #+LATEX: \setsvg{svgpath = fig/}
+  # #+LATEX: \setsvg{path = fig/}   
 
-   #+BEGIN_SRC plantuml :file svg-sequence1.svg :exports both
-     ' this is a comment
-     Alice -> Bob: Authentication Request
-     Bob --> Alice: Authentication Response
-     John --> Alice: another Authentication Request
-     Alice --> John: another Authentication Response
-   #+END_SRC
+  #+BEGIN_SRC plantuml :file svg-sequence1.svg :exports both
+    @startuml
+    ' this is a comment
+    Alice -> Bob: Authentication Request
+    Bob --> Alice: Authentication Response
+    John --> Alice: another Authentication Request
+    Alice --> John: another Authentication Response
+    @enduml
+  #+END_SRC
 
-   #+RESULTS:
-   [[file:svg-sequence1.svg]]
+  #+RESULTS:
+  [[file:svg-sequence1.svg]]
 
 
-** sequence diagrams
+* sequence diagrams
+   Note: The =skin= parameter I used in the earlier versions of this document is no longer supported by plantuml.
 #+BEGIN_SRC plantuml :file fig/sequence2.png
-skin BlueModern
-title Example Sequence Diagram
-activate Client
-Client -> Server: Session Initiation
-note right: Client requests new session
-activate Server
-Client <-- Server: Authorization Request
-note left: Server requires authentication
-Client -> Server: Authorization Response
-note right: Client provides authentication details
-Server --> Client: Session Token
-note left: Session established
-deactivate Server
-Client -> Client: Saves token
-deactivate Client
+  @startuml
+  title Example Sequence Diagram
+  activate Client
+  Client -> Server: Session Initiation
+  note right: Client requests new session
+  activate Server
+  Client <-- Server: Authorization Request
+  note left: Server requires authentication
+  Client -> Server: Authorization Response
+  note right: Client provides authentication details
+  Server --> Client: Session Token
+  note left: Session established
+  deactivate Server
+  Client -> Client: Saves token
+  deactivate Client
+  @enduml
 #+END_SRC
 
 #+RESULTS:
@@ -192,30 +244,30 @@ deactivate Client
 
 
 #+BEGIN_SRC plantuml :file fig/sequence3.png
-skin BlueModern
+  @startuml
+  actor User
+  participant "First Class" as A
+  participant "Second Class" as B
+  participant "Last Class" as C
 
-actor User
-participant "First Class" as A
-participant "Second Class" as B
-participant "Last Class" as C
 
+  User -> A: DoWork
+  activate A
 
-User -> A: DoWork
-activate A
+  A -> B: << createRequest >>
+  activate B
 
-A -> B: << createRequest >>
-activate B
+  B -> C: DoWork
+  activate C
+  C --> B: WorkDone
+  destroy C
 
-B -> C: DoWork
-activate C
-C --> B: WorkDone
-destroy C
+  B --> A: Request <u>Created</u>
+  deactivate B
 
-B --> A: Request <u>Created</u>
-deactivate B
-
-A --> User: Done
-deactivate A
+  A --> User: Done
+  deactivate A
+  @enduml
 #+END_SRC
 
 #+RESULTS:
@@ -240,7 +292,7 @@ rectangle Gateway {
 [[file:fig/sequence4.png]]
 
 
-** old style activity diagrams
+* old style activity diagrams
 #+BEGIN_SRC plantuml :file fig/activity1.png
 title Example Activity Diagram
 note right: Example Function
@@ -324,10 +376,10 @@ endif
 
 
 
-** new style activity diagrams
-   - http://plantuml.sourceforge.net/activity2.html
+* new style activity diagrams
+  - http://plantuml.sourceforge.net/activity2.html
 
-*** swimlanes
+** swimlanes
 
    Swimlanes actually are activity diagrams using the new syntax.
    
@@ -347,51 +399,121 @@ stop
 @enduml
    #+END_SRC
 
+   #+ATTR_LATEX: :float t :height 0.5\textheight :placement [H]
    #+RESULTS:
    [[file:fig/swimlane1.png]]
 
-** Class diagram
-   http://plantuml.sourceforge.net/classes.html
+* Class diagram
+  http://plantuml.sourceforge.net/classes.html
    
-   #+BEGIN_SRC plantuml :file fig/class1.png
-     class Proposal {
-     also called a "study"
-     ..
-     ProposalID
-     Proposer
-     PrincipalInvestigator
-     }
+  #+BEGIN_SRC plantuml :file fig/class1.png
+    class Proposal {
+    also called a "study"
+    ..
+    ProposalID
+    Proposer
+    PrincipalInvestigator
+    }
 
-     class Visit << (V,#Ff8c00) >> {
-     has a 1:1 mapping to a
-     single user. Also used to
-     reserve badges.
-     ..
-     Username
-     starttime
-     endtime
-     proposalID
-     beamline
-     }
+    class Visit << (V,#Ff8c00) >> {
+    has a 1:1 mapping to a
+    single user. Also used to
+    reserve badges.
+    ..
+    Username
+    starttime
+    endtime
+    proposalID
+    beamline
+    }
 
-     note left: why is Visit linked\nto a single beamline?
+    note left: why is Visit linked\nto a single beamline?
 
-     class Shift {
-     ProposalID
-     starttime
-     endtime
-     contactPerson
-     }
+    class Shift {
+    ProposalID
+    starttime
+    endtime
+    contactPerson
+    }
 
-     Proposal *-- Shift
-     Proposal *-- Visit
-   #+END_SRC
+    Proposal *-- Shift
+    Proposal *-- Visit
+  #+END_SRC
+
+  #+RESULTS:
+  [[file:fig/class1.png]]
+
+* skinparam
+** Gradients
+   Minimally adapted from https://blog.jdriven.com/2017/10/plantuml-pleasantness-use-gradients-diagrams/
+    
+   #+BEGIN_SRC plantuml :file fig/gradients1.png
+     @startuml
+
+     title Gradient
+
+     skinparam defaultTextAlignment center
+     skinparam RectangleFontSize 20
+
+     skinparam TitleFontStyle bold
+     skinparam TitleFontColor #e723e7
+
+     ' Define two colors for a gradient of the background
+     ' and use "-" to define that the gradient goes from top to bottom.
+     skinparam BackgroundColor  #000000-#afafaf
+
+     ' Define two colors for a default background gradient of Rectangles
+     ' and use / for top left to bottom right.
+     skinparam RectangleBackgroundColor #ffd200/#8cfcff
+
+     rectangle A [
+     From top left
+     to bottom right
+     <&fullscreen-enter>
+     ]
+
+     ' Use "\" for bottom left to top right
+     rectangle B #ffd200\8cfcff [
+     From bottom left
+     to top right
+     <&resize-both>
+     ]
+
+     ' Use "|" for left to right
+     rectangle C #ffd200|8cfcff [
+     From left
+     to right
+     <&resize-width>
+     ]
+
+     ' Use "-" for top to bottom
+     rectangle D #ffd200-8cfcff [
+     From top
+     to bottom
+     <&resize-height>
+     ]
+
+     @enduml
+   #+END_SRC    
 
    #+RESULTS:
-   [[file:fig/class1.png]]
+   [[file:fig/gradients1.png]]
 
-* TODO Open problems
-  - example for scaling =scale 800*600=
+* Scaling
+#+BEGIN_SRC plantuml :file fig/scale-sequence1.png :exports both
+  @startuml
+  scale 2
+
+  Alice -> Bob: Authentication Request
+  Bob --> Alice: Authentication Response
+  John --> Alice: another Authentication Request
+  Alice --> John: another Authentication Response
+  @enduml
+#+END_SRC
+
+#+RESULTS:
+[[file:fig/scale-sequence1.png]]
+    
 * COMMENT babel settings
 
   Note: Since minted (which I use for source code coloring) does not contain a lexer
