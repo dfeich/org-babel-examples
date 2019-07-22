@@ -34,9 +34,9 @@
    #+END_SRC
 
    #+RESULTS:
-   : Emacs version: GNU Emacs 26.1 (build 1, x86_64-pc-linux-gnu, GTK+ Version 3.22.30)
-   :  of 2018-11-13
-   : org version: 9.1.14
+   : Emacs version: GNU Emacs 26.2 (build 2, x86_64-pc-linux-gnu, GTK+ Version 3.22.30)
+   :  of 2019-04-14
+   : org version: 9.2.4
 
   #+BEGIN_SRC sh :results output :exports results :var jpath=(expand-file-name org-plantuml-jar-path) :eval query-export
   echo "Emacs variable org-plantuml-jar-path:$jpath\n\n"
@@ -54,33 +54,33 @@
   Emacs variable org-plantuml-jar-path:/home/dfeich/.emacs.d/javalib/plantuml.jar
 
 
-  PlantUML version 1.2019.00 (Sun Jan 13 16:46:42 CET 2019)
+  PlantUML version 1.2019.08 (Sat Jul 13 21:25:14 CEST 2019)
   (GPL source distribution)
   Java Runtime: OpenJDK Runtime Environment
   JVM: OpenJDK 64-Bit Server VM
-  Java Version: 1.8.0_191-8u191-b12-0ubuntu0.18.04.1-b12
+  Java Version: 1.8.0_212-8u212-b03-0ubuntu1.18.04.1-b03
   Operating System: Linux
-  OS Version: 4.15.0-43-generic
+  OS Version: 4.15.0-54-generic
   Default Encoding: UTF-8
   Language: en
   Country: US
   Machine: dflt2w
   PLANTUML_LIMIT_SIZE: 4096
   Processors: 4
-  Max Memory: 4,651,483,136
+  Max Memory: 4,649,385,984
   Total Memory: 313,524,224
-  Free Memory: 306,980,040
-  Used Memory: 6,544,184
+  Free Memory: 306,981,080
+  Used Memory: 6,543,144
   Thread Active Count: 1
 
   The environment variable GRAPHVIZ_DOT has not been set
-  Dot executable is /usr/bin/dot
+  Dot executable is /opt/anaconda/python3.6/bin/dot
   Dot version: dot - graphviz version 2.40.1 (20161225.0304)
   Installation seems OK. File generation OK
   -------------------------
-  PlantUML version 1.2019.00 (Sun Jan 13 16:46:42 CET 2019)
+  PlantUML version 1.2019.08 (Sat Jul 13 21:25:14 CEST 2019)
 
-  Last available version for download : 1201900
+  Last available version for download : 1201908
 
   Your version is up to date.
   #+end_example
@@ -163,7 +163,7 @@
       -splash		To display a splash screen with some progress bar
       -progress		To display a textual progress bar in console
       -pipeimageindex N	To generate the Nth image with pipe option
-      -stdlib		To print standart library info
+      -stdlib		To print standard library info
       -extractstdlib	To extract PlantUML Standard Library into stdlib folder
       -filename "example.puml"	To override %filename% variable
       -preproc		To output preprocessor text of diagrams
@@ -514,6 +514,101 @@ stop
 #+RESULTS:
 [[file:fig/scale-sequence1.png]]
     
+* Mindmaps
+  - [2019-07-21 Sun] Needs plantuml-1.2019.08 or newer. Still in testing and features may change
+  - http://plantuml.com/mindmap-diagram
+  - Nice Link about mindmaps in PlantUML: http://hangaroundtheweb.com/2019/07/mind-maps-in-spacemacs/
+
+  The examples are taken from the official plantuml page. 
+
+  This syntax looks like the most versatile and useful to me
+  - Leading "+/-" specify hierarchy level and whether the node is on the right or left of the central
+    node.
+  - Undescores directly following the leading position characters prevent the creation of a box around an item.  
+
+    #+BEGIN_SRC plantuml :file fig/mindmap1.png :exports both
+      @startmindmap
+      + OS
+      ++ Ubuntu
+      +++_ Linux Mint
+      +++_ Kubuntu
+      +++_ Lubuntu
+      +++_ KDE Neon
+      ++ LMDE
+      ++ SolydXK
+      ++ SteamOS
+      ++ Raspbian
+      -- Windows 95
+      -- Windows 98
+      -- Windows NT
+      ---_ Windows 8
+      ---_ Windows 10
+      @endmindmap
+    #+END_SRC
+
+    #+RESULTS:
+    [[file:fig/mindmap1.png]]
+
+
+  A mindmap based on org mode syntax. Note that the org headline asterisks need to be escaped by "," inside
+  of a source block. It's nice that they allow for an org mode syntax, but I think this is less convenient
+  to write and work with. The org headlines do not allow for text following them (syntax error).
+
+  #+BEGIN_SRC plantuml :file fig/mindmap2.png :exports both
+    @startmindmap
+    ,* Debian
+    ,** Ubuntu
+    ,*** Linux Mint
+    ,*** Kubuntu
+    ,*** Lubuntu
+    ,*** KDE Neon
+    ,** LMDE
+    ,** SolydXK
+    ,** SteamOS
+    ,** Raspbian with a very long name
+    ,*** <s>Raspmbc</s> => OSMC
+    ,*** <s>Raspyfi</s> => Volumio
+    @endmindmap
+  #+END_SRC
+
+  #+RESULTS:
+  [[file:fig/mindmap2.png]]
+  
+  #+BEGIN_SRC plantuml :file fig/mindmap3.png :exports both
+    @startmindmap
+    caption figure 1
+    title My super title
+
+    ,* <&flag>Debian
+    ,** <&globe>Ubuntu
+    ,*** Linux Mint
+    ,*** Kubuntu
+    ,*** Lubuntu
+    ,*** KDE Neon
+    ,** <&graph>LMDE
+    ,** <&pulse>SolydXK
+    ,** <&people>SteamOS
+    ,** <&star>Raspbian with a very long name
+    ,*** <s>Raspmbc</s> => OSMC
+    ,*** <s>Raspyfi</s> => Volumio
+
+    header
+    My super header
+    endheader
+
+    center footer My super footer
+
+    legend right
+      Short
+      legend
+    endlegend
+    @endmindmap
+  #+END_SRC
+
+  #+RESULTS:
+  [[file:fig/mindmap3.png]]
+
+
 * COMMENT babel settings
 
   Note: Since minted (which I use for source code coloring) does not contain a lexer
