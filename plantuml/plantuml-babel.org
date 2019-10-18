@@ -187,261 +187,399 @@
 #+RESULTS:
 [[file:fig/sequence1.png]]
 
-* TODO using SVG graphic
+* Diagram type examples
+** sequence diagrams
+    Note: The =skin= parameter I used in the earlier versions of this document is no longer supported by plantuml.
+ #+BEGIN_SRC plantuml :file fig/sequence2.png
+   @startuml
+   title Example Sequence Diagram
+   activate Client
+   Client -> Server: Session Initiation
+   note right: Client requests new session
+   activate Server
+   Client <-- Server: Authorization Request
+   note left: Server requires authentication
+   Client -> Server: Authorization Response
+   note right: Client provides authentication details
+   Server --> Client: Session Token
+   note left: Session established
+   deactivate Server
+   Client -> Client: Saves token
+   deactivate Client
+   @enduml
+ #+END_SRC
 
-  The /svg/ package uses inkscape to separate the text and graphical
-  elements of the SVG into a Tex file (*.pdf_tex) and a PDF file
-  containig the graph elements.  E.g. svg-sequence1.svg into
-  svg-sequence1.pdf_tex and svg-sequence1.pdf.
+ #+RESULTS:
+ [[file:fig/sequence2.png]]
 
-  Currently, SVG pictures can only be rendered correctly, *if the picture
-  is in the same directory* as the tex source file (and therefore also the org source file).
 
-  Note: with the current org version 9.1.14 and Emacs 26.1 the SVG is not correctly displayed in
-  the org buffer, but the SVG renders fine in the exported Latex PDF.
+
+ #+BEGIN_SRC plantuml :file fig/sequence3.png
+   @startuml
+   actor User
+   participant "First Class" as A
+   participant "Second Class" as B
+   participant "Last Class" as C
+
+
+   User -> A: DoWork
+   activate A
+
+   A -> B: << createRequest >>
+   activate B
+
+   B -> C: DoWork
+   activate C
+   C --> B: WorkDone
+   destroy C
+
+   B --> A: Request <u>Created</u>
+   deactivate B
+
+   A --> User: Done
+   deactivate A
+   @enduml
+ #+END_SRC
+
+ #+RESULTS:
+ [[file:fig/sequence3.png]]
+
+
+
+
+ #+BEGIN_SRC plantuml :file fig/sequence4.png
+ left to right direction
+ actor remoteUser
+ actor service
+ rectangle Gateway {
+   remoteUser -- (connect camera)
+   (connect camera) -- service
+   remoteUser -- (console)
+   (console) -- service
+ }
+ #+END_SRC
+
+ #+RESULTS:
+ [[file:fig/sequence4.png]]
+** old style activity diagrams
+ #+BEGIN_SRC plantuml :file fig/activity1.png
+ title Example Activity Diagram
+ note right: Example Function
+ (*)--> "Step 1"
+ --> "Step 2"
+ -> "Step 3"
+ --> "Step 4"
+ --> === STARTLOOP ===
+ note top: For each element in the array
+ if "Are we done?" then
+   -> [no] "Do this"
+   -> "Do that"
+   note bottom: Important note\ngoes here
+   -up-> "Increment counters"
+   --> === STARTLOOP ===
+ else
+   --> [yes] === ENDLOOP ===
+ endif
+ --> "Last Step"
+ --> (*)
+ #+END_SRC
+
+ #+RESULTS:
+ [[file:fig/activity1.png]]
+
+
+ #+BEGIN_SRC plantuml :file fig/activity2.png
+ title Servlet Container
+
+ (*) --> "ClickServlet.handleRequest()"
+ --> "new Page"
+
+ if "Page.onSecurityCheck" then
+   ->[true] "Page.onInit()"
   
-  # #+LATEX: \setsvg{svgpath = fig/}
-  # #+LATEX: \setsvg{path = fig/}   
-
-  #+BEGIN_SRC plantuml :file svg-sequence1.svg :exports both
-    @startuml
-    ' this is a comment
-    Alice -> Bob: Authentication Request
-    Bob --> Alice: Authentication Response
-    John --> Alice: another Authentication Request
-    Alice --> John: another Authentication Response
-    @enduml
-  #+END_SRC
-
-  #+RESULTS:
-  [[file:svg-sequence1.svg]]
-
-
-* sequence diagrams
-   Note: The =skin= parameter I used in the earlier versions of this document is no longer supported by plantuml.
-#+BEGIN_SRC plantuml :file fig/sequence2.png
-  @startuml
-  title Example Sequence Diagram
-  activate Client
-  Client -> Server: Session Initiation
-  note right: Client requests new session
-  activate Server
-  Client <-- Server: Authorization Request
-  note left: Server requires authentication
-  Client -> Server: Authorization Response
-  note right: Client provides authentication details
-  Server --> Client: Session Token
-  note left: Session established
-  deactivate Server
-  Client -> Client: Saves token
-  deactivate Client
-  @enduml
-#+END_SRC
-
-#+RESULTS:
-[[file:fig/sequence2.png]]
-
-
-
-#+BEGIN_SRC plantuml :file fig/sequence3.png
-  @startuml
-  actor User
-  participant "First Class" as A
-  participant "Second Class" as B
-  participant "Last Class" as C
-
-
-  User -> A: DoWork
-  activate A
-
-  A -> B: << createRequest >>
-  activate B
-
-  B -> C: DoWork
-  activate C
-  C --> B: WorkDone
-  destroy C
-
-  B --> A: Request <u>Created</u>
-  deactivate B
-
-  A --> User: Done
-  deactivate A
-  @enduml
-#+END_SRC
-
-#+RESULTS:
-[[file:fig/sequence3.png]]
-
-
-
-
-#+BEGIN_SRC plantuml :file fig/sequence4.png
-left to right direction
-actor remoteUser
-actor service
-rectangle Gateway {
-  remoteUser -- (connect camera)
-  (connect camera) -- service
-  remoteUser -- (console)
-  (console) -- service
-}
-#+END_SRC
-
-#+RESULTS:
-[[file:fig/sequence4.png]]
-
-
-* old style activity diagrams
-#+BEGIN_SRC plantuml :file fig/activity1.png
-title Example Activity Diagram
-note right: Example Function
-(*)--> "Step 1"
---> "Step 2"
--> "Step 3"
---> "Step 4"
---> === STARTLOOP ===
-note top: For each element in the array
-if "Are we done?" then
-  -> [no] "Do this"
-  -> "Do that"
-  note bottom: Important note\ngoes here
-  -up-> "Increment counters"
-  --> === STARTLOOP ===
-else
-  --> [yes] === ENDLOOP ===
-endif
---> "Last Step"
---> (*)
-#+END_SRC
-
-#+RESULTS:
-[[file:fig/activity1.png]]
-
-
-#+BEGIN_SRC plantuml :file fig/activity2.png
-title Servlet Container
-
-(*) --> "ClickServlet.handleRequest()"
---> "new Page"
-
-if "Page.onSecurityCheck" then
-  ->[true] "Page.onInit()"
-  
-  if "isForward?" then
-   ->[no] "Process controls"
+   if "isForward?" then
+    ->[no] "Process controls"
    
-   if "continue processing?" then
-     -->[yes] ===RENDERING===
+    if "continue processing?" then
+      -->[yes] ===RENDERING===
+    else
+      -->[no] ===REDIRECT_CHECK===
+    endif
+   
    else
-     -->[no] ===REDIRECT_CHECK===
+    -->[yes] ===RENDERING===
    endif
-   
-  else
-   -->[yes] ===RENDERING===
-  endif
   
-  if "is Post?" then
-    -->[yes] "Page.onPost()"
-    --> "Page.onRender()" as render
-    --> ===REDIRECT_CHECK===
-  else
-    -->[no] "Page.onGet()"
-    --> render
-  endif
+   if "is Post?" then
+     -->[yes] "Page.onPost()"
+     --> "Page.onRender()" as render
+     --> ===REDIRECT_CHECK===
+   else
+     -->[no] "Page.onGet()"
+     --> render
+   endif
   
-else
-  -->[false] ===REDIRECT_CHECK===
-endif
+ else
+   -->[false] ===REDIRECT_CHECK===
+ endif
 
-if "Do redirect?" then
- ->[yes] "redirect request"
- --> ==BEFORE_DESTROY===
-else
- if "Do Forward?" then
-  -left->[yes] "Forward request"
+ if "Do redirect?" then
+  ->[yes] "redirect request"
   --> ==BEFORE_DESTROY===
  else
-  -right->[no] "Render page template"
-  --> ==BEFORE_DESTROY===
+  if "Do Forward?" then
+   -left->[yes] "Forward request"
+   --> ==BEFORE_DESTROY===
+  else
+   -right->[no] "Render page template"
+   --> ==BEFORE_DESTROY===
+  endif
  endif
-endif
 
---> "Page.onDestroy()"
--->(*)
-#+END_SRC
+ --> "Page.onDestroy()"
+ -->(*)
+ #+END_SRC
 
-#+RESULTS:
-[[file:fig/activity2.png]]
-
+ #+RESULTS:
+ [[file:fig/activity2.png]]
 
 
-* new style activity diagrams
-  - http://plantuml.sourceforge.net/activity2.html
+** new style activity diagrams
+   - http://plantuml.sourceforge.net/activity2.html
 
-** swimlanes
+*** swimlanes
 
-   Swimlanes actually are activity diagrams using the new syntax.
+    Swimlanes actually are activity diagrams using the new syntax.
    
-   #+BEGIN_SRC plantuml :file fig/swimlane1.png
-@startuml
-|Swimlane1|
-start
-:foo1;
-|#AntiqueWhite|Swimlane2|
-:foo2;
-:foo3;
-|Swimlane1|
-:foo4;
-|Swimlane2|
-:foo5;
-stop
-@enduml
+    #+BEGIN_SRC plantuml :file fig/swimlane1.png
+ @startuml
+ |Swimlane1|
+ start
+ :foo1;
+ |#AntiqueWhite|Swimlane2|
+ :foo2;
+ :foo3;
+ |Swimlane1|
+ :foo4;
+ |Swimlane2|
+ :foo5;
+ stop
+ @enduml
+    #+END_SRC
+
+    #+ATTR_LATEX: :float t :height 0.5\textheight :placement [H]
+    #+RESULTS:
+    [[file:fig/swimlane1.png]]
+
+** Class diagrams
+   http://plantuml.sourceforge.net/classes.html
+   
+   #+BEGIN_SRC plantuml :file fig/class1.png
+     class Proposal {
+     also called a "study"
+     ..
+     ProposalID
+     Proposer
+     PrincipalInvestigator
+     }
+
+     class Visit << (V,#Ff8c00) >> {
+     has a 1:1 mapping to a
+     single user. Also used to
+     reserve badges.
+     ..
+     Username
+     starttime
+     endtime
+     proposalID
+     beamline
+     }
+
+     note left: why is Visit linked\nto a single beamline?
+
+     class Shift {
+     ProposalID
+     starttime
+     endtime
+     contactPerson
+     }
+
+     Proposal *-- Shift
+     Proposal *-- Visit
    #+END_SRC
 
-   #+ATTR_LATEX: :float t :height 0.5\textheight :placement [H]
    #+RESULTS:
-   [[file:fig/swimlane1.png]]
+   [[file:fig/class1.png]]
 
-* Class diagram
-  http://plantuml.sourceforge.net/classes.html
-   
-  #+BEGIN_SRC plantuml :file fig/class1.png
-    class Proposal {
-    also called a "study"
-    ..
-    ProposalID
-    Proposer
-    PrincipalInvestigator
-    }
+** Component diagrams
 
-    class Visit << (V,#Ff8c00) >> {
-    has a 1:1 mapping to a
-    single user. Also used to
-    reserve badges.
-    ..
-    Username
-    starttime
-    endtime
-    proposalID
-    beamline
-    }
+   #+BEGIN_SRC plantuml :file fig/component1.png :exports both
+     @startuml
 
-    note left: why is Visit linked\nto a single beamline?
+     package "Some Group" {
+         HTTP - [First Component]
+         [Another Component]
+     }
 
-    class Shift {
-    ProposalID
-    starttime
-    endtime
-    contactPerson
-    }
+     node "Other Groups" {
+    	 FTP - [Second Component]
+    	 [First Component] --> FTP
+    	 } 
 
-    Proposal *-- Shift
-    Proposal *-- Visit
-  #+END_SRC
+    	 cloud {
+    		 [Example 1]
+             }
 
-  #+RESULTS:
-  [[file:fig/class1.png]]
+
+             database "MySql" {
+                	 folder "This is my folder" {
+                		 [Folder 3]
+                		 }
+                		 frame "Foo" {
+                			 [Frame 4]
+                			 }
+                			 }
+
+
+                			 [Another Component] --> [Example 1]
+                			 [Example 1] --> [Folder 3]
+                			 [Folder 3] --> [Frame 4]
+
+                			 @enduml
+   #+END_SRC  
+
+   #+RESULTS:
+   [[file:fig/component1.png]]
+
+   The next example was posted by Cecil Westerhof on emacs-orgmode.gnu.org mailing list [2019-10-18 Fri]
+
+   #+BEGIN_SRC plantuml :file fig/component2.png :exports both
+     @startuml
+
+     component [Producer 1\nProducer 2\nProducer ...\nProducer n] as Producers
+
+     cloud {
+    	 [Internet] as Internet1
+     }
+
+     node RabbitMQ #LightSteelBlue {
+    	 [Exchange]
+    	 [Queue 1\nQueue 2\nQueue ...\nQueue n] as Queues
+     }
+
+     cloud {
+    	 [Internet] as Internet2
+     }
+
+     [Consumer 1\nConsumer 2\nConsumer ...\nConsumer n] as Consumers
+
+
+     [Producers] -> [Internet1]  : Publish
+     [Internet1] -> [Exchange]   : Publish
+     [Exchange]  -> [Queues]     : Route
+     [Queues]    -> [Internet2]  : Consume
+     [Internet2] -> [Consumers]  : Consume
+
+     @enduml
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:fig/component2.png]]
+
+** Mindmaps
+   - [2019-07-21 Sun] Needs plantuml-1.2019.08 or newer. Still in testing and features may change
+   - http://plantuml.com/mindmap-diagram
+   - Nice Link about mindmaps in PlantUML: http://hangaroundtheweb.com/2019/07/mind-maps-in-spacemacs/
+
+   The examples are taken from the official plantuml page. 
+
+   This syntax looks like the most versatile and useful to me
+   - Leading "+/-" specify hierarchy level and whether the node is on the right or left of the central
+     node.
+   - Undescores directly following the leading position characters prevent the creation of a box around an item.  
+
+     #+BEGIN_SRC plantuml :file fig/mindmap1.png :exports both
+       @startmindmap
+       + OS
+       ++ Ubuntu
+       +++_ Linux Mint
+       +++_ Kubuntu
+       +++_ Lubuntu
+       +++_ KDE Neon
+       ++ LMDE
+       ++ SolydXK
+       ++ SteamOS
+       ++ Raspbian
+       -- Windows 95
+       -- Windows 98
+       -- Windows NT
+       ---_ Windows 8
+       ---_ Windows 10
+       @endmindmap
+     #+END_SRC
+
+     #+RESULTS:
+     [[file:fig/mindmap1.png]]
+
+
+   A mindmap based on org mode syntax. Note that the org headline asterisks need to be escaped by "," inside
+   of a source block. It's nice that they allow for an org mode syntax, but I think this is less convenient
+   to write and work with. The org headlines do not allow for text following them (syntax error).
+
+   #+BEGIN_SRC plantuml :file fig/mindmap2.png :exports both
+     @startmindmap
+     ,* Debian
+     ,** Ubuntu
+     ,*** Linux Mint
+     ,*** Kubuntu
+     ,*** Lubuntu
+     ,*** KDE Neon
+     ,** LMDE
+     ,** SolydXK
+     ,** SteamOS
+     ,** Raspbian with a very long name
+     ,*** <s>Raspmbc</s> => OSMC
+     ,*** <s>Raspyfi</s> => Volumio
+     @endmindmap
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:fig/mindmap2.png]]
+  
+   #+BEGIN_SRC plantuml :file fig/mindmap3.png :exports both
+     @startmindmap
+     caption figure 1
+     title My super title
+
+     ,* <&flag>Debian
+     ,** <&globe>Ubuntu
+     ,*** Linux Mint
+     ,*** Kubuntu
+     ,*** Lubuntu
+     ,*** KDE Neon
+     ,** <&graph>LMDE
+     ,** <&pulse>SolydXK
+     ,** <&people>SteamOS
+     ,** <&star>Raspbian with a very long name
+     ,*** <s>Raspmbc</s> => OSMC
+     ,*** <s>Raspyfi</s> => Volumio
+
+     header
+     My super header
+     endheader
+
+     center footer My super footer
+
+     legend right
+       Short
+       legend
+     endlegend
+     @endmindmap
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:fig/mindmap3.png]]
+
 
 * skinparam
 ** Gradients
@@ -514,100 +652,34 @@ stop
 #+RESULTS:
 [[file:fig/scale-sequence1.png]]
     
-* Mindmaps
-  - [2019-07-21 Sun] Needs plantuml-1.2019.08 or newer. Still in testing and features may change
-  - http://plantuml.com/mindmap-diagram
-  - Nice Link about mindmaps in PlantUML: http://hangaroundtheweb.com/2019/07/mind-maps-in-spacemacs/
+* TODO using SVG graphics
 
-  The examples are taken from the official plantuml page. 
+  The /svg/ package uses inkscape to separate the text and graphical
+  elements of the SVG into a Tex file (*.pdf_tex) and a PDF file
+  containig the graph elements.  E.g. svg-sequence1.svg into
+  svg-sequence1.pdf_tex and svg-sequence1.pdf.
 
-  This syntax looks like the most versatile and useful to me
-  - Leading "+/-" specify hierarchy level and whether the node is on the right or left of the central
-    node.
-  - Undescores directly following the leading position characters prevent the creation of a box around an item.  
+  Currently, SVG pictures can only be rendered correctly, *if the picture
+  is in the same directory* as the tex source file (and therefore also the org source file).
 
-    #+BEGIN_SRC plantuml :file fig/mindmap1.png :exports both
-      @startmindmap
-      + OS
-      ++ Ubuntu
-      +++_ Linux Mint
-      +++_ Kubuntu
-      +++_ Lubuntu
-      +++_ KDE Neon
-      ++ LMDE
-      ++ SolydXK
-      ++ SteamOS
-      ++ Raspbian
-      -- Windows 95
-      -- Windows 98
-      -- Windows NT
-      ---_ Windows 8
-      ---_ Windows 10
-      @endmindmap
-    #+END_SRC
-
-    #+RESULTS:
-    [[file:fig/mindmap1.png]]
-
-
-  A mindmap based on org mode syntax. Note that the org headline asterisks need to be escaped by "," inside
-  of a source block. It's nice that they allow for an org mode syntax, but I think this is less convenient
-  to write and work with. The org headlines do not allow for text following them (syntax error).
-
-  #+BEGIN_SRC plantuml :file fig/mindmap2.png :exports both
-    @startmindmap
-    ,* Debian
-    ,** Ubuntu
-    ,*** Linux Mint
-    ,*** Kubuntu
-    ,*** Lubuntu
-    ,*** KDE Neon
-    ,** LMDE
-    ,** SolydXK
-    ,** SteamOS
-    ,** Raspbian with a very long name
-    ,*** <s>Raspmbc</s> => OSMC
-    ,*** <s>Raspyfi</s> => Volumio
-    @endmindmap
-  #+END_SRC
-
-  #+RESULTS:
-  [[file:fig/mindmap2.png]]
+  Note: with the current org version 9.1.14 and Emacs 26.1 the SVG is not correctly displayed in
+  the org buffer, but the SVG renders fine in the exported Latex PDF.
   
-  #+BEGIN_SRC plantuml :file fig/mindmap3.png :exports both
-    @startmindmap
-    caption figure 1
-    title My super title
+  # #+LATEX: \setsvg{svgpath = fig/}
+  # #+LATEX: \setsvg{path = fig/}   
 
-    ,* <&flag>Debian
-    ,** <&globe>Ubuntu
-    ,*** Linux Mint
-    ,*** Kubuntu
-    ,*** Lubuntu
-    ,*** KDE Neon
-    ,** <&graph>LMDE
-    ,** <&pulse>SolydXK
-    ,** <&people>SteamOS
-    ,** <&star>Raspbian with a very long name
-    ,*** <s>Raspmbc</s> => OSMC
-    ,*** <s>Raspyfi</s> => Volumio
-
-    header
-    My super header
-    endheader
-
-    center footer My super footer
-
-    legend right
-      Short
-      legend
-    endlegend
-    @endmindmap
+  #+BEGIN_SRC plantuml :file svg-sequence1.svg :exports both
+    @startuml
+    ' this is a comment
+    Alice -> Bob: Authentication Request
+    Bob --> Alice: Authentication Response
+    John --> Alice: another Authentication Request
+    Alice --> John: another Authentication Response
+    @enduml
   #+END_SRC
 
   #+RESULTS:
-  [[file:fig/mindmap3.png]]
-
+  [[file:svg-sequence1.svg]]
 
 * COMMENT babel settings
 
