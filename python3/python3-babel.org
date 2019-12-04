@@ -3,7 +3,7 @@
 # #+DATE: <2013-07-10 Wed>
 #+AUTHOR: Derek Feichtinger
 #+EMAIL: derek.feichtinger@psi.ch
-#+OPTIONS: ':nil *:t -:t ::t <:t H:3 \n:nil ^:t arch:headline
+#+OPTIONS: ':nil *:t -:t ::t <:t H:3 \n:nil ^:nil arch:headline
 #+OPTIONS: author:t c:nil creator:comment d:(not LOGBOOK) date:t e:t
 #+OPTIONS: email:nil f:t inline:t num:t p:nil pri:nil stat:t tags:t
 #+OPTIONS: tasks:t tex:t timestamp:t toc:t todo:t |:t
@@ -258,7 +258,7 @@
 
   If no =:colnames= parameter is given, it is nil by default and the first line
   above the header is interpreted as column name row that will be removed.
-  #+BEGIN_SRC python :results output :var tbl=tableA
+  #+BEGIN_SRC python :results output :var tbl=tableA :exports both
   print(tbl)
   #+END_SRC
 
@@ -267,7 +267,7 @@
 
   If one wants to retain the first row to be accessible by python, one
   must explicitly pass =:colnames no=
-  #+BEGIN_SRC python :results output :var tbl=tableA :colnames no
+  #+BEGIN_SRC python :results output :var tbl=tableA :colnames no :exports both
   print(tbl)
   #+END_SRC
 
@@ -275,7 +275,7 @@
   : [['name', 'tokns'], ['Peter', 4], ['Paul', 6], ['Mary', 8]]
 
   Printing such a list of lists with =:results value= produces an org table.
-  #+BEGIN_SRC python :results value :var tbl=tableA
+  #+BEGIN_SRC python :results value :var tbl=tableA :exports both
   return tbl
   #+END_SRC
 
@@ -288,7 +288,7 @@
   retained by giving the =:colnames yes= argument. This is handled
   fully by the babel framework and python never sees the column
   names.
-  #+BEGIN_SRC python :results value :var tbl=tableA :colnames yes
+  #+BEGIN_SRC python :results value :var tbl=tableA :colnames yes :exports both
   return tbl
   #+END_SRC
 
@@ -333,7 +333,7 @@
   | 8 | 24 |
   | 9 | 27 |
 
-* Calling a python function from inside an org table
+* Calling a python src block function from inside an org table
 
   Here I define the function. It takes =epoch= as the variable, which
   is a unix time stamp. I want to have it converted to an Org type
@@ -451,6 +451,7 @@ return 'python3-matplot-fig.png' # return filename to org-mode
 
 #+RESULTS:
 [[file:python3-matplot-fig.png]]
+
 
 ** TODO Plotting from an Org table
 
@@ -975,12 +976,12 @@ insert language specific commenting to keep the code functional.
     import numpy as np
     matplotlib.use('Agg')
     import seaborn
-    
+
     fname='python-matplot-fig3.png'
     df = pd.DataFrame(data)
     df.columns = ['x','y']
-    df['z'] = df['x'] * 3                                             #(ref:zcol)
-    
+    df['z'] = df['x'] * 3                                (ref:zcol)
+
     df.plot(figsize=(4,2))
     plt.savefig(fname)
     return fname
@@ -1153,8 +1154,8 @@ insert language specific commenting to keep the code functional.
    get encoded using 'utf-8' encoding, so that none of the bytes in the
    string contain values > 127.
 
-   While this was very cumbersome in python2, it works 
-   by using python3.
+   While this was very cumbersome in python2, it just works out of the box 
+   using python3.
 
    #+BEGIN_SRC python :results output :exports both :prologue "# -*- coding: utf-8 -*-"
      import sys
