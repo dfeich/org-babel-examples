@@ -1,5 +1,5 @@
-#+TITLE: tables
-#+DATE: <2014-02-18 Tue>
+#+TITLE: Org mode tables
+#+DATE: <2020-08-01 Sat>
 #+AUTHOR: Derek Feichtinger
 #+EMAIL: derek.feichtinger@psi.ch
 #+OPTIONS: ':nil *:t -:t ::t <:t H:3 \n:nil ^:t arch:headline
@@ -17,68 +17,79 @@
 # I want to evaluate them interactively and retain the original results.
 #+PROPERTY: header-args :eval never-export
 
-* Basic table example
+* Org mode and Emacs version information
+  #+BEGIN_SRC emacs-lisp :results output :exports both
+    (princ (concat (format "Emacs version: %s\n" (emacs-version))
+                   (format "org version: %s\n" (org-version))))
+    
+  #+END_SRC
 
-  Having used Org mode for a few years now, I notice that most of my tables
-  look like the following
-
-  | Name  | number | cost per item |      sum | incl VAT |
-  |-------+--------+---------------+----------+----------|
-  | name1 |      3 |       1500.00 |  4500.00 |  4860.00 |
-  | name2 |      9 |       4000.00 | 36000.00 | 38880.00 |
-  | name3 |      4 |       2800.00 | 11200.00 | 12096.00 |
-  |-------+--------+---------------+----------+----------|
-  | Total |        |               | 51700.00 | 55836.00 |
-  #+TBLFM: @>$4..@>$>=vsum(@I..@II);%.2f::@2$4..@4$4=$2*$3;%.2f::@2$5..@4$5=$4*1.08;%.2f
-
-  Note:
-  - =vsum= is the most frequent calc function used in my tables.
-  - The syntax =@I..@II= for defining the vertical range between the horizontal rulers is extremely
-    useful. One does not need to count the exact row number. Regrettably this syntax can only be
-    used on the right side of an equation (So this is forbidden: @I$2..@II$2=5).
-  - The use of =>= to indicate the last row or column is useful, since one does not need to use
-    explicit row and column numbers.
-  - The number format is controlled by the =%.2f= specifiers at the end of the formulas. The
-    syntax is similar to the one used in C format specifiers, e.g. %f for float.
-
-  Moving rows and columns in a table  
-  - When inserting rows or deleting rows always try to use =M-up= /
-    =M-down= (org-table-move-row). It will adapt the formulas.
-  - When moving columns around, always do it with =M-right= and =M-left=. It will
-    adapt the formulas to match the changed structure.
-
-
-  The same table using named columns, an advanced table feature. The column
-  names get defined in the row containing =!= in the first column.
-
-  |   | Name  | number | cost per item |      sum | incl VAT |
-  | ! | name  |    num |       peritem |      sum |          |
-  |---+-------+--------+---------------+----------+----------|
-  |   | name1 |      3 |       1500.00 |    4500. |  4860.00 |
-  |   | name2 |      9 |       4000.00 |   36000. | 38880.00 |
-  |   | name3 |      4 |       2800.00 |   11200. | 12096.00 |
-  |---+-------+--------+---------------+----------+----------|
-  |   | Total |        |               | 51700.00 | 55836.00 |
-  #+TBLFM: @>$5..@>$>=vsum(@I..@II);%.2f::@3$5..@5$5=$num * $peritem::@3$6..@5$6=$sum*1.08;%.2f
-
-  Using a column formula instead of the range formula for column 5. In order to use the
-  other advanced features like the naming of fields, it is necessary
-  to mark the rows to be affected by the column formula with a "*". All other
-  rows will not be calculated from the column formula.
-
-  |   | Name    | number | cost per item |      sum | incl VAT |
-  | ! | name    |    num |       peritem |      sum |          |
-  |---+---------+--------+---------------+----------+----------|
-  | * | name1   |      3 |       1500.00 |    4500. |  4860.00 |
-  | ^ | varname |        |               |          |          |
-  | * | name2   |      9 |       4000.00 |   36000. | 38880.00 |
-  | * | name3   |      4 |       2800.00 |   11200. | 12096.00 |
-  |---+---------+--------+---------------+----------+----------|
-  |   | Total   |        |               | 51700.00 | 55836.00 |
-  #+TBLFM: @>$5..@>$>=vsum(@I..@II);%.2f::$5=$num * $peritem::$6=$sum*1.08;%.2f
-
+  #+RESULTS:
+  : Emacs version: GNU Emacs 26.2 (build 2, x86_64-pc-linux-gnu, GTK+ Version 3.22.30)
+  :  of 2019-04-14
+  : org version: 9.3.7
   
+* Basic table examples
+** Basic syntax
+   Having used Org mode for a few years now, I notice that most of my tables
+   look like the following
 
+   | Name  | number | cost per item |      sum | incl VAT |
+   |-------+--------+---------------+----------+----------|
+   | name1 |      3 |       1500.00 |  4500.00 |  4860.00 |
+   | name2 |      9 |       4000.00 | 36000.00 | 38880.00 |
+   | name3 |      4 |       2800.00 | 11200.00 | 12096.00 |
+   |-------+--------+---------------+----------+----------|
+   | Total |        |               | 51700.00 | 55836.00 |
+   #+TBLFM: @>$4..@>$>=vsum(@I..@II);%.2f::@2$4..@4$4=$2*$3;%.2f::@2$5..@4$5=$4*1.08;%.2f
+
+   Note:
+   - The syntax =@I..@II= for defining the vertical range between the horizontal rulers is extremely
+     useful. One does not need to provide row numbers. Regrettably this syntax can only be
+     used on the right side of an equation (So this is forbidden: @I$2..@II$2=5).
+   - The use of =>= to indicate the last row or column is useful, since one does not need to use
+     explicit row and column numbers.
+   - Unsurprisingly, =vsum= is the most frequent calc function used in my tables.
+   - The number format is controlled by the =%.2f= specifiers at the end of the formulas. The
+     syntax is similar to the one used in C format specifiers, e.g. %f for float.
+
+   Moving rows and columns in a table  
+   - When inserting rows or deleting rows always try to use =M-up= /
+     =M-down= (org-table-move-row). It will adapt the formulas.
+   - When moving columns around, always do it with =M-right= and =M-left=. It will
+     adapt the formulas to match the changed structure.
+
+** Advanced table syntax
+   The same table using named columns, an advanced table feature. The column
+   names get defined in the row containing =!= in the first column.
+
+   |   | Name  | number | cost per item |      sum | incl VAT |
+   | ! | name  |    num |       peritem |      sum |          |
+   |---+-------+--------+---------------+----------+----------|
+   |   | name1 |      3 |       1500.00 |    4500. |  4860.00 |
+   |   | name2 |      9 |       4000.00 |   36000. | 38880.00 |
+   |   | name3 |      4 |       2800.00 |   11200. | 12096.00 |
+   |---+-------+--------+---------------+----------+----------|
+   |   | Total |        |               | 51700.00 | 55836.00 |
+   #+TBLFM: @>$5..@>$>=vsum(@I..@II);%.2f::@3$5..@5$5=$num * $peritem::@3$6..@5$6=$sum*1.08;%.2f
+
+   Using a column formula instead of the range formula for column 5. In
+   order to use the other advanced features like the naming of fields,
+   it is necessary to mark the rows to be affected by the column
+   formula with a "*" in the first column. All other rows will
+   be unaffected.
+
+   |   | Name    | number | cost per item |      sum | incl VAT |
+   | ! | name    |    num |       peritem |      sum |          |
+   |---+---------+--------+---------------+----------+----------|
+   | * | name1   |      3 |       1500.00 |    4500. |  4860.00 |
+   | ^ | varname |        |               |          |          |
+   | * | name2   |      9 |       4000.00 |   36000. | 38880.00 |
+   | * | name3   |      4 |       2800.00 |   11200. | 12096.00 |
+   |---+---------+--------+---------------+----------+----------|
+   |   | Total   |        |               | 51700.00 | 55836.00 |
+   #+TBLFM: @>$5..@>$>=vsum(@I..@II);%.2f::$5=$num * $peritem::$6=$sum*1.08;%.2f
+  
 * Table formulas
 ** using lisp functions in table formulas
 *** basic usage
@@ -313,6 +324,9 @@
      | remote date   |           2011 |    2011 | (2014-01-02)      |
      #+TBLFM: @2$2=remote(remtable1,$ref_number)::@2$3=remote(remtable1,@2$3)::@2$4='(identity remote(remtable1,$ref_number))::@3$2=remote(remtable1,$ref_date)::@3$3=remote(remtable1,@4$3)::@3$4='(identity remote(remtable1,$ref_date))
 ** some other calc functions used in table formulas
+   Calc offers a big number of functions. Have a look in [[info:calc#Function Index][info:calc#Function Index]].
+   Here I present just a few examples in these subsections
+     
 *** conditions using if
 
     | number | class | even |
@@ -325,33 +339,44 @@
 
 *** locate position of element in a column: find
 
- Note that we use the qualifier =;E= in order to have the vector retain
- the empty fields.
+    In the following table we use =find= to determine the location of
+    the "1" in each column. Note that we use the qualifier =;E= in
+    order to have the vector retain the empty fields.
 
- | Pos | AA | BB | CC | DD | EE | FF | GG | HH | II | JJ | KK | LL | MM |
- |-----+----+----+----+----+----+----+----+----+----+----+----+----+----|
- |   1 |    |    |    |    |  1 |    |    |  1 |    |    |    |  1 |    |
- |   2 |    |    |    |  1 |    |    |    |    |    |    |    |    |    |
- |   3 |    |    |    |    |    |    |    |    |    |    |    |    |    |
- |   4 |    |    |    |    |    |  1 |    |    |    |    |    |    |    |
- |   5 |    |    |    |    |    |    |  1 |    |    |    |    |    |    |
- |   6 |  8 |    |    |    |    |    |    |    |    |  1 |    |    |    |
- |   7 |    |    |    |    |    |    |    |    |    |    |    |    |    |
- |   8 |    |    |    |    |    |    |    |    |    |    |    |    |    |
- |   9 |    |    |    |    |    |    |    |    |  1 |    |    |    |    |
- |  10 |    |    |  1 |    |    |    |    |  2 |    |    |  1 |    |    |
- |  11 |  1 |    |    |    |    |    |    |    |    |    |    |    |    |
- |  12 |    |    |    |    |    |    |    |    |    |    |    |    |  1 |
- |  13 |    |    |    |    |    |    |    |  1 |    |    |    |  1 |    |
- |  14 |    |  1 |    |    |    |    |    |    |    |    |    |    |    |
- |  15 |  5 |    |    |    |    |    |    |    |    |    |    |    |    |
- |  16 |    |    |    |  1 |    |    |    |    |    |    |    |    |    |
- |  17 |    |    |    |    |    |    |    |    |  1 |    |    |    |    |
- |  18 |    |    |    |    |    |    |  1 |    |    |    |    |    |    |
- |  19 |    |    |    |    |    |    |    |    |    |    |    |    |    |
- |-----+----+----+----+----+----+----+----+----+----+----+----+----+----|
- |     | 11 | 14 | 10 |  2 |  1 |  4 |  5 |  1 |  9 |  6 | 10 |  1 | 12 |
- #+TBLFM:  @>$<<..@>$> = find(@I..@II, 1); E
+    |    Pos | AA | BB | CC | DD | EE | FF | GG | HH | II | JJ | KK | LL | MM |
+    |--------+----+----+----+----+----+----+----+----+----+----+----+----+----|
+    |      1 |    |    |    |    |  1 |    |    |  1 |    |    |    |  1 |    |
+    |      2 |    |    |    |  1 |    |    |    |    |    |    |    |    |    |
+    |      3 |    |    |    |    |    |    |    |    |    |    |    |    |    |
+    |      4 |    |    |    |    |    |  1 |    |    |    |    |    |    |    |
+    |      5 |    |    |    |    |    |    |  1 |    |    |    |    |    |    |
+    |      6 |  8 |    |    |    |    |    |    |    |    |  1 |    |    |    |
+    |      7 |    |    |    |    |    |    |    |    |    |    |    |    |    |
+    |      8 |    |    |    |    |    |    |    |    |    |    |    |    |    |
+    |      9 |    |    |    |    |    |    |    |    |  1 |    |    |    |    |
+    |     10 |    |    |  1 |    |    |    |    |  2 |    |    |  1 |    |    |
+    |     11 |  1 |    |    |    |    |    |    |    |    |    |    |    |    |
+    |     12 |    |    |    |    |    |    |    |    |    |    |    |    |  1 |
+    |     13 |    |    |    |    |    |    |    |  1 |    |    |    |  1 |    |
+    |     14 |    |  1 |    |    |    |    |    |    |    |    |    |    |    |
+    |     15 |  5 |    |    |    |    |    |    |    |    |    |    |    |    |
+    |     16 |    |    |    |  1 |    |    |    |    |    |    |    |    |    |
+    |     17 |    |    |    |    |    |    |    |    |  1 |    |    |    |    |
+    |     18 |    |    |    |    |    |    |  1 |    |    |    |    |    |    |
+    |     19 |    |    |    |    |    |    |    |    |    |    |    |    |    |
+    |--------+----+----+----+----+----+----+----+----+----+----+----+----+----|
+    | Result | 11 | 14 | 10 |  2 |  1 |  4 |  5 |  1 |  9 |  6 | 10 |  1 | 12 |
+    #+TBLFM:  @>$<<..@>$> = find(@I..@II, 1); E
+
+*** mapping over elements of a vector
+
+    From a mail by Eric S Fraga to the Emacs-orgmode@gnu.org list
+
+    | a     | b     | result     |
+    |-------+-------+------------|
+    | [2,3] | [4,6] | [0.5, 0.5] |
+    #+TBLFM: @2$3=map(div,$1,$2)    
+    
 ** time calculations
 *** basic usage
     Time calculations can be done using the =T= modifier, which
@@ -424,199 +449,216 @@
 
    We fill the second column of the table below according to the
    associative array defined by the table above. Values which cannot
-   be mapped yield an error. =org-lookup-first= will find the first
-   matching row and give back the associated mapped value. An =#ERROR=
-   will be returned for missing key values.
+   be mapped yield nil (it was #ERROR in older
+   versions). =org-lookup-first= will find the first matching row and
+   give back the associated mapped value. An =#ERROR= will be returned
+   for missing key values.
   
-   | three |      3 |
-   | five  | #ERROR |
-   | two   |      2 |
-   | six   | #ERROR |
-   | one   |      1 |
-   | four  |      4 |
+   | three |   3 |
+   | five  | nil |
+   | two   |   2 |
+   | six   | nil |
+   | one   |   1 |
+   | four  |   4 |
    #+TBLFM: $2='(org-lookup-first $1 '(remote(tblhash,@1$1..@>$1)) '(remote(tblhash,@1$2..@>$2)))
 
 
    =org-lookup-last= accordingly takes the values from the last row that matched.
 
-   | three |      3 |
-   | five  | #ERROR |
-   | two   |    100 |
-   | six   | #ERROR |
-   | one   |      1 |
-   | four  |      4 |
+   | three |   3 |
+   | five  | nil |
+   | two   | 100 |
+   | six   | nil |
+   | one   |   1 |
+   | four  |   4 |
    #+TBLFM: $2='(org-lookup-last $1 '(remote(tblhash,@1$1..@>$1)) '(remote(tblhash,@1$2..@>$2)))
 
-* referencing table values from lisp
+** A note on the choice of column names and remote references
 
-  The lisp function to use for retrieving table values is
-  =org-table-get-remote-range=. Note that the retrieval from tables
-  using advanced naming syntax (row with a =^=) returns the value in
-  parentheses (a bug?). Here an example for multiple cases.
-
-  #+NAME: tblRefsFromLisp
-  |   | key   | value |
-  | ! | key   | value |
-  |---+-------+-------|
-  |   | A     |     1 |
-  | ^ | first |       |
-  |   | B     |     2 |
-  |   | C     |     3 |
-  |   | D     |     4 |
-  |---+-------+-------|
-  |   | SUM   |    10 |
-  #+TBLFM: @>$3=vsum(@I..@II)
-
-  #+BEGIN_SRC emacs-lisp :results output
-    (princ
-     (mapconcat 'identity (list
-                           (pp-to-string (substring-no-properties
-                                          (org-table-get-remote-range "tblRefsFromLisp" "@3$3")))
-                           (pp-to-string (substring-no-properties
-                                          (org-table-get-remote-range "tblRefsFromLisp" "@3$key")))
-                           (pp-to-string (substring-no-properties
-                                          (org-table-get-remote-range "tblRefsFromLisp" "$first")))
-                           (pp-to-string (mapcar 'substring-no-properties
-                                                 (org-table-get-remote-range "tblRefsFromLisp" "@I$3..@II$3")))
-                           (pp-to-string (mapcar 'substring-no-properties
-                                                 (org-table-get-remote-range "tblRefsFromLisp" "@I$2..@II$3"))))
-                "\n"))
-  #+END_SRC
-
-  #+RESULTS:
-  : "1"
-  : "A"
-  : "(A)"
-  : ("1" "" "2" "3" "4")
-  : 
-  : ("A" "1" "first" "" "B" "2" "C" "3" "D" "4")
-
-* filtering a table
-
-  I posted this in reply to [[http://emacs.stackexchange.com/questions/20129/how-can-i-filter-table-in-org-mode][this stackexchange question]].
+   - One must be careful and *not use a remote column name that also is used in the current table*.
+     Seems that the substitution of the value in the current scope takes precedence over the one
+     in the remote scope.
+   - Underscores in column names should be avoided. As seen in the Value4 column of the second
+     table below, the "$value_a4" reference seem to be interpreted just as "$value"
   
-  We produce an example table to work upon
-  #+NAME: table1
-  #+BEGIN_SRC elisp :results value :colnames yes
-    (let ((countries
-           (mapcar #'symbol-name '(CH D USA CN JP PL USA D PL CN CH))))
-      (cl-loop for country1 in countries
-               for country2 in (reverse countries)
-               with counter = 0
-               collect (list (format "row%d" counter)
-                             (* 2 counter)
-                             country1
-                             country2
-                             (* 5 counter)) into mylst
-                             count t into counter
-                             finally return (append
-                                             '((col1 col2 col3 col4 col5)
-                                               hline)
-                                             mylst)))
-  #+END_SRC
+   #+NAME: remtable2
+   |   | Entry    | Value | Value2 | Value3  | Value4  |
+   | ! | entry    | value | value2 | value3a | value_a4 |
+   | # | example1 | 101   | 102    | 103     | 104     |
+   |   |          |       |        |         |         |
 
-  #+RESULTS: table1
-  | col1  | col2 | col3 | col4 | col5 |
-  |-------+------+------+------+------|
-  | row0  |    0 | CH   | CH   |    0 |
-  | row1  |    2 | D    | CN   |    5 |
-  | row2  |    4 | USA  | PL   |   10 |
-  | row3  |    6 | CN   | D    |   15 |
-  | row4  |    8 | JP   | USA  |   20 |
-  | row5  |   10 | PL   | PL   |   25 |
-  | row6  |   12 | USA  | JP   |   30 |
-  | row7  |   14 | D    | CN   |   35 |
-  | row8  |   16 | PL   | USA  |   40 |
-  | row9  |   18 | CN   | D    |   45 |
-  | row10 |   20 | CH   | CH   |   50 |
+   #+NAME: referringtable2
+   |   | Entry | Value | Value2 | Value3 | Value4 |
+   | ! |       |       |        |        |        |
+   | # |       |   101 |    102 |    103 |    101 |
+   #+TBLFM: @3$3=remote(remtable2,@3$value)::@3$4=remote(remtable2,@3$value2)::@3$5=remote(remtable2,@3$value3a)::@3$6=remote(remtable2,@3$value_a4)
+  
+** Indirection in remote table references
 
-  Now we define a filter function which produces a new
-  table with the required values. Notice that I am
-  using the *colnames* argument in the BEGIN line
-  in order to preserve the column headings.
+   Org supports indirection for the tablename argument of the =remote=
+   function in table formulas. So you can refer to tables based on the contents of a current table's fields:
+  
+   | Tablename         |      |          |
+   |-------------------+------+----------|
+   | remtableIdColName |    4 |        4 |
+   | table1            |  USA |       50 |
+   | remtable1         | 2011 | ref_date |
+   #+TBLFM: @2$2..@>$2=remote($1,@4$3)::@2$3..@>$3=remote($1,@>$>)
 
-  #+NAME: my-filter
-  #+BEGIN_SRC elisp :var tbl=table1 val="USA" :colnames yes
-    (loop for row in tbl
-          if (equal (nth 3 row) val)
-          collect row into newtbl
-          finally return newtbl)
-  #+END_SRC
+* Some examples using tables from babel blocks
+** referencing table ranges from lisp code blocks
 
-  #+RESULTS: my-filter
-  | col1 | col2 | col3 | col4 | col5 |
-  |------+------+------+------+------|
-  | row4 |    8 | JP   | USA  |   20 |
-  | row8 |   16 | PL   | USA  |   40 |
+   The lisp function to use for retrieving table values is
+   =org-table-get-remote-range=.
+   *Notes*
+   - the retrieval from tables using advanced naming syntax (e.g =^= in
+     the initial column to name the element above as "first") returns
+     the value in parentheses (a bug?).
+   - the advanced naming also creates problems in the ranges, since
+     the row containing "first" and the empty value are not filtered out
 
-  Note that in the previous source block the input is actually coming from the re-evaluation
-  of the =table1= source block and not from the resulting table.
+   Here an example for multiple cases.
+
+   #+NAME: tblRefsFromLisp
+   |   | key   | value |
+   | ! | key   | value |
+   |---+-------+-------|
+   |   | A     |     1 |
+   | ^ | first |       |
+   |   | B     |     2 |
+   |   | C     |     3 |
+   |   | D     |     4 |
+   |---+-------+-------|
+   |   | SUM   |    10 |
+   #+TBLFM: @>$3=vsum(@I..@II)
+
+   #+BEGIN_SRC emacs-lisp :results output
+     (mapc (lambda (x) (princ (format "%s => %s\n" (car x) (cdr x))))
+           (cl-loop for ref in '("@3$3" "@3$key" "$first" "@I$3..@II$3" "@I$2..@II$3")
+    		for tblget = (org-table-get-remote-range "tblRefsFromLisp" ref)
+    		collect (cons ref (pp-to-string
+    				   (cl-case (type-of tblget)
+    				     ('cons (mapcar #'substring-no-properties tblget))
+    				     ('string (substring-no-properties tblget))
+    				     (t "failed to match")))) into result
+    		finally return result))
+   #+END_SRC  
+
+   #+RESULTS:
+   : @3$3 => "1"
+   : @3$key => "A"
+   : $first => "(A)"
+   : @I$3..@II$3 => ("1" "" "2" "3" "4")
+   : 
+   : @I$2..@II$3 => ("A" "1" "first" "" "B" "2" "C" "3" "D" "4")
+   : 
+
+** filtering a table
+
+   I posted this in reply to [[http://emacs.stackexchange.com/questions/20129/how-can-i-filter-table-in-org-mode][this stackexchange question]].
+  
+   We produce an example table to work upon
+   #+NAME: table1
+   #+BEGIN_SRC elisp :results value :colnames yes
+     (let ((countries
+            (mapcar #'symbol-name '(CH D USA CN JP PL USA D PL CN CH))))
+       (cl-loop for country1 in countries
+		for country2 in (reverse countries)
+		with counter = 0
+		collect (list (format "row%d" counter)
+                              (* 2 counter)
+                              country1
+                              country2
+                              (* 5 counter)) into mylst
+                              count t into counter
+                              finally return (append
+                                              '((col1 col2 col3 col4 col5)
+						hline)
+                                              mylst)))
+   #+END_SRC
+
+   #+RESULTS: table1
+   | col1  | col2 | col3 | col4 | col5 |
+   |-------+------+------+------+------|
+   | row0  |    0 | CH   | CH   |    0 |
+   | row1  |    2 | D    | CN   |    5 |
+   | row2  |    4 | USA  | PL   |   10 |
+   | row3  |    6 | CN   | D    |   15 |
+   | row4  |    8 | JP   | USA  |   20 |
+   | row5  |   10 | PL   | PL   |   25 |
+   | row6  |   12 | USA  | JP   |   30 |
+   | row7  |   14 | D    | CN   |   35 |
+   | row8  |   16 | PL   | USA  |   40 |
+   | row9  |   18 | CN   | D    |   45 |
+   | row10 |   20 | CH   | CH   |   50 |
+
+   Now we define a filter function which produces a new
+   table with the required values. Notice that I am
+   using the *colnames* argument in the BEGIN line
+   in order to preserve the column headings.
+
+   #+NAME: my-filter
+   #+BEGIN_SRC elisp :var tbl=table1 val="USA" :colnames yes
+     (loop for row in tbl
+           if (equal (nth 3 row) val)
+           collect row into newtbl
+           finally return newtbl)
+   #+END_SRC
+
+   #+RESULTS: my-filter
+   | col1 | col2 | col3 | col4 | col5 |
+   |------+------+------+------+------|
+   | row4 |    8 | JP   | USA  |   20 |
+   | row8 |   16 | PL   | USA  |   40 |
+
+   Note that in the previous source block the input is actually coming from the re-evaluation
+   of the =table1= source block and not from the resulting table.
 
   
-  I can also use this function with the org-mode CALL syntax
+   I can also use this function with the org-mode CALL syntax
 
-  #+CALL: my-filter(tbl=table1, col=3, val="CN") :colnames yes
+   #+CALL: my-filter(tbl=table1, col=3, val="CN") :colnames yes
 
-  #+RESULTS:
-  | col1 | col2 | col3 | col4 | col5 |
-  |------+------+------+------+------|
-  | row1 |    2 | D    | CN   |    5 |
-  | row7 |   14 | D    | CN   |   35 |
+   #+RESULTS:
+   | col1 | col2 | col3 | col4 | col5 |
+   |------+------+------+------+------|
+   | row1 |    2 | D    | CN   |    5 |
+   | row7 |   14 | D    | CN   |   35 |
 
-  I also demonstrate here the SQLite approach where I use your
-  original requirement of filtering all the rows which contain the
-  string either in columns 3 or 4. A minor drawback of the sqlite
-  approach is that we have some boilerplate code to read in the table
-  and create a SQLite DB.
-
-
-  #+NAME: my-filter2
-  #+BEGIN_SRC sqlite :db table1.sqlite :var tbl=table1 val="USA" :colnames yes
-    drop table if exists table1;
-    create table table1 (col1 VARCHAR, col2 INTEGER, col3 VARCHAR,
-    col4 VARCHAR, col5 INTEGER);
-    .import "$tbl" table1
-    select * from table1 where col3='$val' or col4='$val';
-  #+END_SRC
-
-  #+RESULTS:
-  | col1 | col2 | col3 | col4 | col5 |
-  |------+------+------+------+------|
-  | row2 |    4 | USA  | PL   |   10 |
-  | row4 |    8 | JP   | USA  |   20 |
-  | row6 |   12 | USA  | JP   |   30 |
-  | row8 |   16 | PL   | USA  |   40 |
+   I also demonstrate here the SQLite approach where I use your
+   original requirement of filtering all the rows which contain the
+   string either in columns 3 or 4. A minor drawback of the sqlite
+   approach is that we have some boilerplate code to read in the table
+   and create a SQLite DB.
 
 
-  #+CALL: my-filter2(tbl=table1, val="CN") :colnames yes
+   #+NAME: my-filter2
+   #+BEGIN_SRC sqlite :db table1.sqlite :var tbl=table1 val="USA" :colnames yes
+     drop table if exists table1;
+     create table table1 (col1 VARCHAR, col2 INTEGER, col3 VARCHAR,
+     col4 VARCHAR, col5 INTEGER);
+     .import "$tbl" table1
+     select * from table1 where col3='$val' or col4='$val';
+   #+END_SRC
 
-  #+RESULTS:
-  | col1 | col2 | col3 | col4 | col5 |
-  |------+------+------+------+------|
-  | row1 |    2 | D    | CN   |    5 |
-  | row3 |    6 | CN   | D    |   15 |
-  | row7 |   14 | D    | CN   |   35 |
-  | row9 |   18 | CN   | D    |   45 |
+   #+RESULTS: my-filter2
+   | col1 | col2 | col3 | col4 | col5 |
+   |------+------+------+------+------|
+   | row2 |    4 | USA  | PL   |   10 |
+   | row4 |    8 | JP   | USA  |   20 |
+   | row6 |   12 | USA  | JP   |   30 |
+   | row8 |   16 | PL   | USA  |   40 |
 
-* A note on choice of column names and remote references
-
-  - One must be careful and *not use a remote column name that also is used in the current table*.
-    Seems that the substitution of the value in the current scope takes precedence over the one
-    in the remote scope.
-  - Underscores in column names generate some strange behavior and should for now be avoided.
-    The effect is seen in the Value4 column in the refferingtable2.
   
-  #+NAME: remtable2
-  |   | Entry    | Value | Value2 | Value3  | Value4  |
-  | ! | entry    | value | value2 | value3a | value_a4 |
-  | # | example1 | 1     | 2      | 3       | 4       |
-  |   |          |       |        |         |         |
+   #+CALL: my-filter2(tbl=table1, val="CN") :colnames yes
 
-  #+NAME: referringtable2
-  |   | Entry | Value | Value2 | Value3 | Value4 |
-  | ! |       |       |        |        |        |
-  | # |       |     1 |      2 |      3 |      1 |
-  #+TBLFM: @3$3=remote(remtable2,@3$value)::@3$4=remote(remtable2,@3$value2)::@3$5=remote(remtable2,@3$value3a)::@3$6=remote(remtable2,@3$value_a4)
+   #+RESULTS:
+   | col1 | col2 | col3 | col4 | col5 |
+   |------+------+------+------+------|
+   | row1 |    2 | D    | CN   |    5 |
+   | row3 |    6 | CN   | D    |   15 |
+   | row7 |   14 | D    | CN   |   35 |
+   | row9 |   18 | CN   | D    |   45 |
 
 * Exporting tables with some columns hidden
 
@@ -646,8 +688,6 @@
   | / |  <r> | <#>  |      |
   |   |   a1 | a2   | a3   |
   |   |   b1 | b2   | b3   |
-
-  
 
 * Information on internals
 
@@ -697,8 +737,9 @@
    | # |   3 |   4 |
 
    in the following remote call, the $one variable is replaced by the
-   local value of the $one (which is 2) instead of the one in the table
-   that we refer to
+   local table's column number for column "one" (which is 2) instead
+   of the column numeber of the referred table (where "one" in the
+   first column)
    #+NAME: refertableIdColName
    |   | one | two |
    |---+-----+-----|
@@ -707,19 +748,6 @@
    |   |     |     |
 #+TBLFM: @3$2=remote(remtableIdColName,@3$one)
 
-* Indirection in remote calls
-
-  Org supports indirection for the tablename argument of the =remote=
-  function in table formulas:
-  
-  | Tablename         |      |          |
-  |-------------------+------+----------|
-  | remtableIdColName |    4 |        4 |
-  | table1            |  USA |       50 |
-  | remtable1         | 2011 | ref_date |
-  #+TBLFM: @2$2..@>$2=remote($1,@4$3)::@2$3..@>$3=remote($1,@>$>)
-
-  
 * COMMENT Org Babel settings
 Local variables:
 org-confirm-babel-evaluate: nil
