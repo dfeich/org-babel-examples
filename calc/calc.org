@@ -25,9 +25,9 @@
   #+END_SRC
 
   #+RESULTS:
-  : Emacs version: GNU Emacs 24.5.1 (x86_64-unknown-linux-gnu, GTK+ Version 3.10.8)
-  :  of 2015-05-04 on dflt1w
-  : org version: 8.3.2
+  : Emacs version: GNU Emacs 26.2 (build 2, x86_64-pc-linux-gnu, GTK+ Version 3.22.30)
+  :  of 2019-04-14
+  : org version: 9.3.7
 
 * General
   - refer to the [[info:calc#Top][Calc info pages]]
@@ -36,7 +36,7 @@
     `(a*b)/(c*d)'
   - [[https://github.com/SueDNymme/emacs-calc-qref][Nice reference sheet]] on calc maintained by Sue D. Nymme
    
-* babel calc
+* babel Calc
 
   Not too useful, yet. Embedded calc certainly is better for
   inlining math in documents. Using Elisp to directly interacting with
@@ -69,69 +69,6 @@ fsolve(x*2+x=4,x)
     #+RESULTS:
     : [x = a + (b - a) / 2, y = (a - b) / 2]
 
-* calc usage in tables
-** Unit conversions
-   - from http://article.gmane.org/gmane.emacs.orgmode/93489
-
-   Displaying all calc units in a buffer can be obtained by executing
-   #+BEGIN_SRC emacs-lisp :exports source
-     (calc-view-units-table 1)
-   #+END_SRC
-
-   Calc preserves units and variables in table operations.
-   
-   | distance | time   | speed       |
-   |----------+--------+-------------|
-   | 3 km     | 2.5 hr | 1.2 km / hr |
-   #+TBLFM:  @2$3=$1/$2
-
-
-   | speed        | simplified speed |
-   |--------------+------------------|
-   | 40km / 2.5hr | 16. km / hr      |
-   #+TBLFM:  @2$2=usimplify($1)
-
-   We can also decide to use calc via its elisp api.  To understand
-   the following lisp formula that involves calc internal functions
-   q.v.  the [[Calc from lisp]] section.
-   
-   | km    |      ft |
-   |-------+---------|
-   | 2.5km | 8202.10 |
-   #+TBLFM: $2='(calc-eval (math-convert-units (calc-eval $1 'raw) (calc-eval "ft" 'raw))); %.2f
-   
-   Defining a new calc function for unit conversion with defmath
-   #+BEGIN_SRC emacs-lisp
-   (defmath uconv (expr target-units &optional pure)
-     (math-convert-units expr target-units pure))
-   #+END_SRC
-
-   #+RESULTS:
-   : calcFunc-uconv
-
-   | km     | ft           |
-   |--------+--------------|
-   | 2.5 km | 8202.0997 ft |
-   #+TBLFM: $2=uconv($1, ft)
-
-   Using the units from the table header:
-
-   |  km |        ft |
-   |-----+-----------|
-   | 2.5 | 8202.0997 |
-   #+TBLFM: $2 = uconv($1 * @<$1, @<$2, t)
-
-   The same without a user's defmath:
-
-   |  km |        ft |
-   |-----+-----------|
-   | 2.5 | 8202.0997 |
-   #+TBLFM: $2 = usimplify($1 * @<$1 / @<$2)
-
-   | Unit | Definition |
-   |------+------------|
-   | km   | #ERROR     |
-   #+TBLFM: @2$2='(calc-get-unit-definition $1)
 * Calc from lisp
   - [[info:calc#Calling%20Calc%20from%20Your%20Programs][Emacs Info Manual: Calling Calc from your programs]]
   - nice blog post on [[http://nullprogram.com/blog/2015/10/30/][RSA cryptography using emacs Calc]] by Chris
@@ -141,8 +78,13 @@ fsolve(x*2+x=4,x)
 ** basic use of calc-eval
    The variables in formulas are replaced by the additional arguments. Arguments can be given as string or number.
    #+BEGIN_SRC emacs-lisp :results output
+     (print (calc-eval "2^$1 - 1 + $2" nil 3 5))
      (print (calc-eval "2^$1 - 1" nil 128))
+
      (print (calc-eval "$1 < $2" 'pred "4000" "5000"))
+     (print (calc-eval "$1 > $2" 'pred "4000" "5000"))
+     (print (calc-eval "$1 < $2" nil "4000" "5000"))
+     (print (calc-eval "$1 > $2" nil "4000" "5000"))
      (print (calc-eval "nextprime($1)" nil "100000000000000000"))
 
      ;; radix can be chosen by separating radix by # from number
@@ -153,23 +95,31 @@ fsolve(x*2+x=4,x)
    #+RESULTS:
    #+begin_example
 
+   "12"
+
    "340282366920938463463374607431768211455"
 
    t
+
+   nil
+
+   "1"
+
+   "0"
 
    "100000000000000003"
 
    "3735928559"
 
    "15"
-#+end_example
+   #+end_example
 
-   The second argument serves as a separator if the input string parses to a list of expressions. By default the list
+   The second argument serves as a separator if the result is  a list of expressions. By default the list
    is printed comma-separated.
    #+BEGIN_SRC emacs-lisp :results output
-     (print (calc-eval "10+5,7*3,5/2"))
-     (print (calc-eval "10+5,7*3,5/2" ";"))
-     (print (calc-eval "10+5,7*3,5/2" "___"))
+     (print (calc-eval "10+5, 7*3, 5/2"))
+     (print (calc-eval "10+5, 7*3, 5/2" ";"))
+     (print (calc-eval "10+5, 7*3, 5/2" "___"))
    #+END_SRC
 
    #+RESULTS:
@@ -180,7 +130,36 @@ fsolve(x*2+x=4,x)
    : 
    : "15___21___2.5"
 
- 
+** using calc-eval to supply raw calc objects as input to calc internal functions
+
+   calc internal functions deal with /raw/ calc objects. These can also be obtained through =calc-eval= by
+   passing the =raw= as the second argument. 
+   #+BEGIN_SRC emacs-lisp
+     (calc-eval (math-convert-units (calc-eval "10 m" 'raw)
+                                    (calc-eval "ft" 'raw)))
+   #+END_SRC
+
+   #+RESULTS:
+   : 32.8083989501 ft
+
+   #+BEGIN_SRC emacs-lisp
+   (calc-eval (math-simplify-units (calc-eval "10 m + 1 mm" 'raw)))
+   #+END_SRC
+
+   #+RESULTS:
+   : 10.001 m
+
+   Todo: I do not know how the second arg to math-to-standard-units is used. Nil
+   works as well as any other list, it seems.
+   #+BEGIN_SRC emacs-lisp
+     (calc-eval
+      (math-to-standard-units
+       (calc-eval "5 J" 'raw) nil))
+   #+END_SRC
+
+   #+RESULTS:
+   : 5000 g m^2 / s^2
+   
 ** Stack operations: push, pop and top
 
    - =push= pushes the element onto the stack
@@ -239,19 +218,103 @@ fsolve(x*2+x=4,x)
    : 
    : "3.048 m"
   
-** raw calc objects as input to functions
+** Some other examples of using calc in lisp
 
-   calc internal functions deal with /raw/ calc objects. These can also be obtained through =calc-eval= by
-   passing the =raw= as the second argument. 
-   #+BEGIN_SRC emacs-lisp
-     (calc-eval (math-convert-units (calc-eval "10 m" 'raw)
-                                    (calc-eval "ft" 'raw)))
+   #+BEGIN_SRC emacs-lisp :results output
+     (princ
+      (format "%s  %s"
+         (calc-eval "deg(37@ 26' 36.42)")
+         ;; now using pure lisp
+         (math-format-number
+          (calcFunc-deg '(hms 37 26 (float 3642 -2))))))
    #+END_SRC
 
    #+RESULTS:
-   : 32.8083989501 ft
+   : 37.44345  37.44345
 
-* Some sample functions that can be used in formulas
+* Calc usage in tables
+** Unit conversions by defining new functions with defmath
+   - from http://article.gmane.org/gmane.emacs.orgmode/93489
+
+   Displaying all calc units in a buffer can be obtained by executing
+   #+BEGIN_SRC emacs-lisp :exports source
+     (calc-view-units-table 1)
+   #+END_SRC
+
+   Calc preserves units and variables in table operations.
+   
+   | distance | time   | speed       | 
+   |----------+--------+-------------|
+   | 3 km     | 2.5 hr | 1.2 km / hr |
+   #+TBLFM:  @2$3=$1/$2
+
+
+   | speed        | simplified speed |
+   |--------------+------------------|
+   | 40km / 2.5hr | 16. km / hr      |
+   #+TBLFM:  @2$2=usimplify($1)
+
+   We can also decide to use calc via its elisp api.  To understand
+   the following lisp formula that involves calc internal functions
+   q.v.  the [[Calc from lisp]] section.
+   
+   | km    |      ft |
+   |-------+---------|
+   | 2.5km | 8202.10 |
+   #+TBLFM: $2='(calc-eval (math-convert-units (calc-eval $1 'raw) (calc-eval "ft" 'raw))); %.2f
+   
+   Defining a new calc function for unit conversion with defmath
+   #+BEGIN_SRC emacs-lisp
+   (defmath uconv (expr target-units &optional pure)
+     (math-convert-units expr target-units pure))
+   #+END_SRC
+
+   #+RESULTS:
+   : calcFunc-uconv
+
+   | km     | ft           |
+   |--------+--------------|
+   | 2.5 km | 8202.0997 ft |
+   #+TBLFM: $2=uconv($1, ft)
+
+   Using the units from the table header (if the 3rd arg is given to
+   uconv, the output is stripped of the unit):
+
+   |  km |        ft |
+   |-----+-----------|
+   | 2.5 | 8202.0997 |
+   #+TBLFM: $2 = uconv($1 * @<$1, @<$2, t)
+
+   The standard calc function usimplify also works for this use
+   case:
+
+   |  km |        ft |
+   |-----+-----------|
+   | 2.5 | 8202.0997 |
+   #+TBLFM: $2 = usimplify($1 * @<$1 / @<$2)
+
+   A lisp equivalent of the above
+   #+begin_src elisp
+   (calc-eval "usimplify(2.5 km / ft)")
+   #+end_src
+
+   #+RESULTS:
+   : 8202.09973753
+
+   Let's define a function that converts to base units
+   #+begin_src elisp
+     (defmath ustd (expr) (math-simplify-units (math-to-standard-units expr nil)))
+   #+end_src
+
+   #+RESULTS:
+   : calcFunc-ustd
+
+   | distance | time   | speed       | std unit speed   | speed in ft/s    |
+   |----------+--------+-------------+------------------+------------------|
+   | 3 km     | 2.5 hr | 1.2 km / hr | 0.33333333 m / s | 1.0936133 ft / s |
+   #+TBLFM: @2$3=$1/$2::@2$4=ustd($3)::@2$5=uconv($-1, ft/s)
+   
+* Some standard Calc functions that can be used in formulas
   - [[info:calc#Formulas]]
   - factorial: $6! => 720 $   also fact(6) can be used in writing
   - find: $ find([5, 6, 7, 8], 6) => 2 $
