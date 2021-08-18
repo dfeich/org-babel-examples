@@ -34,9 +34,9 @@
    #+END_SRC
 
    #+RESULTS:
-   : Emacs version: GNU Emacs 26.2 (build 2, x86_64-pc-linux-gnu, GTK+ Version 3.22.30)
-   :  of 2019-04-14
-   : org version: 9.2.4
+   : Emacs version: GNU Emacs 27.1.90 (build 1, x86_64-pc-linux-gnu, GTK+ Version 3.22.30)
+   :  of 2021-01-26
+   : org version: 9.4.5
 
   #+BEGIN_SRC sh :results output :exports results :var jpath=(expand-file-name org-plantuml-jar-path) :eval query-export
   echo "Emacs variable org-plantuml-jar-path:$jpath\n\n"
@@ -45,8 +45,6 @@
      return
   fi
   java -jar "$jpath" -version
-  echo "-------------------------"
-  java -jar "$jpath" -checkversion
   #+END_SRC
 
   #+RESULTS:
@@ -54,35 +52,18 @@
   Emacs variable org-plantuml-jar-path:/home/dfeich/.emacs.d/javalib/plantuml.jar
 
 
-  PlantUML version 1.2019.08 (Sat Jul 13 21:25:14 CEST 2019)
+  PlantUML version 1.2021.9 (Sun Jul 25 12:13:56 CEST 2021)
   (GPL source distribution)
   Java Runtime: OpenJDK Runtime Environment
   JVM: OpenJDK 64-Bit Server VM
-  Java Version: 1.8.0_212-8u212-b03-0ubuntu1.18.04.1-b03
-  Operating System: Linux
-  OS Version: 4.15.0-54-generic
   Default Encoding: UTF-8
   Language: en
   Country: US
-  Machine: dflt2w
-  PLANTUML_LIMIT_SIZE: 4096
-  Processors: 4
-  Max Memory: 4,649,385,984
-  Total Memory: 313,524,224
-  Free Memory: 306,981,080
-  Used Memory: 6,543,144
-  Thread Active Count: 1
 
-  The environment variable GRAPHVIZ_DOT has not been set
-  Dot executable is /opt/anaconda/python3.6/bin/dot
+  PLANTUML_LIMIT_SIZE: 4096
+
   Dot version: dot - graphviz version 2.40.1 (20161225.0304)
   Installation seems OK. File generation OK
-  -------------------------
-  PlantUML version 1.2019.08 (Sat Jul 13 21:25:14 CEST 2019)
-
-  Last available version for download : 1201908
-
-  Your version is up to date.
   #+end_example
 
 
@@ -343,7 +324,6 @@
  #+RESULTS:
  [[file:fig/activity2.png]]
 
-
 ** new style activity diagrams
    - http://plantuml.sourceforge.net/activity2.html
 
@@ -580,6 +560,181 @@
    #+RESULTS:
    [[file:fig/mindmap3.png]]
 
+** network
+   #+BEGIN_SRC plantuml :file fig/nwdiag1.png :exports both
+     @startuml
+     scale 1.5
+     nwdiag {
+        network dmz {
+                   address = "210.x.x.x/24"
+
+                   // set multiple addresses (using comma)
+                   web01 [address = "210.x.x.1, 210.x.x.20"];
+                   web02 [address = "210.x.x.2"];
+                   }
+                   network internal {
+                    	 address = "172.x.x.x/24";
+
+                    	 web01 [address = "172.x.x.1"];
+                    	 web02 [address = "172.x.x.2"];
+                    	 db01;
+                    	 db02;
+                   }
+                   }
+      @enduml
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:fig/nwdiag1.png]]
+
+   Regrettably rackdiag is not yet ([2021-08-18 Wed]) part of the
+   functionality that was integrated in plantuml from
+   nwdiag. q.v. http://blockdiag.com/en/nwdiag/rackdiag-examples.html
+   #+BEGIN_SRC plantuml :file fig/nwdiag2.png :exports both
+     @startuml
+     scale 1.5
+     rackdiag {
+       // define height of rack
+       16U;
+
+       // define rack items
+       1: UPS [2U];
+       3: DB Server
+       4: Web Server
+       5: Web Server
+       6: Web Server
+       7: Load Balancer
+       8: L3 Switch
+     }
+     @enduml
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:fig/nwdiag2.png]]
+
+** Work Breakdown Structure (WBS)
+   https://plantuml.com/wbs-diagram
+   
+   #+BEGIN_SRC plantuml :file fig/wbsdiag1.png :exports both
+     @startwbs
+     +[#SkyBlue] New Job
+     ++ Decide on Job Requirements
+     +++ Identity gapsy
+     +++ Review JDs
+     ++++ Sign-Up for courses
+     ++++ Volunteer
+     ++++ Reading
+     ++- Checklist
+     +++- Responsibilities
+     +++- Location
+     ++ CV Upload Done
+     +++ CV Updated
+     ++++ Spelling & Grammar
+     ++++ Check dates
+     ---- Skills
+     +++ Recruitment sites chosen
+     @endwbs
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:fig/wbsdiag1.png]]
+
+   #+BEGIN_SRC plantuml :file fig/wbsdiag2.png :exports both
+     @startwbs
+     <style>
+     wbsDiagram {
+             .pink {
+                     BackgroundColor pink
+             }
+             .your_style_name {
+                     BackgroundColor SkyBlue
+             }
+     }
+     </style>
+     + this is the partner workpackage <<your_style_name>>
+     ++ this is my workpackage <<pink>>
+     ++ this is another workpackage
+     @endwbs
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:fig/wbsdiag2.png]]
+
+
+   #+BEGIN_SRC plantuml :file fig/wbsdiag3.png :exports both
+     @startwbs
+
+
+     <style>
+     node {
+             Padding 12
+             Margin 3
+             HorizontalAlignment center
+             LineColor blue
+             LineThickness 3.0
+             BackgroundColor gold
+             RoundCorner 40
+             MaximumWidth 100
+     }
+
+     rootNode {
+             LineStyle 8.0;3.0
+             LineColor red
+             BackgroundColor white
+             LineThickness 1.0
+             RoundCorner 0
+             Shadowing 0.0
+     }
+
+     leafNode {
+             LineColor gold
+             RoundCorner 0
+             Padding 3
+     }
+
+     arrow {
+             LineStyle 4
+             LineThickness 0.5
+             LineColor green
+     }
+     </style>
+
+     + Hi =)
+     ++ sometimes i have node in wich i want to write a long text
+     +++ this results in really huge diagram
+     ++++ of course, i can explicit split with a\nnew line
+     ++++ but it could be cool if PlantUML was able to split long lines, maybe with an option who specify the maximum width of a node
+
+     @endwbs
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:fig/wbsdiag3.png]]
+
+   
+
+* Preprocessing
+  https://plantuml.com/preprocessing
+
+  The simple preprocessor allows the definition of variables and functions. Some
+  standard functions like %date are already provided.
+
+  #+BEGIN_SRC plantuml :file fig/preproc1.png :exports both
+    @startuml
+    scale 1.5
+    !function $inc($value, $step=1)
+    !return $value + $step
+    !endfunction
+
+    Alice -> Bob : Just one more $inc(3)
+    Alice -> Bob : Add two to three : $inc(3, 2)
+
+    center footer generated on %date("yyyy.MM.dd 'at' HH:mm")
+    @enduml
+  #+END_SRC
+
+  #+RESULTS:
+  [[file:fig/preproc1.png]]
 
 * skinparam
 ** Gradients
