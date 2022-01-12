@@ -360,7 +360,7 @@
 
 * File related functions
 ** Insert file in a suitable block
-   #+NAME: lobInserFile
+   #+NAME: lobInsertFile
    #+HEADER: :var filename="/etc/passwd"
    #+begin_src elisp :results value raw drawer
      (cl-labels ((wrap-src

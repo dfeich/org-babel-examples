@@ -284,7 +284,66 @@
 
    #+RESULTS:
    : 5
-  
+
+** calling a source block function from elisp
+
+   This function is also used for table formulas
+
+   #+BEGIN_SRC elisp
+   (org-sbe mydivide (x 10) (y 3))
+   #+END_SRC
+
+   #+RESULTS:
+   : 3
+
+   #+NAME: srcRepeatStrings
+   #+BEGIN_SRC elisp :results output :var s1="hello" s2="world"
+   (princ (concat s1 " " s2))
+   #+END_SRC
+
+   #+RESULTS: srcRepeatStrings
+   : hello world
+
+   #+BEGIN_SRC elisp :results output
+     (princ (org-sbe srcRepeatStrings (s1 $"hello") (s2 $"world")))
+   #+END_SRC
+
+   #+RESULTS:
+   : 
+   : (s1 (quote "hello"))
+   : 
+   : (s2 (quote "world"))
+   : 
+   : (results (quote "hello world"))
+   : hello world
+
+
+   #+BEGIN_SRC elisp :results output
+     (org-babel-execute-src-block nil
+                    		     '("emacs-lisp" "results"
+                    		       ((:var . "results=mydivide[](x=30, y=5)")))
+                         	     '((:results . "silent")))
+   #+END_SRC
+
+   #+RESULTS:
+   : 
+   : (x (quote 30))
+   : 
+   : (y (quote 5))
+   : 
+   : (results (quote 6))
+
+   #+BEGIN_SRC elisp :results value :results value
+     (org-babel-execute-src-block nil
+                              	   '("emacs-lisp" "(princ (format \"%s haahahaa\n\"results))"
+                              	     ((:var . "results=mydivide[](x=30, y=5)")))
+                                '((:results . "silent")))
+   #+END_SRC
+
+   #+RESULTS:
+   : 6 haahahaa
+
+   
 ** Naming an output table produced by a CALL
 
    If the called function produces an output table that one wants to
@@ -347,10 +406,6 @@
 
   #+RESULTS:
   : hello world
-
-  #+BEGIN_SRC emacs-lisp :var 
-  
-  #+END_SRC
   
 * Using a :post function for post-formatting and executing generated tables
 
