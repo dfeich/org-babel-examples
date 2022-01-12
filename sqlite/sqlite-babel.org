@@ -21,9 +21,9 @@
   #+END_SRC
 
   #+RESULTS:
-  : Emacs version: GNU Emacs 24.5.1 (x86_64-unknown-linux-gnu, GTK+ Version 3.10.8)
-  :  of 2015-05-04 on dflt1w
-  : org version: 8.3.3
+  : Emacs version: GNU Emacs 27.2 (build 1, x86_64-pc-linux-gnu, GTK+ Version 3.22.30)
+  :  of 2021-08-29
+  : org version: 9.5.2
 
 * using a table as input
 
@@ -88,7 +88,7 @@ SELECT * FROM t1;
 SELECT * FROM t1 WHERE col1>=$val;
   #+END_SRC
 
-  #+RESULTS:
+  #+RESULTS: my-func
   | col1 | col2 | col3 |
   |------+------+------|
   |   13 |   65 |  130 |
@@ -112,4 +112,5 @@ SELECT * FROM t1 WHERE col1>=$val;
   |   13 |   65 |  130 |
   |   14 |   70 |  140 |
   |   15 |   75 |  150 |
+
 
