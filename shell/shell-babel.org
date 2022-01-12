@@ -20,6 +20,9 @@
 # I want to evaluate them interactively and retain the original results.
 #+PROPERTY: header-args :eval never-export
 
+# Definition of a document wide variable to be used in src blocks
+#+PROPERTY: header-args :var docwide_var="docwide"
+
 
 * Version information
   #+BEGIN_SRC emacs-lisp -n :exports both :eval yes
@@ -53,6 +56,28 @@
 
   #+RESULTS:
   : ii  dash           0.5.8-2.10   amd64        POSIX-compliant shell
+
+* Variables for source blocks
+  :PROPERTIES:
+  :header-args+: :var section_var="section"
+  :END:
+
+  Note that you need to use a plus =+= in the definition of
+  header-args in the document-wide or section properties if you want
+  the new definition to be added to the old definition, i.e. use
+  =header-args+=. If you use just =header-args= then the previous
+  =:var= setting will be replaced by the new setting
+  
+  #+begin_src bash :results output :var block_var="block"
+    echo $docwide_var
+    echo $section_var
+    echo $block_var
+  #+end_src
+
+  #+RESULTS:
+  : docwide
+  : section
+  : block
 
 * Tables as input for source blocks
 ** Using sh (or dash) as shell

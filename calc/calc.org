@@ -160,6 +160,43 @@ fsolve(x*2+x=4,x)
    #+RESULTS:
    : 5000 g m^2 / s^2
    
+** math-read-exprs returns the AST of an expression
+
+   To understand the lisp expressions that will get executed to obtain
+   a result, one can use the =math-read-exprs= function. It returns an
+   AST of the expression.
+
+
+   #+BEGIN_SRC emacs-lisp :results verbatim
+   (math-read-exprs "5 * 6 - 20")
+   #+END_SRC
+
+   #+RESULTS:
+   : ((- (* 5 6) 20))
+   
+   #+BEGIN_SRC emacs-lisp :results verbatim
+   (math-read-exprs "x=vsum(1, 2, 3)")
+   #+END_SRC
+
+   #+RESULTS:
+   : ((calcFunc-eq (var x var-x) (calcFunc-vsum 1 2 3)))
+
+   Lets try executing the lisp (note that the result is enclosed by an
+   extra parentheses).
+   #+begin_src elisp :results verbatim
+   (calcFunc-eq '(var x var-x) (calcFunc-vsum 1 2 3))
+   #+end_src
+
+   #+RESULTS:
+   : (calcFunc-eq (var x var-x) 6)
+   
+   #+begin_src elisp :results verbatim
+     (calc-eval (calcFunc-eq '(var x var-x) (calcFunc-vsum 1 2 3)))
+   #+end_src
+
+   #+RESULTS:
+   : "x = 6"
+
 ** Stack operations: push, pop and top
 
    - =push= pushes the element onto the stack
@@ -231,6 +268,26 @@ fsolve(x*2+x=4,x)
 
    #+RESULTS:
    : 37.44345  37.44345
+
+* Org configurations for Calc
+  - https://emacs.stackexchange.com/questions/59179/specify-precision-using-calc-in-org-mode-spreadsheets/59181#59181
+    The variable org-calc-default-modes is used to customize Calc for org usage
+    #+begin_src elisp
+      (defcustom org-calc-default-modes
+        '(calc-internal-prec 12
+      		       calc-float-format  (float 8)
+      		       calc-angle-mode    deg
+      		       calc-prefer-frac   nil
+      		       calc-symbolic-mode nil
+      		       calc-date-format (YYYY "-" MM "-" DD " " Www (" " hh ":" mm))
+      		       calc-display-working-message t)
+        "List with Calc mode settings for use in `calc-eval' for table formulas.
+      The list must contain alternating symbols (Calc modes variables and values).
+      Don't remove any of the default settings, just change the values.  Org mode
+      relies on the variables to be present in the list."
+        :group 'org-table-calculation
+        :type 'plist)
+    #+end_src
 
 * Calc usage in tables
 ** Unit conversions by defining new functions with defmath
