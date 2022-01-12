@@ -243,7 +243,7 @@
           error("operation %s not implemented" % op)
           sys.exit(1)
 
-      print obh.dataframe_to_orgtable(res)
+      print(obh.dataframe_to_orgtable(res))
 
     #+END_SRC
 
@@ -310,8 +310,6 @@
          writer.save()
    #+END_SRC
 
-   - TODO: Suppress columns/rows containing org meta information (e.g. "!" column)
-
 ** ExportTablesToExcel
 
    Function to write several tables to different sheets in the same
@@ -352,6 +350,7 @@
 
 *** Test
 
+    
     Test without overwrite option
     #+CALL: lobExportTablesToExcel(tblnames="tblGroupingTest, tblFiltertest", fname="TestExcelFileB.xlsx")
 
@@ -359,7 +358,32 @@
     #+CALL: lobExportTablesToExcel(tblnames="tblGroupingTest, tblFiltertest", fname="TestExcelFileB.xlsx", overwrite="yes")
 
 
+* File related functions
+** Insert file in a suitable block
+   #+NAME: lobInserFile
+   #+HEADER: :var filename="/etc/passwd"
+   #+begin_src elisp :results value raw drawer
+     (cl-labels ((wrap-src
+     	     (lang)
+     	     (list (format "#+BEGIN_SRC %s :eval never :exports source\n" lang)
+                        "#+END_SRC\n")))
+       (let ((wrappers
+     	 (pcase (file-name-extension filename)
+     	   ("py" (wrap-src "python"))
+     	   (".el" (wrap-src "emacs-lisp"))
+     	   (t '("#+BEGIN_EXAMPLE\n" "#+END_EXAMPLE\n")))))
+         (with-temp-buffer
+           (goto-char (point-min))
+           (insert (format-time-string "# inserted at %Y-%m-%d %H:%M:%S\n"))
+           (insert (car wrappers))
+           (insert-file-contents filename)
+           (goto-char (point-max))
+           (insert (car (cdr wrappers)))
+           (buffer-string))))
+   #+end_src
 
+
+   
 * Local Variables
 Local variables:
 org-confirm-babel-evaluate: nil
