@@ -32,13 +32,9 @@
 # [handout] : print handouts, i.e. slides with overlays will be printed with
 #   all overlays turned on (no animations).
 # [notes=show] : show notes in the generated output (note pages follow the real page)
-# [notes=only] : only render the nodes pages
-
-# this setting affects whether the initial PSI picture correctly fills
-# the title page, since it scales the title text. One can also use the
-# notes=show or notes=only options to produce notes pages in the output.
-# #+LaTeX_CLASS_OPTIONS: [t,10pt,notes=show]
-
+# [notes=only] : only render the notes pages
+# [t] / [c] : Place text of slides at the (vertical) top/center of the slides
+# [10pt] : font size
 #+LaTeX_CLASS_OPTIONS: [t,10pt]
 
 
@@ -64,7 +60,6 @@
 #+BEAMER_OUTER_THEME: miniframes [subsection=false]
 # #+LATEX_CLASS: beamer
 
-
 ** changes to BeginSection for TOC and navigation
 #+BEAMER_HEADER: \AtBeginSection[]{
 
@@ -84,7 +79,9 @@
 # this can be used to define the transparency of the covered layers
 #+BEAMER: \setbeamercovered{transparent=30}
 
-
+# uncomment for defining *bold* as normal bold text instead of beamer alert
+#  #+LATEX_HEADER_EXTRA: \setbeamerfont{alerted text}{series=\bfseries}
+#  #+LATEX_HEADER_EXTRA: \setbeamercolor{alerted text}{fg=\black}
 
 ** Some remarks on options
    - [[info:org#Export%20settings][info:org#Export settings]]
@@ -210,6 +207,17 @@ with its own headline, is displayed in a block:
 
    This is a notes page with some information.
    
+** Exporting beamer presentations
+   Frequently there is a need to convert a beamer presentation
+   to MS powerpoint for sharing or contributing slides
+
+***   The best solution known to me as of 2022 is
+    1. open the PDF using =libreoffice --impress=
+    2. Save as pptx
+       - may need to adapt slides or copy content to another
+         template
+
+
 * A collection of example pages
 ** block environments
    
@@ -401,7 +409,11 @@ with its own headline, is displayed in a block:
                                (add-hook 'python-mode-hook 'dfeich/python-mode-hook))))))
    #+END_SRC
 
-
+** placing text at the bottom of a page
+   This text is on top
+   
+   #+LATEX: \vskip0pt plus 1filll
+   This text is on the bottom
 * Animations by overlays
 ** Highlighting text
 
