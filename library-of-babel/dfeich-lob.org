@@ -190,11 +190,14 @@
     #+HEADER: :var tbl=tblFiltertest col=0 vals="Peter Paul"
     #+BEGIN_SRC elisp :results value  :colnames y
       (let ((lst (split-string vals)))
-	(concatenate 'list  (loop for row in tbl
-				  if (member (nth col row) lst)
-				  collect row into newtbl
-				  ;; else do (princ (format "%s: %s\n" (nth col row) lst))
-				  finally return newtbl)))
+        (concatenate 'list  (loop for row in tbl
+                                  if (member (let ((field (nth col row)))
+                                               (if (numberp field)
+                                                   (number-to-string field)
+                                                 field)) lst)
+                                  collect row into newtbl
+                                  ;; else do (princ (format "%s: %s\n" (nth col row) lst))
+                                  finally return newtbl)))
    #+END_SRC
 
 *** Test
