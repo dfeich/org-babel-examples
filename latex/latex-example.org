@@ -29,7 +29,7 @@
 # override this on a per-source block level using the :eval header argument.
 #+PROPERTY: header-args :eval never-export
 
-* Org and LaTeX exporter configuration
+* Org and LaTeX exporter configuration                             :noexport:
 ** Basic configuration
 # #+OPTIONS: texht:t
 #+LATEX_CLASS: article
@@ -105,7 +105,11 @@
 # #+OPTIONS: tex:dvipng
 
 
-* Version information
+* Front matter and version information
+  Make sure that you read this document in its raw source form. If you
+  are looking at a rendered representation, e.g. in github, you will
+  not be able to see the org source code.
+  
   - Emacs version
     #+BEGIN_SRC emacs-lisp :results output :exports results :eval query-export
     (princ (concat (format "Emacs version: %s\n" (emacs-version))
@@ -229,9 +233,15 @@
    Note
    - there must be no empty line between the picture's link and the meta
      definitions for name, caption, etc.
-   - The figure must have a caption.
+   - The figure must have a caption if it is to be included in a list
+     of figures (see =\listoffigures= statement at the end of the
+     document), because the caption will trigger exporting to a
+     LaTeX /figure/ environment.
+   - Without a caption, an image can still be exported as a floating
+     image by using the =:float= option.
    - The OPTION =tex:t= must be set for references to work.
 
+   #+CAPTION: Floating environment specifiers
    | Specifier | Permission                                                                                 |
    |-----------+--------------------------------------------------------------------------------------------|
    | h         | Place the float here, i.e., approximately at the same point it occurs in the               |
@@ -245,17 +255,17 @@
 
    #+NAME: fig_simplegraph1
    #+CAPTION: A simple graph
-   #+ATTR_LaTeX: :width 0.8\textwidth :float t :placement [H]
+   #+ATTR_LaTeX: :width 0.8\textwidth :placement [H]
    [[file:../beamer/fig/simplegraph1.png]]
 
    #+NAME: fig_simplegraph1b
    #+CAPTION: A simple graph at half the width
-   #+ATTR_LaTeX: :width 0.4\textwidth :float t :placement [H]
+   #+ATTR_LaTeX: :width 0.4\textwidth :placement [H]
    [[file:../beamer/fig/simplegraph1.png]]
 
    #+NAME: fig_simplegraph1c
    #+CAPTION: A simple graph rotated 270\textdegree
-   #+ATTR_LaTeX: :width 0.8\textwidth :float t :placement [H] :options angle=270
+   #+ATTR_LaTeX: :width 0.8\textwidth :placement [H] :options angle=270
    [[file:../beamer/fig/simplegraph1.png]]
   
    A pdf can be included the same way, e.g. by specifying
@@ -585,32 +595,72 @@
 \end{table}
 #+END_EXPORT
     
-*** COMMENT DOES NOT WORK: Radio tables and skipping columns and rows
+*** Radio tables and skipping columns and rows
 
-    The reason why it does not work is that the feature is only
-    implemented for some modes. Org is not among them.
-    See Org info chapter: /A.6.2 A LaTeX example of radio tables/.
-   
-    The =:splice t= setting in the following ORGTBL definition
-    will result in only the table's body lines to be returned,
-    and not to wrap them into a tabular environment.
+    Radio tables allow to send a modified representation of an org
+    source table to a target location. Here, we send the same table to
+    the 2 target locations below, once using a send function to LaTeX
+    and once to an org function.
 
-    # NOTE: This example only works if the comment environment has been
-    # included.
-   
- # BEGIN RECEIVE ORGTBL salesfigures
- # END RECEIVE ORGTBL salesfigures
+    This can be useful e.g. if one wants to skip some columns that are
+    only used for intermediate results.
 
-**** COMMENT location of the src table
+    First test: Exporting to a native LaTeX table
+    
+    #+begin_export latex
+ % BEGIN RECEIVE ORGTBL salesfigures  
+\begin{tabular}{lrr}
+Month & items & items per day\\
+\hline
+Jan & 55 & 2.4\\
+Feb & 16 & 0.8\\
+March & 278 & 12.6\\
+\end{tabular}
+ % END RECEIVE ORGTBL salesfigures
+    #+end_export
 
-    #+ORGTBL: SEND salesfigures orgtbl-to-latex :splice t :skip 2
-    | Month | Days | Nr sold | per day |
-    |-------+------+---------+---------|
-    | Jan   |   23 |      55 |     2.4 |
-    | Feb   |   21 |      16 |     0.8 |
-    | March |   22 |     278 |    12.6 |
-    #+TBLFM: $4=$3/$2;%.1f
-   
+    
+    Second test: Exporting to an org mode table   
+ 
+    # BEGIN RECEIVE ORGTBL salesfigures2
+#+CAPTION: test radio table
+#+ATTR_LATEX: :font \small
+| Month | items | items per day |
+|-
+| Jan | 55 | 2.4 |
+| Feb | 16 | 0.8 |
+| March | 278 | 12.6 |
+    # END RECEIVE ORGTBL salesfigures2
+
+
+ 
+**** COMMENT location of the source table for the radio targets 
+     
+     The source table is exported by placing the cursor inside of
+     the table and then executing =M-x orgtbl-send-table=. Note that I
+     can use multiple send directives, so one could build a big table
+     and then produce several sub-tables from them.     
+
+     The options for the specific =orgtbl-to-*= functions can be
+     looked up in the respective help pages for the functions, e.g.
+     [[help:orgtbl-to-generic][orgtbl-to-generic]]. The option =:tstart= can be used to provide a
+     table header and caption.
+     
+     A =:splice t= setting in the =orgtbl-to-latex= definition
+     would result in only the table's body lines to be returned,
+     and not to wrap them into a tabular environment.
+
+     #+ORGTBL: SEND salesfigures2 orgtbl-to-orgtbl :skipcols(2) :tstart "#+CAPTION: test radio table\n#+ATTR_LATEX: :font \\small"
+     #+ORGTBL: SEND salesfigures orgtbl-to-latex :skipcols(2)
+     |   | Month | Days | items | items per day |
+     | ! |       |      |       |               |
+     |---+-------+------+-------+---------------|
+     | * | Jan   |   23 |    55 |           2.4 |
+     | * | Feb   |   21 |    16 |           0.8 |
+     | * | March |   22 |   278 |          12.6 |
+     #+TBLFM: $5=$4/$3;%.1f
+
+    
 ** Source code
 
    In order to get nice source code formatting and markup, one needs to add the *minted* package. I add here
@@ -746,10 +796,8 @@
 #+end_src
    
 * some interesting links
-   - Org LaTeX exports
-     - Subfigures in an org document for exporting to LaTeX: [[http://article.gmane.org/gmane.emacs.orgmode/92821][gmane.emacs.orgmode/92821]]
    - Hyperlink formatting
-     - described in the LaTeX [[http://mirror.unl.edu/ctan/macros/latex/contrib/hyperref/doc/manual.pdf][hyperref]] manual.
+     - described in the LaTeX [[https://ctan.org/pkg/hyperref][hyperref]] manual.
      - This is an example of how to get links that are not framed by red
        rectangles, but just have a blue font color
        #+BEGIN_EXAMPLE
