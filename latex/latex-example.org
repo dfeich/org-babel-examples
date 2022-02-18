@@ -169,18 +169,26 @@
 
  - Nice link for mathematical symbols [[https://en.wikipedia.org/wiki/List_of_mathematical_symbols_by_subject][on wikipedia]]:
   
- This is an example for an equation
+ the following example uses escaped angular parentheses quoting =\[...\]=. This is short for putting the equation
+ into a displaymath environment
+ : \begin{displaymath}
+ : ...
+ : \end{displaymath}
 
- $$
-   cores_{extrapol} = cores_{intern2013} \cdot offl\% \cdot \frac{gf \cdot (volume_{user} + volume_{intern})}{volume_{intern}}
- $$
+ The rendered equation:
+ \[cores_{extrapol} = cores_{intern2013} \cdot offl\% \cdot \frac{gf \cdot (volume_{user} + volume_{intern})}{volume_{intern}}\]
 
- #+LATEX: \vspace{0.1\textheight}
 
- This is an example for an equation embedded in the text 
+ *Note:* You should not use the double dollar quoting =$$...$$=
+ (q.v. [[https://tex.stackexchange.com/questions/503/why-is-preferable-to][this stackexchange answer]]) and the [[http://mirrors.concertpass.com/tex-archive/info/l2tabu/english/l2tabuen.pdf][deadly sins]] description.
+ 
+
+ Here follows an example for an equation embedded in the text. This is reached by either using the escaped round
+ parentheses syntax =\(...\)= or the single dollar sign syntax =$...$=.
  $cores_{extrapol} = cores_{intern2013} \cdot offl\% \cdot \frac{gf \cdot (volume_{user} + volume_{intern})}{volume_{intern}}$
  The text continues after the formula.
 
+ 
  #+LATEX: \vspace{0.1\textheight}
 
  Here follows a numbered equation that also can be referenced like in
@@ -224,15 +232,15 @@
    - The figure must have a caption.
    - The OPTION =tex:t= must be set for references to work.
 
-   | Specifier | Permission                                                                      |
-   |-----------+---------------------------------------------------------------------------------|
-   | h         | Place the float here, i.e., approximately at the same point it occurs in the    |
-   |           | source text (however, not exactly at the spot)                                  |
-   | t         | Position at the top of the page.                                                |
-   | b         | Position at the bottom of the page.                                             |
-   | p         | Put on a special page for floats only.                                          |
-   | \!        | Override internal parameters LaTeX uses for determining "good" float positions. |
-   | H         | Places the float at precisely the location in the LaTeX code. Requires the      |
+   | Specifier | Permission                                                                                 |
+   |-----------+--------------------------------------------------------------------------------------------|
+   | h         | Place the float here, i.e., approximately at the same point it occurs in the               |
+   |           | source text (however, not exactly at the spot)                                             |
+   | t         | Position at the top of the page.                                                           |
+   | b         | Position at the bottom of the page.                                                        |
+   | p         | Put on a special page for floats only.                                                     |
+   | \!        | Override internal parameters LaTeX uses for determining "good" float positions.            |
+   | H         | Places the float at precisely the location in the LaTeX code. Requires the                 |
    |           | float package, e.g., \textbackslash{}usepackage{float}. This is somewhat equivalent to h!. |
 
    #+NAME: fig_simplegraph1
@@ -719,7 +727,24 @@
      the elements via a leading =#+NAME:= line.
    
 
+** TODO Fontifying SRC BLOCK results
+   # somehow the results of the internal block are never exported
 
+   One can use an org source block that contains a named source block
+   and the matching named results tag, and then put latex instructions inside
+   as shown in this example (thanks for the idea to a mail from Eric S Fraga)
+#+begin_src org :exports results
+  ,#+name: rblock
+  ,#+BEGIN_SRC bash :exports results :results output
+    1+2 | bc
+  ,#+END_SRC
+
+  ,#+latex: {\small 
+  ,#+results: rblock
+  : ans =  3
+  ,#+latex: }
+#+end_src
+   
 * some interesting links
    - Org LaTeX exports
      - Subfigures in an org document for exporting to LaTeX: [[http://article.gmane.org/gmane.emacs.orgmode/92821][gmane.emacs.orgmode/92821]]
@@ -822,8 +847,9 @@
     ,#+END_LATEX
   #+END_EXAMPLE
 
-  #  #+BIBLIOGRAPHY: publist plain option: -d
-  #+BIBLIOGRAPHY: publist acm option:-d
+  # It is important to set a relative/explicit path to find the publist file in this directory,
+  # else my BIBINPUTS environment variable will override searching the present path
+  #+BIBLIOGRAPHY: ./publist acm option:-d
 
 
   #+LaTeX: \pagebreak
