@@ -222,6 +222,48 @@
     | Peter | 4 | 40 |
     | Peter | 6 | 60 |
 
+** lobTableFilterRe
+
+    #+NAME: lobTableFilterRe
+    #+HEADER: :var tbl=tblFiltertest col=0 vals="Mar.* Paul"
+    #+BEGIN_SRC elisp :results value  :colnames y
+      (let ((lst (split-string vals)))
+        (concatenate 'list  (loop for row in tbl
+                                  if (let* ((rawfield (nth col row))
+                                            (field (if (numberp rawfield)
+                                                       (number-to-string rawfield)
+                                                     rawfield)))
+                                       (loop for regx in lst
+                                             when(string-match-p regx field) return 't
+                                             finally return nil))
+                                  collect row into newtbl
+                                  ;; else do (princ (format "%s: %s\n" (nth col row) lst))
+                                  finally return newtbl)))
+   #+END_SRC
+
+*** Test
+
+    #+NAME: tblFiltertest2
+    | Name | A                                |  B |
+    |------+----------------------------------+----|
+    | aa   | for mu3e                         | 10 |
+    | bb   | belongs to MEG.                  | 20 |
+    | cc   | has its own account              | 30 |
+    | dd   | another item for mu3e experiment | 40 |
+    | ee   | for own group                    | 50 |
+    | ff   | another one for MEG exp          | 60 |
+
+    #+CALL: lobTableFilterRe(tbl=tblFiltertest2, col=1, vals=".*mu3e.* .*MEG.*")
+
+    #+RESULTS:
+    | Name | A                                |  B |
+    |------+----------------------------------+----|
+    | aa   | for mu3e                         | 10 |
+    | bb   | belongs to MEG.                  | 20 |
+    | dd   | another item for mu3e experiment | 40 |
+    | ff   | another one for MEG exp          | 60 |
+    
+   
 ** GroupTable
 
     #+NAME: lobGroupTable
