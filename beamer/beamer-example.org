@@ -108,6 +108,11 @@
    # for generating example texts for testing
    #+BEAMER_HEADER: \usepackage{blindtext}
 
+   # TODO: this clashes with the previous usepackage definition of
+   # xcolor which seems to get triggered by pgf or so
+   
+   # #+BEAMER_HEADER: \usepackage[pdftex,dvipsnames]{xcolor}
+
 * Introduction
 ** An alternative title page for a section
    # usually I leave the heading empty (just spaces)
@@ -130,7 +135,16 @@
    - inserting a table of contents with the current section highlighted at
      the beginning of each section.
    - configuring transparency of yet uncovered overlay elements.
-     
+** Debugging
+
+   Look at the pdflatex messages in the buffer named =*Org PDF LaTeX
+   Output*=
+   
+   You may want to run the TeX compilation interactively with something
+   like
+   : pdflatex -shell-escape beamer-example.tex
+   to get the interactive LaTeX shell help
+
 ** Org mode version information
 
    #+LATEX: \small
@@ -283,8 +297,6 @@ with its own headline, is displayed in a block:
     \end{beamercolorbox}
     #+END_EXPORT
 
-    
-    
 ** fullframe							:B_fullframe:
    :PROPERTIES:
    :BEAMER_env: fullframe
@@ -414,14 +426,44 @@ with its own headline, is displayed in a block:
    
    #+LATEX: \vskip0pt plus 1filll
    This text is on the bottom
-* Animations by overlays
+** reducing font size in bullet lists
+   #+LATEX: \footnotesize \let\small\footnotesize
+
+   This is a workaround to have the bullet list hierarchy not suddenly
+   produce bigger font for the lower hierarchy, if you only reset the
+   main font.
+   
+   #+begin_example
+   #+LATEX: \footnotesize \let\small\footnotesize
+   #+end_example
+
+   - example
+     - example
+       - example
+     - example
+   - example 
+
+** Text colors
+   Examples for colored text (using the xcolor package):
+   #+LATEX: \textcolor{green}{Text1}
+   #+LATEX: \textcolor{red!25!green}{Text2}
+   #+LATEX: \textcolor{red!50!green}{Text3}
+   #+LATEX: \textcolor{red!75!green}{Text4}
+   #+LATEX: \textcolor{red}{Text5}
+
+
+   TODO: Currently, only the xcolor default names are available,
+   because the xcolor gets pulled in without options by an
+   early dependency. Need to investigate.
+   
+* COMMENT Animations by overlays
 ** Highlighting text
 
    The double =@@= can be used to enclose active code. Here we use it to specify
    beamer code that will highlight text by specifying an overlay.
    
-   A *@@beamer:<2->@@useful* feature
-
+   A *@@beamer:<2->@@useful* feature   
+   
 ** Lists
    For the first list we use an =#+ATTR_BEAMER: :overlay +-= specification.
 
@@ -453,6 +495,15 @@ with its own headline, is displayed in a block:
    - and this one is revealed afterwards by using the BEAMER_act
      keyword in the PROPERTIES section.
      
+** revealing a picture
+   A picture will be uncovered next
+   
+   #+LATEX: \visible<2->{
+   #+ATTR_ORG: :width 800
+   #+ATTR_LATEX: :height 0.6\textheight
+   [[file:fig/simplegraph1.png]]
+   #+LATEX: }
+   
 ** Explicitely defining the transparancy of covered text
 #+LATEX: \setbeamercovered{invisible}
 *** First Block 						    :B_block:
@@ -546,7 +597,7 @@ with its own headline, is displayed in a block:
     The second block
     
 
-* Multiple Columns
+* COMMENT Multiple Columns
 ** Blocks in two columns
 
 *** A left block					      :B_block:BMCOL:
