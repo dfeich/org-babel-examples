@@ -76,31 +76,23 @@
    #+BEGIN_SRC elisp
      (defun dfeich/remove-lines-between-matches (startpat endpat)
        (goto-char (point-min))
-       (let ((beg (if (search-forward-regexp startpat nil t)
-                      (progn (goto-char (match-beginning 0))
-                             (forward-line 0)
-                             (point))
-                    nil))
-             (end (if (search-forward-regexp endpat nil t)
-                      (progn (goto-char (match-beginning 0))
-                             (forward-line 1)
-                             (point))
-                    (match-beginning 0)
-                    nil)))
-         ;;(message "debug:   beg: %s  end: %s" beg end)
-         (if (and beg end)
-             (delete-region beg end)))
-       )
+       (let ((rxpattern (concat "\\(" startpat "\\)\\|\\(" endpat "\\)"))
+             (startlist nil))
+         ;; if start found, add to list. If end found, delete region and remove from list
+         (while (search-forward-regexp rxpattern nil t)
+           (if (match-string 1)
+               (push (match-beginning 1) startlist)
+             (delete-region (pop startlist) (match-end 2))))))
 
      (defun dfeich/filter-tangled-src-block ()
-       (dfeich/remove-lines-between-matches ".*NOTANGLE-START.*" ".*NOTANGLE-END.*"))
+       (dfeich/remove-lines-between-matches "^ *#.*NOTANGLE-START.*" "^ *#.*NOTANGLE-END.*"))
 
      (add-hook 'org-babel-tangle-body-hook 'dfeich/filter-tangled-src-block)
    #+END_SRC
 
    #+RESULTS:
    | dfeich/filter-tangled-src-block |
-
+           
    A more advanced idea for python may be that import statements for
    tangled blocks will be collected into a head section of the tangled
    file (need to sort out doubles).
