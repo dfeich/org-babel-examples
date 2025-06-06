@@ -11,6 +11,16 @@
   I define all source block names with a prefix "lob", so that it will be easy to use expansion/completion
   for these functions.
 
+  When changing this file, I need to execute the following, to reload the babel functions
+  #+begin_src elisp :results value raw drawer
+  (dfeich/lib-babel-reinitialize)
+  #+end_src
+
+  #+RESULTS:
+  :results:
+  (~/Dropbox/org/examples/library-of-babel/dfeich-lob.org)
+  :end:
+
 * Table related functions
 ** PostAlignTables - Align and calculate multiple tables of an output block
 
@@ -428,7 +438,43 @@
    #+end_src
 
 
-   
+* Output cleaning
+** Clean control characters from output
+   #+NAME: lobPostStripCcontrolChars
+   #+BEGIN_SRC emacs-lisp :var input="*this*"
+   (replace-regexp-in-string "\x1b\\[[0-9;]*[a-zA-Z]" "" input)
+   #+END_SRC
+* Sysadmin tools
+   #+NAME: lobGetProcessSignals
+   #+HEADER: :var pid="12345"
+   #+begin_src bash :var pid="23552" :results output :dir /ssh:t3wn43.psi.ch:/
+     if [[ -z "$pid" ]]; then
+         echo "Error: no pid given (pid=$pid)?"
+         exit 1
+     fi
+     sigparse () {
+         i=0
+         # bits="$(printf "16i 2o %X p" "0x$1" | dc)" # variant for busybox
+         bits="$(printf "ibase=16; obase=2; %X\n" "0x$1" | bc)"
+         while [ -n "$bits" ] ; do
+             i="$(expr "$i" + 1)"
+             case "$bits" in
+     	    ,*1) printf " %s(%s)" "$(kill -l "$i")" "$i" ;;
+             esac
+             bits="${bits%?}"
+         done
+     }
+     ps up "$pid" | cat
+     if [[ $? -ne 0 ]]; then
+         echo "Error: Seems there is no such process?"
+         exit 1
+     fi
+
+     grep "^Sig...:" "/proc/${pid}/status" | while read a b ; do
+         printf "%s%s\n" "$a" "$(sigparse "$b")"
+     done # | fmt -t  # uncomment for pretty-printing
+   #+end_src
+  
 * Local Variables
 Local variables:
 org-confirm-babel-evaluate: nil
